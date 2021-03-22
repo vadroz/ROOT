@@ -1,0 +1,388 @@
+<%@ page import="mosregister.MosStrSku, rciutility.StoreSelect, java.util.*, java.text.*"%>
+<%
+   String [] sSelStr = request.getParameterValues("Str");
+   String [] sSelSts = request.getParameterValues("Sts");
+   String sReas = request.getParameter("Reas");
+   String sSort = request.getParameter("Sort");
+   String sType = request.getParameter("Type");
+   
+   String sWkend = request.getParameter("Wkend");
+   String sWkend2 = request.getParameter("Wkend2");
+   String sYear = request.getParameter("Year");
+   String sMonth = request.getParameter("Month");
+   String sDateLvl = request.getParameter("DateLvl");
+   
+   if(sSort==null || sSort.equals("")){sSort = "Tot"; } 
+   
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+     response.sendRedirect("SignOn1.jsp?TARGET=MosStrSku.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{	
+	String sStrAllowed = session.getAttribute("STORE").toString();
+	String sUser = session.getAttribute("USER").toString();
+	
+	 
+	MosStrSku ctlinfo = new MosStrSku();
+	ctlinfo.setSkuLst(sSelStr, sSelSts, sWkend, sWkend2, sYear, sMonth, sDateLvl
+			,  sReas, sType, sSort, sUser);
+	
+	int iNumOfSku = ctlinfo.getNumOfSku();
+	int iNumOfStr = ctlinfo.getNumOfStr();
+	
+	String sUserAuth = "";
+	if(sUser.equals("vrozen") || sUser.equals("psnyder") || sUser.equals("dharris")){sUserAuth = "ALL";}
+	else if(sUser.equals("gorozco") || sUser.equals("spaoli") || sUser.equals("kknight")){sUserAuth = "DM";}
+	boolean bAllowDlt = !sUserAuth.equals("");
+%>
+<html>
+<head>
+<LINK href="style/Page_0001.css" rel="stylesheet" type="text/css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+<!-- script src="script/Input_Behavior_001.js"></script -->
+
+<title>MOS Sku By Str Summary</title>
+
+<SCRIPT>
+
+//--------------- Global variables -----------------------
+var SelStr = [<%=ctlinfo.cvtToJavaScriptArray(sSelStr)%>];
+var SelSts = [<%=ctlinfo.cvtToJavaScriptArray(sSelSts)%>];
+var Week1 = "<%=sWkend%>";
+var Week2 = "<%=sWkend2%>";
+var Year = "<%=sYear%>";
+var Month = "<%=sMonth%>";
+var DatLvl = "<%=sDateLvl%>";
+var Type = "<%=sType%>";
+
+var Reas = "<%=sReas%>"
+var Sort = "<%=sSort%>"
+var User = "<%=sUser%>";
+
+var NumOfSku = "<%=iNumOfSku%>";
+var NumOfStr = "<%=iNumOfStr%>";
+
+ //--------------- End of Global variables ----------------
+
+//==============================================================================
+// initial process
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvItem"]);
+}
+//==============================================================================
+//hide panel
+//==============================================================================
+function hidePanel()
+{
+	document.all.dvItem.innerHTML = "";
+	document.all.dvItem.style.visibility = "hidden";
+}
+//==============================================================================
+//set approve flag for Ctl
+//==============================================================================
+function setApprove(ctl, i, check)
+{
+	url = "MosCtlSv.jsp?Ctl=" + ctl;
+	if(check) { url += "&Approved=Y"; }
+	else { url += "&Approved=N"; }
+	
+	url += "&Action=APPROVED_CTL";
+	window.frame1.location.href = url;
+	
+	var trnm = "trGrp" + i;
+	document.all[trnm].style.background = "lightgreen";
+}
+//==============================================================================
+//show exist options for selection
+//==============================================================================
+function showWaitBanner()
+{	
+	progressTime++; 
+	var html = "<table><tr style='font-size:12px;'>"
+	html += "<td>Please wait...</td>";  
+	
+	for(var i=0; i < progressTime; i++)
+	{ 
+		html += "<td style='background:blue;'>&nbsp;</td><td>&nbsp;</td>";
+	}
+	html += "</tr></table>";
+	
+	if(progressTime >= 10){ progressTime=0; }
+	
+	document.all.dvWait.innerHTML = html;
+	document.all.dvWait.style.height = "20px";
+	document.all.dvWait.style.pixelLeft= document.documentElement.scrollLeft + 340;
+	document.all.dvWait.style.pixelTop= document.documentElement.scrollTop + 205;
+	document.all.dvWait.style.backgroundColor="#cccfff"
+	document.all.dvWait.style.visibility = "visible";
+}
+
+
+
+//==============================================================================
+// drill down to control
+//==============================================================================
+function drilldown(str)
+{
+	var url="MosStrSku.jsp?&Wkend=<%=sWkend%>" 
+		+ "&Wkend2=<%=sWkend2%>&Year=<%=sYear%>&Month=<%=sMonth%>&DateLvl=<%=sDateLvl%>"
+		+ "&Reas=" + Reas;
+	
+	url += "&Str=" +  str;		
+	
+	for(var i=0; i < SelSts.length;i++)
+	{
+		url += "&Sts=" +  SelSts[i];
+	}	
+	
+	window.location.href = url;
+}
+//==============================================================================
+// switch displayed value
+//==============================================================================
+function switchType(type)
+{
+	var url="MosStrSku.jsp?&Wkend=<%=sWkend%>" 
+		+ "&Wkend2=<%=sWkend2%>&Year=<%=sYear%>&Month=<%=sMonth%>&DateLvl=<%=sDateLvl%>"
+		+ "&Reas=" + Reas
+		+ "&Type=" + type
+	
+	for(var i=0; i < SelStr.length;i++)
+	{
+		url += "&Str=" +  SelStr[i];
+	}
+	
+	for(var i=0; i < SelSts.length;i++)
+	{
+		url += "&Sts=" +  SelSts[i];
+	}	
+	
+	window.location.href = url;
+}
+//==============================================================================
+// sort by 
+//==============================================================================
+function sortby(sort)
+{
+	var url="MosStrSku.jsp?&Wkend=<%=sWkend%>" 
+		+ "&Wkend2=<%=sWkend2%>&Year=<%=sYear%>&Month=<%=sMonth%>&DateLvl=<%=sDateLvl%>"
+		+ "&Reas=<%=sReas%>"
+		+ "&Type=<%=sType%>"
+	
+	for(var i=0; i < SelStr.length;i++)
+	{
+		url += "&Str=" +  SelStr[i];
+	}
+	
+	for(var i=0; i < SelSts.length;i++)
+	{
+		url += "&Sts=" +  SelSts[i];
+	}	
+	
+	url += "&Sort=" + sort;
+	
+	window.location.href = url;
+}
+</SCRIPT>
+<script src="StrSelBox.js"></script>
+<script src="MoveBox.js"></script>
+<script src="String_Trim_function.js"></script>
+<script src="Get_Object_Position.js"></script>
+<script src="Calendar.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<div id="dvItem" class="dvItem"></div>
+<div id="dvWait" class="dvItem"></div>
+<!-------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src="" height="0" width="0"></iframe>
+<iframe  id="frame2"  src="" height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table class="tbl01">
+        <tr class="trHdr09">
+          <th colspan=45>
+            <b>Retail Concepts, Inc
+            <br>MOS Store Control Summary List 
+            <br>Reason: <%=sReas%>
+            <br>By  
+                  <%if(sType.equals("U")){%>Unit<%} 
+        		  else if(sType.equals("C")){%>Cost<%} 
+        		  else if(sType.equals("R")){%>Retail<%}%>
+            <br><br>
+              <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+              <a href="MosStrCtlSel.jsp"><font color="red" size="-1">Selection</font></a>&#62;
+              
+              <font size="-1">This Page.</font> &nbsp; &nbsp; &nbsp; &nbsp; 
+              <br>
+                <INPUT name="Type" type="radio" onclick="switchType(this.value)" value="U" <%if(sType.equals("U")){%>checked<%}%>>Unit &nbsp; 
+                <INPUT name="Type" type="radio" onclick="switchType(this.value)" value="C" <%if(sType.equals("C")){%>checked<%}%>>Cost &nbsp; 
+                <INPUT name="Type" type="radio" onclick="switchType(this.value)" value="R" <%if(sType.equals("R")){%>checked<%}%>>Retail &nbsp;                   
+          </th>
+        </tr>
+        <tr>
+          <td>  
+      <table class="tbl02">
+        <tr class="trHdr01">
+            <th class="th02" rowspan=2><a href="javascript: sortby('Div')">Div</a></th>
+        	<th class="th02" rowspan=2><a href="javascript: sortby('Sku')">Sku</a></th>        	
+        	<th class="th02" rowspan=2><a href="javascript: sortby('Desc')">Description</th>
+        	<th class="th02" rowspan=2><a href="javascript: sortby('VenSty')">Vendor Style</a></th>
+        	<th class="th02" rowspan=2><a href="javascript: sortby('VenNm')">Vendor Name</a></th>
+        	<th class="th02" rowspan=2>Color</th>
+        	<th class="th02" rowspan=2>Size</th>
+        	<th class="th02" rowspan=2>Last<br>Received</th>
+        	<th class="th02" rowspan=2>Last<br>Sold</th>
+        	<th class="th02" rowspan=2>Last<br>Markdown</th>
+        	<th class="th02" colspan="<%=iNumOfStr%>">Stores</th>
+        	<th class="th02" rowspan=2><a href="javascript: sortby('Tot')">Total</a></th>
+        </tr>
+        <tr class="trHdr01">        
+        	<%for(int j=0; j < iNumOfStr; j++) {%>
+           		<th class="th02"><%=sSelStr[j]%></th>
+        	<%}%>
+        </tr>
+<!------------------------------- order/sku --------------------------------->
+           <%String sSvOrd = "";
+             String sTrCls = "trDtl06"; 
+             int iArg = -1;
+           %>
+           <%for(int i=0; i < iNumOfSku; i++) {        	   
+        	   	ctlinfo.setSku();
+       			String sSku = ctlinfo.getSku();
+       			String sDesc = ctlinfo.getDesc();
+       			String sVenSty = ctlinfo.getVenSty();
+       			String sVenNm = ctlinfo.getVenNm();
+       			String sClrNm = ctlinfo.getClrNm();
+       			String sSizNm = ctlinfo.getSizNm();
+       			String [] sExtQty = ctlinfo.getExtQty();
+       			String [] sExtCost = ctlinfo.getExtCost();
+       			String [] sExtRet = ctlinfo.getExtRet();
+       			String sTotQty = ctlinfo.getTotQty();
+       			String sTotCost = ctlinfo.getTotCost();
+       			String sTotRet = ctlinfo.getTotRet();
+       			String sDiv = ctlinfo.getDiv();
+       			String sLstRctDt = ctlinfo.getLstRctDt();
+       			String sLstSoldDt = ctlinfo.getLstSoldDt();
+       			String sLstMkdnDt = ctlinfo.getLstMkdnDt();
+       			
+   				if(sTrCls.equals("trDtl21")){sTrCls = "trDtl20";}
+   				else {sTrCls = "trDtl21";} 
+   				
+   				for(int j = 0; j < iNumOfStr; j++)
+   				{
+   					if( sExtQty[j].equals("0")){ sExtQty[j] = "&nbsp;"; }
+   					if( sExtCost[j].equals(".00")){sExtCost[j] = "&nbsp;"; }
+   					if( sExtRet[j].equals(".00")){sExtRet[j] = "&nbsp;";  }
+   				}
+   				
+   				String [] sAmt = new String[iNumOfStr];
+   				for(int j = 0; j < iNumOfStr; j++)
+   				{
+   					if(sType.equals("U")){sAmt[j] = sExtQty[j]; }
+   					else if(sType.equals("C")){sAmt[j] = sExtCost[j]; }
+   					else if(sType.equals("R")){sAmt[j] = sExtRet[j]; }
+   				}
+           %>                           
+           <tr id="trGrp<%=i%>" class="<%=sTrCls%>">
+             <td id="tdStr<%=i%>" class="td12" nowrap><%=sDiv%></td>
+             <td id="tdStr<%=i%>" class="td12" nowrap><%=sSku%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sDesc%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sVenSty%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sVenNm%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sClrNm%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sSizNm%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sLstRctDt%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sLstSoldDt%></td>
+             <td id="tdStr<%=i%>" class="td11" nowrap><%=sLstMkdnDt%></td>
+             
+             <%for(int j = 0; j < iNumOfStr; j++){%>
+        		<td id="tdCost<%=i%>" class="td12" nowrap>
+        		   <%if(!sType.equals("U") && !sAmt[j].equals("&nbsp;")){%>$<%}%><%=sAmt[j]%>
+        		</td>
+        	 <%}%>
+        	 
+             <td id="tdCost<%=i%>" class="td12" nowrap>
+        		  <%if(sType.equals("U")){%><%=sTotQty%><%} 
+        		  else if(sType.equals("C")){%>$<%=sTotCost%><%} 
+        		  else if(sType.equals("R")){%>$<%=sTotRet%><%}%>
+        	 </td>
+           </tr>
+           <%}%>
+           
+           <tr class="Divider"><td colspan=50>&nbsp;</td></tr>
+             
+           <!-- ======Total ================ -->
+           <%
+       	    ctlinfo.setTotal();
+       		String [] sExtQty = ctlinfo.getExtQty();
+       		String [] sExtCost = ctlinfo.getExtCost();
+       		String [] sExtRet = ctlinfo.getExtRet();
+       		String sTotQty = ctlinfo.getTotQty();
+       		String sTotCost = ctlinfo.getTotCost();
+       		String sTotRet = ctlinfo.getTotRet();
+       		
+       		for(int j = 0; j < iNumOfStr; j++)
+			{
+				if( sExtQty[j].equals("0")){ sExtQty[j] = "&nbsp;"; }
+				if( sExtCost[j].equals(".00")){sExtCost[j] = "&nbsp;"; }
+				if( sExtRet[j].equals(".00")){sExtRet[j] = "&nbsp;";  }
+			}
+			
+			String [] sAmt = new String[iNumOfStr];
+			for(int j = 0; j < iNumOfStr; j++)
+			{
+				if(sType.equals("U")){sAmt[j] = sExtQty[j]; }
+				else if(sType.equals("C")){sAmt[j] = sExtCost[j]; }
+				else if(sType.equals("R")){sAmt[j] = sExtRet[j]; }
+			}
+           %>
+           <tr id="trTot" class="trDtl03">
+             <td class="td18" nowrap colspan=2><b>Total</b></td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             <td id="tdCtlInfo" class="td12" nowrap>&nbsp;</td>
+             
+             
+             <%for(int j = 0; j < iNumOfStr; j++){%>
+        		<td class="td12" nowrap>
+        			<b><%if(!sType.equals("U") && !sAmt[j].equals("&nbsp;")){%>$<%}%><%=sAmt[j]%></b>
+        		</td>
+        	 <%}%>
+        	 
+        	 <td class="td12" nowrap><b>
+        		  <%if(sType.equals("U")){%><%=sTotQty%><%} 
+        		  else if(sType.equals("C")){%>$<%=sTotCost%><%} 
+        		  else if(sType.equals("R")){%>$<%=sTotRet%><%}%>
+        		  </b>
+        	 </td>
+           </tr>
+             
+         </table>
+      <!----------------------- end of table ------------------------>
+      </tr>
+   </table>
+ </body>
+</html>
+<%
+ctlinfo.disconnect();
+ctlinfo = null;
+}
+%>

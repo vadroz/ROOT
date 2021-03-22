@@ -1,0 +1,576 @@
+<%@ page import=" rciutility.ClassSelect"%>
+<%
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null || session.getAttribute("ECOMDWNL")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=EComItmLstSel.jsp&APPL=ALL");
+   }
+   else
+   {
+      boolean bDwnLoad = session.getAttribute("ECOMDWNL") != null;
+      ClassSelect divsel = null;
+      divsel = new ClassSelect();
+      String sDiv = divsel.getDivNum();
+      String sDivName = divsel.getDivName();
+      String sDpt = divsel.getDptNum();
+      String sDptName = divsel.getDptName();
+      String sDptGroup = divsel.getDptGroup();
+%>
+
+<style>
+  .Small {font-family: times; font-size:10px }
+  .Small1 {font-family: times; font-size:10px; text-transform:uppercase; }
+
+  td.Cell {font-size:12px; text-align:right; vertical-align:top}
+  td.Cell1 {font-size:12px; text-align:left; vertical-align:top}
+  td.Cell2 {font-size:12px; text-align:center; vertical-align:top; font-weight:bold;text-decoration:underline}
+
+  div.dvVendor { position:absolute; visibility:hidden; border: gray solid 1px;
+                 width:300; height:250;background-color:white; z-index:10; text-align:left; font-size:10px}
+  div.dvInternal { overflow: auto;border: none; width:300; height:220;
+                   background-color:white; z-index:10; text-align:left; font-size:10px}
+  </style>
+
+<script LANGUAGE="JavaScript1.2" src="Calendar.js">
+</script>
+
+
+<script name="javascript">
+var Vendor = null;
+var VenName = null;
+var LastTr = -1;
+var LastVen = "";
+
+//==============================================================================
+// run on loading
+//==============================================================================
+function bodyLoad()
+{
+  document.all.tdDate1.style.display="block"
+  document.all.tdDate2.style.display="none"
+
+  doDivSelect(null);
+}
+//==============================================================================
+// show date selection
+//==============================================================================
+function showDates(show)
+{
+   document.all.tdDate1.style.display="none"
+   document.all.tdDate2.style.display="block"
+   doSelDate()
+}
+//==============================================================================
+// show optional date selection button
+//==============================================================================
+function showAllDates()
+{
+   document.all.tdDate1.style.display="block"
+   document.all.tdDate2.style.display="none"
+   document.all.FromDate.value = "ALL"
+   document.all.ToDate.value = "ALL"
+}
+//==============================================================================
+// populate date with yesterdate
+//==============================================================================
+function doSelDate(){
+  var df = document.all;
+  var date = new Date(new Date() - 86400000);
+  df.FromDate.value = (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear()
+  df.ToDate.value = (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear()
+}
+//==============================================================================
+// populate date with yesterdate
+//==============================================================================
+function  setDate(direction, id)
+{
+  var button = document.all[id];
+  var date = new Date(button.value);
+
+
+  if(direction == "DOWN") date = new Date(new Date(date) - 86400000);
+  else if(direction == "UP") date = new Date(new Date(date) - -86400000);
+  button.value = (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear()
+}
+//==============================================================================
+// popilate division selection
+//==============================================================================
+function doDivSelect(id) {
+    var df = document.all;
+    var divisions = [<%=sDiv%>];
+    var divisionNames = [<%=sDivName%>];
+    var depts = [<%=sDpt%>];
+    var deptNames = [<%=sDptName%>];
+    var dep_div = [<%=sDptGroup%>];
+    var chg = id;
+
+    var allowed;
+
+    if (id == null || id == 0)
+    {
+        //  populate the division list
+        var start = <%if(bDwnLoad) {%>0<%} else {%>1<%}%>
+        for (var i = start, j=0; i < divisions.length; i++, j++)
+        {
+           df.selDiv.options[j] = new Option(divisionNames[i],divisions[i]);
+        }
+        if (id == null && document.all.DivArg.value.trim() > 0) id = eval(document.all.DivArg.value.trim());
+        if (id == null) id = 0;
+        df.selDiv.selectedIndex = id;
+    }
+
+    df.DivName.value = df.selDiv.options[id].text
+    df.Div.value = df.selDiv.options[id].value
+    df.DivArg.value = id
+
+    allowed = dep_div[id + <%if(bDwnLoad) {%>0<%} else {%>1<%}%>].split(":");
+
+    //  clear current depts
+    for (var i = df.selDpt.length; i >= 0; i--)
+    {
+       df.selDpt.options[i] = null;
+    }
+
+    //  if all are to be displayed
+    if (allowed[0] == "all")
+    {
+       for (var i = 0; i < depts.length; i++)
+            df.selDpt.options[i] = new Option(deptNames[i],depts[i]);
+    }
+    //  else display the desired depts
+    else
+    {
+       for (var i = 0; i < allowed.length; i++)
+           df.selDpt.options[i] = new Option(deptNames[allowed[i]], depts[allowed[i]]);
+    }
+
+    if(chg!=null)
+    {
+      showDptSelect(0);
+      showClsSelect(0);
+    }
+}
+//==============================================================================
+// show selected Department Selected
+//==============================================================================
+function showDptSelect(id)
+{
+   document.all.DptName.value = document.all.selDpt.options[id].text
+   document.all.Dpt.value = document.all.selDpt.options[id].value
+
+   // clear class
+   for(var i = document.all.selCls.length; i >= 0; i--) {document.all.selCls.options[i] = null;}
+   document.all.selCls.options[0] = new Option("All Classes", "ALL")
+   document.all.selCls.options[0] = new Option("All Classes", "ALL")
+   document.all.selCls.selectedIndex=0;
+   document.all.selCls.size=1
+}
+//==============================================================================
+// show selected Department Selected
+//==============================================================================
+function showClsSelect(id)
+{
+   document.all.ClsName.value = document.all.selCls.options[id].text
+   document.all.Cls.value = document.all.selCls.options[id].value
+}
+//==============================================================================
+// show selected Department Selected
+//==============================================================================
+function showVenSelect(ven, vennm)
+{
+   document.all.VenName.value = vennm
+   document.all.Ven.value = ven
+}
+//==============================================================================
+// retreive classes
+//==============================================================================
+function rtvClasses()
+{
+   var div = document.all.Div.value
+   var dpt = document.all.Dpt.value
+
+   var url = "RetreiveDivDptCls.jsp?"
+           + "Division=" + div
+           + "&Department=" + dpt;
+   //alert(url);
+   //window.location.href = url;
+   window.frame1.location = url;
+}
+//==============================================================================
+// retreive vendors
+//==============================================================================
+function rtvVendors()
+{
+   if (Vendor==null)
+   {
+      var url = "RetreiveVendorList.jsp"
+      //alert(url);
+      //window.location.href = url;
+      window.frame1.location = url;
+   }
+   else { document.all.dvVendor.style.visibility = "visible"; }
+}
+
+//==============================================================================
+// show selected classes
+//==============================================================================
+function showClasses(cls, clsName)
+{
+   // clear
+   for(var i = document.all.selCls.length; i >= 0; i--) {document.all.selCls.options[i] = null;}
+
+   //popilate
+   for(var i=0; i < cls.length; i++)
+   {
+     document.all.selCls.options[i] = new Option(clsName[i], cls[i]);
+   }
+   document.all.selCls.size=5
+}
+//==============================================================================
+// popilate division selection
+//==============================================================================
+function showVendors(ven, venName)
+{
+   Vendor = ven;
+   VenName = venName;
+   var html = "<input name='FndVen' class='Small' size=4 maxlength=4>&nbsp;"
+     + "<input name='FndVenName' class='Small1' size=25 maxlength=25>&nbsp;"
+     + "<button onclick='findSelVen()' class='Small'>Find</button>&nbsp;"
+     + "<button onclick='document.all.dvVendor.style.visibility=&#34;hidden&#34;' class='Small'>Close</button><br>"
+   var dummy = "<table>"
+
+   html += "<div id='dvInt' class='dvInternal'>"
+         + "<table border=0 width='100%' cellPadding=0 cellSpacing=0 style='font-size:10px;'>"
+   for(var i=0; i < ven.length; i++)
+   {
+     html += "<tr id='trVen'><td style='cursor:default;' onclick='javascript: showVenSelect(&#34;" + ven[i] + "&#34;, &#34;" + venName[i] + "&#34;)'>" + venName[i] + "</td></tr>"
+   }
+   html += "</table></div>"
+   var pos = objPosition(document.all.VenName)
+
+   document.all.dvVendor.innerHTML = html;
+   document.all.dvVendor.style.pixelLeft= pos[0];
+   document.all.dvVendor.style.pixelTop= pos[1] + 25;
+   document.all.dvVendor.style.visibility = "visible";
+}
+//==============================================================================
+// find selected vendor
+//==============================================================================
+function findSelVen()
+{
+  var ven = document.all.FndVen.value.trim().toUpperCase();
+  var vennm = document.all.FndVenName.value.trim().toUpperCase();
+  var dvVen = document.all.dvVendor
+  var fnd = false;
+
+  // zeroed last search
+  if(ven != "" && ven != " " || LastVen != vennm) LastTr=-1;
+  LastVen = vennm;
+
+  for(var i=LastTr+1; i < Vendor.length; i++)
+  {
+     if(ven != "" && ven != " " && ven == Vendor[i]) { fnd = true; LastTr=i; break}
+     else if(vennm != "" && vennm != " " && VenName[i].indexOf(vennm) >= 0) { fnd = true; LastTr=i; break}
+     document.all.trVen[i].style.color="black";
+  }
+
+  // if found set value and scroll div to the found record
+  if(fnd)
+  {
+     var pos = document.all.trVen[LastTr].offsetTop;
+     document.all.trVen[LastTr].style.color="red";
+     dvInt.scrollTop=pos;
+  }
+  else { LastTr=-1; }
+}
+//==============================================================================
+// find object postition
+//==============================================================================
+function objPosition(obj)
+{
+   var pos = new Array(2);
+   pos[0] = 0;
+   pos[1] = 0;
+   // position menu on the screen
+   if (obj.offsetParent)
+   {
+     while (obj.offsetParent)
+     {
+       pos[0] += obj.offsetLeft
+       pos[1] += obj.offsetTop
+       obj = obj.offsetParent;
+     }
+   }
+   else if (obj.x)
+   {
+     pos[0] += obj.x;
+     pos[1] += obj.y;
+   }
+   return pos;
+}
+
+//==============================================================================
+// Validate form
+//==============================================================================
+function Validate(dwnl)
+{
+  var error = false;
+  var msg = "";
+
+  var div = document.all.Div.value.trim();
+  var dpt = document.all.Dpt.value.trim();
+  var cls = document.all.Cls.value.trim();
+  var ven = document.all.Ven.value.trim();
+  var web = new Array();
+  var webfound = false;
+  var frdate = document.all.FromDate.value;
+  var todate = document.all.ToDate.value;
+  var mark = 0;
+  var site = 'ALL';
+  for(var i=0; i < document.all.Site.length; i++)
+  {
+     if (document.all.Site[i].checked) { site = document.all.Site[i].value; }
+  }
+
+  // get selected web attributes
+  for(var i=0; i < document.all.Web.length; i++)
+  {
+      if(document.all.Web[i].checked==true){ web[i]=document.all.Web[i].value; webfound=true}
+  }
+
+
+
+  if(!webfound){msg += "Check at least 1 Web Attributes\n"; error=true; }
+  if(!webfound){msg += "Check at least 1 Web Attributes\n"; error=true; }
+
+  if(document.all.MarkDwn[0].checked) { mark = document.all.MarkDwn[0].value }
+  else if(document.all.MarkDwn[1].checked) { mark = document.all.MarkDwn[1].value }
+
+  var parent = document.all.Parent.value.trim();
+  if(isNaN(parent)){ msg += "Parent must be numeric\n"; error=true; }
+  else if(eval(parent) > 0 && parent.length < 9){ msg +=  " Parent must contains at least 9 digits.\n"; error=true; }
+
+  var pon = document.all.PON.value.trim();
+  if(isNaN(pon)){ msg += "P.O. number must be numeric\n"; error=true; }
+
+  var modelyr = document.all.ModelYr.value.trim();
+  if(isNaN(modelyr)){ msg += "Model year number must be numeric\n"; error=true; }
+
+  var mapexpdt = document.all.MapExpDt.value.trim();
+
+  if(eval(parent) > 0 && eval(pon) > 0 && pon != "" && parent != ""){ msg += "Select only Parent or P.O. number.\n"; error=true; }
+
+  var action;
+  var excel = "N"
+  if (document.all.Excel.checked) { excel = "Y"; }
+
+  if (error) alert(msg);
+  else{ sbmPlan(div, dpt, cls, ven, web, site, frdate, todate, mark, dwnl, excel,
+        parent, pon, modelyr, mapexpdt) }
+  return error == false;
+}
+//==============================================================================
+// Submit OTB Planning
+//==============================================================================
+function sbmPlan(div, dpt, cls, ven, web, site, frdate, todate, mark, dwnl, excel,
+                 parent, pon, modelyr, mapexpdt)
+{
+  var url = null;
+  url = "EComItmLst.jsp?"
+
+  url += "Div=" + div
+      + "&Dpt=" + dpt
+      + "&Cls=" + cls
+      + "&Ven=" + ven
+
+  for(var i=0; i < web.length; i++)  { if(web[i] != null) url += "&Web=" + web[i];  }
+
+  url += "&From=" + frdate
+       + "&To=" + todate
+       + "&Site=" + site
+  url += "&MarkDownl=" + mark
+       + "&Excel=" + excel
+       + "&Parent=" + parent
+       + "&Pon=" + pon
+       + "&ModelYr=" + modelyr
+       + "&MapExpDt=" + mapexpdt
+
+  //alert(url)
+  window.location.href=url;
+}
+</script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+
+
+<HTML><HEAD><meta http-equiv="refresh">
+
+</HEAD>
+<BODY onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<div id="dvVendor" class="dvVendor"></div>
+<!-------------------------------------------------------------------->
+<iframe id="frame1" src="" frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD colSpan=2 height="20%"><IMG
+    src="Sun_ski_logo4.png"></TD></TR>
+  <TR bgColor=moccasin>
+    <TD vAlign=top width="15%" bgColor=#a7b5e8><FONT face=Arial color=#445193
+      size=2>&nbsp;&nbsp;<A class=blue
+      href="/">Home</A></FONT><FONT
+      face=Arial color=#445193 size=1>
+      <H5>&nbsp;&nbsp;Miscellaneous</H5>&nbsp;&nbsp;<A class=blue
+      href="mailto:">Send e-mail</A> <BR>&nbsp;&nbsp;<A
+      class=blue href="http://sunandski.com/">Our Internet</A> <BR></FONT></TD>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>E-Commerce List - Selection</B>
+
+      <TABLE border=0>
+        <TBODY>
+        <!-- ------------- Division  --------------------------------- -->
+        <TR>
+          <TD class="Cell" >Division:</TD>
+          <TD class="Cell1" >
+             <input class="Small" name="DivName" size=50 readonly>
+             <input class="Small" name="Div" type="hidden">
+             <input class="Small" name="DivArg" type="hidden" value=0><br>
+             <SELECT name="selDiv" class="Small" onchange="doDivSelect(this.selectedIndex);" size=5>
+                <OPTION value="ALL">All Divisions</OPTION>
+             </SELECT>
+          </TD>
+        <!-- ======================= Department ============================ -->
+          <TD class="Cell">Department:</TD>
+          <TD class="Cell1">
+             <input class="Small" name="DptName" size=50 value="All Departments" readonly>
+             <input class="Small" name="Dpt" type="hidden" value="ALL"><br>
+             <SELECT class="Small" name=selDpt onchange="showDptSelect(this.selectedIndex);"  size=5>
+                <OPTION value="ALL">All Departments</OPTION>
+             </SELECT>
+          </TD>
+        </TR>
+        <TR>
+            <TD class="Cell" >&nbsp;</TD>
+         </TR>
+        <!-- ========================== Class ============================== -->
+        <TR>
+            <TD class="Cell" >Class:</TD>
+            <TD class="Cell1" nowrap>
+              <input class="Small" name="ClsName" size=50 value="All Classes" readonly>
+              <input class="Small" name="Cls" type="hidden" value="ALL">
+              <button class="Small" name=GetCls onClick="rtvClasses()">Select Class</button><br>
+              <SELECT name="selCls" class="Small" onchange="showClsSelect(this.selectedIndex);" size=1>
+                  <OPTION value="ALL">All Classes</OPTION>
+              </SELECT>
+            </TD>
+        <!-- ========================== Vendor ============================== -->
+            <TD class="Cell" >Vendor:</TD>
+            <TD class="Cell1" nowrap>
+              <input class="Small" name="VenName" size=50 value="All Vendors" readonly>
+              <input class="Small" name="Ven" type="hidden" value="ALL">
+              <button class="Small" name=GetVen onClick="rtvVendors()">Select Vendors</button><br>
+            </TD>
+        </TR>
+        <!-- =============================================================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR>
+            <TD class="Cell2" colspan=4>Attributes</TD>
+        </tr>
+        <tr>
+            <TD class="Cell" >Web:</TD>
+            <TD class="Cell1">
+              <input class="Small" name="Web" type="checkbox" value="1" checked>Info &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Web" type="checkbox" value="2" checked>Sales &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Web" type="checkbox" value="0">None &nbsp;&nbsp;&nbsp;&nbsp;
+            </TD>
+        </TR>
+
+       <!-- =============================================================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR>
+            <TD class="Cell2" colspan=4>Sites</TD>
+        </tr>
+        <tr>
+            <TD class="Cell1" colspan=4>Site:
+              <input class="Small" name="Site" type="radio" value="SASS" >Sun & Ski Sports&nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Site" type="radio" value="SKCH" >Ski Chalet &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Site" type="radio" value="SSTP" >Ski Stop &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Site" type="radio" value="RLHD" >Railhead Board Only &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Site" type="radio" value="JOJO" >Joe Johnes &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="Site" type="radio" value="ALL" checked >All &nbsp;&nbsp;&nbsp;&nbsp;
+            </TD>
+        </TR>
+
+        <!-- ============== select latest changes ========================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR><TD class="Cell2" colspan=5>Select dates when item was added or modified</TD></tr>
+
+        <TR>
+          <TD id="tdDate1" colspan=4 align=center style="padding-top: 10px;" >
+             <button id="btnSelDates" onclick="showDates()">Optional Date Selection</button>
+          </td>
+          <TD id="tdDate2" colspan=4 align=center style="padding-top: 10px;" >
+             <b>From Date:</b>
+              <button class="Small" name="Down" onClick="setDate('DOWN', 'FromDate')">&#60;</button>
+              <input class="Small" name="FromDate" type="text" value="ALL" size=10 maxlength=10>&nbsp;
+              <button class="Small" name="Up" onClick="setDate('UP', 'FromDate')">&#62;</button>
+              &nbsp;&nbsp;&nbsp;
+              <a href="javascript:showCalendar(1, null, null, 200, 400, document.all.FromDate)" >
+              <img src="calendar.gif" alt="Calendar Prompt" width="34" height="21"></a>
+
+              <%for(int i=0; i < 20; i++){%>&nbsp;<%}%>
+
+              <b>To Date:</b>
+              <button class="Small" name="Down" onClick="setDate('DOWN', 'ToDate')">&#60;</button>
+              <input class="Small" name="ToDate" type="text" value="ALL" size=10 maxlength=10>&nbsp;
+              <button class="Small" name="Up" onClick="setDate('UP', 'ToDate')">&#62;</button>
+              &nbsp;&nbsp;&nbsp;
+              <a href="javascript:showCalendar(1, null, null, 200, 400, document.all.ToDate)" >
+              <img src="calendar.gif" alt="Calendar Prompt" width="34" height="21"></a><br>
+              <button id="btnSelDates" onclick="showAllDates()">All Date</button>
+          </TD>
+        </TR>
+        <!-- =============================================================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR>
+            <TD class="Cell2" colspan=3>Marked to Download</TD>
+        </tr>
+        <tr>
+            <TD class="Cell" >&nbsp;</TD>
+            <TD class="Cell1" colspan=5>
+              <input class="Small" name="MarkDwn" type="radio" value="2">Marked &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="MarkDwn" type="radio" value="1">Unmarked &nbsp;&nbsp;&nbsp;&nbsp;
+              <input class="Small" name="MarkDwn" type="radio" value="0" checked>Both &nbsp;&nbsp;&nbsp;&nbsp;
+        <!-- =============================================================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR>
+            <TD class="Cell2" colspan=3>Alternative Selection:</TD>
+        </tr>
+        <tr>
+            <TD class="Cell1" colspan=2>Parent: &nbsp;<input class="Small" name="Parent" size=13 maxlength=13></TD>
+            <TD class="Cell1" colspan=2>P.O. number: &nbsp;<input class="Small" name="PON" size=10 maxlength=10></TD>
+        </tr>
+        <tr>
+            <TD class="Cell1" colspan=2>Model Year: &nbsp;<input class="Small" name="ModelYr" size=4 maxlength=4> &nbsp; &nbsp; - and / or - </TD>
+            <TD class="Cell1" colspan=2>Map Expiration Date: &nbsp;<input class="Small" name="MapExpDt" size=10 maxlength=10></TD>
+        </tr>
+        <!-- =============================================================== -->
+        <TR><TD style="background: darkred; font-size:1px;" colspan="4" ></TD></TR>
+        <TR>
+            <TD align=center colSpan=5>
+               <INPUT type=submit value=Submit name=SUBMIT onClick="Validate(<%=bDwnLoad%>)">
+               <input class="Small" name="Excel" type="checkbox" value="Y">as Excel
+           </TD>
+          </TR>
+         </TBODY>
+        </TABLE>
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>
+<%}%>

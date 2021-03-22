@@ -1,0 +1,172 @@
+package rciutility;
+
+import java.util.*;
+import java.text.*;
+import rciutility.CallAs400SrvPgm;
+
+public class SetStrEmp {
+  private int iEmp = 0;
+  private String [] sEmp = null;
+  private String [] sEmpName = null;
+  private String [] sDptName = null;
+  private String [] sDptType = null;
+  private String [] sTimeOffType = null;
+
+  private int iStr = 0;
+  private String [] sStr = null;
+  private String [] sStrName = null;
+
+
+  CallAs400SrvPgm srv = null;
+
+  // Load 1 store
+  public SetStrEmp(String sStore) {
+    // Call AS400 service program that generate table data
+    srv = new CallAs400SrvPgm("RCI", "EMPLST" );
+        // set department list
+    String [] sParam = null;
+    int [] iPrmLng = null;
+    srv.runSrvPgmProc("SETDEPT", sParam, iPrmLng);
+
+
+    setEmp(sStore);
+  }
+
+  // Load all Stores
+  public SetStrEmp() {
+    // Call AS400 service program that generate table data
+    srv = new CallAs400SrvPgm("RCI", "EMPLST" );
+    String [] sParam = new String[]{" "};
+    int [] iPrmLng = {5};
+    srv.runSrvPgmProc("SETALLSTR", sParam, iPrmLng);
+    iStr = Integer.parseInt(srv.getOutput(1));
+    // set department list
+    sParam = null;
+    iPrmLng = null;
+    srv.runSrvPgmProc("SETDEPT", sParam, iPrmLng);
+
+    setStr();
+  }
+
+
+  // Set Employee Array
+  public void setEmp(String sStore){
+    String [] sParam = new String[]{sStore};
+    int [] iPrmLng = {5};
+    srv.runSrvPgmProc("SETEMP", sParam, iPrmLng);
+
+    sParam = new String[]{" " , " ", " ", " ", " ", " "};
+    iPrmLng = new int[]{5, 8000, 36000, 50000, 8000, 10000};
+    srv.runSrvPgmProc("GETEMP", sParam, iPrmLng);
+    iEmp = Integer.parseInt(srv.getOutput(1));
+    sEmp = parseArray(srv.getOutput(2), iEmp, 4);
+    sEmpName = parseArray(srv.getOutput(3), iEmp, 19);
+    sDptName = parseArray(srv.getOutput(4), iEmp, 25);
+    sDptType = parseArray(srv.getOutput(5), iEmp, 4);
+    sTimeOffType = parseArray(srv.getOutput(6), iEmp, 5);
+  }
+
+  // Set Store Array
+  private void setStr(){
+    String [] sParam = new String[]{" " , " "};
+    int [] iPrmLng = {200, 1250};
+    srv.runSrvPgmProc("GETSTR", sParam, iPrmLng);
+    sStr = parseArray(srv.getOutput(1), iStr, 2);
+    sStrName = parseArray(srv.getOutput(2), iStr, 25);
+  }
+
+  // parse array from String
+  String[] parseArray(String sParm, int iNum, int iLng){
+    String [] sArr = new String[iNum];
+    String sElem = new String();
+    int iDtaLng = 0;
+    for (int i=0; i<iNum; i++){
+      sElem = sParm.substring(i*iLng, i*iLng + iLng);
+      iDtaLng = 0;//sElem.indexOf(" ");
+      if (iDtaLng <= 0) iDtaLng = iLng;
+      sArr[i] = sElem.substring(0,iDtaLng);
+    }
+    return sArr;
+  }
+
+/** --------------- Public methods to reach results ------------------**/
+  public int getNumOfEmp(){return iEmp;}
+  public String [] getEmpNum(){return sEmp;}
+  public String [] getEmpName(){return sEmpName;}
+  public String [] getDptName(){return sDptName;}
+  public String [] getDptType(){return sDptType;}
+  public String [] getTimeOffType(){return sTimeOffType;}
+  public String getTimeOffTypeJSA(){return cvtToJavaScriptArray(sTimeOffType);}
+
+  public int getNumOfStr(){return iStr;}
+  public String [] getStr(){return sStr;}
+  public String [] getStrName(){return sStrName;}
+/** ------------------------------------------------------------------**/
+// populate String as JavaScript style array
+// get week as javascript array
+  private String cvtToJavaScriptArray(String [] sArray)
+  {
+    StringBuffer sJvaScrArr = new StringBuffer();
+    String sComa = " ";
+    for(int i=0; i < sArray.length; i++)
+    {
+      sJvaScrArr.append(sComa + "'" + sArray[i] + "'");
+      sComa = ", ";
+    }
+    return sJvaScrArr.toString();
+  }
+
+
+  // disconnect job
+public void disconnect(){ srv.disconnect(); }
+
+  public static void main(String[] args) {
+
+  SetStrEmp getEmp = new SetStrEmp("99");
+   int iEmp = getEmp.getNumOfEmp();
+   String [] sEmpNum = getEmp.getEmpNum();
+   String [] sEmpName = getEmp.getEmpName();
+   String [] sDptName = getEmp.getDptName();
+   String [] sDptType = getEmp.getDptType();
+   String [] sTimeOffType = getEmp.getTimeOffType();
+
+  for(int j=0; j<iEmp;j++){
+    System.out.println(sEmpNum[j]
+       + "  " + sDptName[j]
+       + "  " + sEmpName[j]
+       + "  " + sTimeOffType[j]);
+      }
+
+     System.out.println(getEmp.getTimeOffTypeJSA());
+
+
+/**    SetStrEmp getEmp = new SetStrEmp();
+   int iStr = getEmp.getNumOfStr();
+   String [] sStr = getEmp.getStr();
+   String [] sStrName = getEmp.getStrName();
+
+
+
+    System.out.println(iStr);
+    for(int i=0; i<3;i++){
+      System.out.println("**********************************************");
+      System.out.println(sStr[i]
+                + "  " + sStrName[i]);
+
+      getEmp.setEmp(sStr[i]);
+      int iEmp = getEmp.getNumOfEmp();
+      String [] sEmp = getEmp.getEmpNum();
+      String [] sEmpName = getEmp.getEmpName();
+      String [] sDptName = getEmp.getDptName();
+
+      System.out.println("==============================================");
+      System.out.println(iEmp);
+      for(int j=0; j<iEmp;j++){
+        System.out.println(sEmp[j]
+                  + "  " + sDptName[j]
+                  + "  " + sEmpName[j]);
+      }
+    }**/
+    getEmp.disconnect();
+  }
+}

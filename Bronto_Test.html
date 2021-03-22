@@ -1,0 +1,25 @@
+<HTML>
+<head>
+<meta http-equiv="content-type" content="application/soap+xml; charset=UTF-8">
+</head>
+<title>Test Bronto</title>
+<body>
+   <form name="BrontoSbm" method="POST" action="https://api.bronto.com/v4"> 
+    <?xml version="1.0"?>   
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:v4="http://api.bronto.com/v4">
+	  <soapenv:Header/>
+      <soapenv:Body><v4:login>
+         <!-- apiToken>94133B95-3AAA-4149-BBAB-052867610D1B</apiToken -->
+         <apiToken>4F228AAC-D154-4726-9F13-E60F6F348A31</apiToken>
+      </v4:login></soapenv:Body></soapenv:Envelope>
+   </form>
+   <button onclick="sbmForm();">Submit</button>   
+</body>
+<script>
+function sbmForm()
+{
+	document.getElementById("BrontoSbm").submit();
+}
+</script>
+
+</HTML>

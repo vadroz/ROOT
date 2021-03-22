@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+<title> RCI SpecialCommissions Logon Page</title>
+</HEAD>
+
+<BODY LINK=blue VLINK=purple  bgColor=moccasin >
+<Table Border=1 CELLSPACING="1" CELLPADDING="20"
+WIDTH="100%" bgcolor=peachpuff bordercolor=maroon>
+<Caption>
+
+<h2>
+<B><U><FONT COLOR=black>
+   Weekly Regular Employee Commissions
+</font></u></b>
+</h2>
+</Caption>
+<tr><td align="left">
+
+<a name="TOPPAGE"></A>
+
+<FORM METHOD=POST ACTION="http://192.168.20.64:8080/servlet/commreps.CommRep01"
+      onSubmit="return Validate(this)">
+
+    <p><pre><font size="+2" color=black    ><b>
+    <Input type=hidden name="ReportId" Value="REGCOMMREP">
+    Enter your user id: <Input name="iUser" size=10 maxlength=10>
+              Password: <Input type="password" name="iPwd" size=10 maxlength=10>
+
+                   <Input type=submit name="iSubmit" Value="  Log on   "  ></P></pre>
+    <Input type=hidden name="TopRRN" Value="0000000">
+    <Input type=hidden name="BotRRN" Value="0000000">
+
+</b> </font>
+</form>
+</td></tr>
+</Table>
+
+<P><HR>
+
+<Table>
+<tr>
+<td><FONT color=black>
+&#169;Copyright. 2001 Retail Concept, Inc.
+</font></td>
+<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td> <a HREF="MAILTO:vrozen@retailconcepts.cc">
+<FONT color=Blue             >
+Contact RCI</a></TD>
+<Table>
+
+</font>
+</body>
+</HTML>
+
+<script LANGUAGE="JavaScript">
+function Validate(form){
+    var User = form.iUser.value;
+    var Pwd = form.iPwd.value;
+
+    if ((User <= "          ") ||
+        (Pwd  <= "          ")) {
+       alert("Enter User ID and password");
+       return false;
+      }
+    else {
+       return true;
+           }
+}
+</script>

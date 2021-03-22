@@ -1,0 +1,966 @@
+<%@ page import="java.util.*, eventcalendar.EvtCalLst"%>
+<%
+
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+   response.sendRedirect("SignOn1.jsp?TARGET=EvtCalLst.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{
+    boolean bAll_EC_Auth = session.getAttribute("EVTCALCHG") != null;
+    boolean bStr_EC_Auth = session.getAttribute("EVTCALSTR") != null;
+    String sAuthStr = session.getAttribute("STORE").toString().trim();
+
+    String sUser = session.getAttribute("USER").toString();
+    String [] sQtr = request.getParameterValues("Qtr");
+    String [] sSelStore = request.getParameterValues("Str");
+
+    if (sSelStore==null) sSelStore = new String[]{" "};
+
+    EvtCalLst evtcal = new EvtCalLst(sQtr, sSelStore, sUser);
+    int iNumOfCol = evtcal.getNumOfCol();
+    int [] iColSeq = evtcal.getColSeq();
+    String [] sUsed = evtcal.getUsed();
+    String [] sCol = evtcal.getCol();
+    String sColJsa = evtcal.getColJsa();
+
+    int iNumOfEvt = evtcal.getNumOfEvt();
+    String [] sMon = evtcal.getMon();
+    String [] sEvent = evtcal.getEvent();
+    String [] sFrom = evtcal.getFrom();
+    String [] sTo = evtcal.getTo();
+    String [] sAuth = evtcal.getAuth();
+    String [][] sEvtText = evtcal.getEvtText();
+    String [][] sEvtStr = evtcal.getEvtStr();
+
+    String sEvtStrJsa = evtcal.getEvtStrJsa();
+    String sEventJsa = evtcal.getEventJsa();
+    String sFromJsa = evtcal.getFromJsa();
+    String sToJsa = evtcal.getToJsa();
+    String sScopeJsa = evtcal.getScopeJsa();
+    String sAuthJsa = evtcal.getAuthJsa();
+    String sEvtTextJsa = evtcal.getEvtTextJsa();
+
+    boolean [] bEvtMemo = evtcal.getEvtMemoExist();
+    boolean [] bEvtSign = evtcal.getEvtSignExist();
+    boolean [] bEvtAdv = evtcal.getEvtAdvExist();
+
+    String sEvtMemo = evtcal.getEvtMemoJsa();
+    String sEvtSign = evtcal.getEvtSignJsa();
+    String sEvtOutPrt = evtcal.getEvtOutPrtJsa();
+    String sEvtRciPrt = evtcal.getEvtRciPrtJsa();
+
+    // Attached Advertising
+    String sAdvMkt = evtcal.getAdvMktJsa();
+    String sAdvOrgWk = evtcal.getAdvOrgWkJsa();
+    String sAdvMedia = evtcal.getAdvMediaJsa();
+    String sAdvMedDesc = evtcal.getAdvMedDescJsa();
+    String sAdvPType = evtcal.getAdvPTypeJsa();
+    String sAdvPDesc = evtcal.getAdvPDescJsa();
+    String sAdvSeq = evtcal.getAdvSeqJsa();
+    String sAdvPayee = evtcal.getAdvPayeeJsa();
+    String sAdvMktName = evtcal.getAdvMktNameJsa();
+    String sAdvDoc = evtcal.getAdvDocJsa();
+
+    int iNumOfMon = evtcal.getNumOfMon();
+    String [] sYear = evtcal.getFullYear();
+    String sYearJsa = evtcal.getYearJsa();
+    String [] sMonName = evtcal.getMonName();
+    String [] sMonBeg = evtcal.getMonBeg();
+    String [] sMonEnd = evtcal.getMonEnd();
+    String [] sMonCnt = evtcal.getMonCnt();
+
+    String sStrJsa = evtcal.getStrJsa(); // list of store selections
+
+    evtcal.disconnect();
+%>
+
+<html>
+<head>
+
+<style>
+  body {background:ivory;}
+  a:link { color:blue;  font-size:10px;} a:visited { color:blue; font-size:10px;}  a:hover { color:blue; font-size:10px;}
+
+  table.DataTable { border: darkred solid 1px; background:#e7e7e7; text-align:center;}
+  tr.DataTable { background:#FFCC99; font-family:Verdanda; text-align:center;
+                 font-size:10px; font-weight:bold}
+  th.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 border-bottom: darkred solid 1px; border-right: darkred solid 1px;}
+  tr.DataTable1 { color: red; background:cornsilk; font-family:Verdanda; font-size:12px; font-weight:bold}
+  tr.DataTable2 { background:#e7e7e7; font-family:Arial; text-align:left; font-size:10px;}
+  td.DataTable { border-bottom: darkred solid 1px; border-right: darkred solid 1px; padding-top:3px; padding-bottom:3px;
+                 padding-right:3px; padding-left:3px;}
+  td.DataTable1 { border-top: darkred solid 1px; border-bottom: darkred solid 1px;
+                 padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                 border-right: darkred solid 1px;}
+  tr.Divider { background:darkred; font-size:1px;}
+
+  div.dvPrompt { position:absolute; visibility:hidden; background-attachment: scroll;
+              border:ridge; width:550; background-color:LemonChiffon; z-index:100;
+              text-align:center; font-size:10px}
+
+  div.dvStore { position:absolute; visibility:hidden; background-attachment: scroll;
+              border:ridge; width:250; background-color:LemonChiffon; z-index:100;
+              text-align:center; font-size:10px}
+
+
+  .Small{ text-align:left; font-family:Arial; font-size:10px;}
+  td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+  td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+  td.Prompt { text-align:left; font-family:Arial; font-size:10px; }
+  td.Prompt1 { text-align:center; vertical-align:bottom; font-family:Arial; font-size:10px; }
+  td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+@media screen
+{
+  th.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 border-bottom: darkred solid 1px; border-right: darkred solid 1px;}
+  td.PrintOnly { display:none}
+}
+
+@media print
+{
+   @page {size: 8.5in 14in landscape; }
+   th.DataTable1 { display:none}
+   td.PrintOnly { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 border-bottom: darkred solid 1px; border-right: darkred solid 1px;}
+}
+</style>
+
+<SCRIPT language="JavaScript">
+var SelYear = [<%=sYearJsa%>];
+var Qtr = [<%=evtcal.cvtToJavaScriptArray(sQtr)%>];
+var AuthStr = "<%=sAuthStr%>";
+
+var Column = [<%=sColJsa%>];
+var Event  = [<%=sEventJsa%>];
+var From = [<%=sFromJsa%>];
+var To = [<%=sToJsa%>];
+var Scope = [<%=sScopeJsa%>];
+var EvtText = [<%=sEvtTextJsa%>];
+var EvtStr = [<%=sEvtStrJsa%>];
+var EvtMemo = [<%=sEvtMemo%>];
+var EvtSign = [<%=sEvtSign%>];
+var EvtOutPrt = [<%=sEvtOutPrt%>];
+var EvtRciPrt = [<%=sEvtRciPrt%>];
+
+// Advertising
+var AdvMkt = [<%=sAdvMkt%>];
+var AdvOrgWk = [<%=sAdvOrgWk%>];
+var AdvMedia = [<%=sAdvMedia%>];
+var AdvMedDesc = [<%=sAdvMedDesc%>];
+var AdvPType = [<%=sAdvPType%>];
+var AdvPDesc = [<%=sAdvPDesc%>];
+var AdvSeq = [<%=sAdvSeq%>];
+var AdvPayee = [<%=sAdvPayee%>];
+var AdvMktName = [<%=sAdvMktName%>];
+var AdvDoc = [<%=sAdvDoc%>];
+
+var Stores = [<%=sStrJsa%>];
+//==============================================================================
+// Load initial value on page
+//==============================================================================
+function bodyLoad()
+{
+  setBoxclasses(["BoxName",  "BoxClose"], ["dvPrompt", "dvStore"]);
+  window.document.focus();
+}
+//--------------------------------------------------------
+// Add, Update, Delete Event
+//--------------------------------------------------------
+function chgEvent(arg, action)
+{
+   var hdr = "Create New Event";
+   if(action =='UPD') { hdr = "Update Event: " + Event[arg]}
+   else if(action == 'DLT') { hdr = "Delete Event: " + Event[arg]}
+
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popPanel(action)
+     + "</tr></td>"
+   + "</table>"
+
+   document.all.dvPrompt.innerHTML = html;
+   document.all.dvPrompt.style.pixelLeft= document.documentElement.scrollLeft + 10;
+   document.all.dvPrompt.style.pixelTop= document.documentElement.scrollTop + 135;
+   document.all.dvPrompt.style.visibility = "visible";
+   if(action !='ADD') popPanelValues(arg);
+   if(action !='DLT' && AuthStr == "ALL") showStrPnl(false);
+   // limit only to one store
+   if(AuthStr != "ALL")
+   {
+      document.all[Column[5]].value = AuthStr;
+      document.all[Column[5]].readOnly = true;
+   }
+}
+//--------------------------------------------------------
+// rename Event
+//--------------------------------------------------------
+function renameEvent(arg)
+{
+   var posX = document.documentElement.scrollLeft + 600;
+   var posY = document.documentElement.scrollTop + 60;
+
+   var hdr = "Rename Event";
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>"
+       + "Current Event >>> &nbsp;" + Event[arg].showSpecChar() + "&nbsp;&nbsp;"
+       + From[arg].showSpecChar() + " - " + To[arg].showSpecChar()
+    + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>"
+       + "New Event:  <input class='Small' name='Event' size=50 maxsize=50 value='" + Event[arg].showSpecChar() + "'>"
+    + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>From: "
+     + "<input class='Small' name='From' size=10 maxsize=10 value='" + From[arg] + "'>&nbsp;"
+     + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all.From)' >"
+     + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a>"
+     + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+     + "To: <input class='Small' name='To' size=10 maxsize=10 value='" + To[arg] + "'>&nbsp;"
+     + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all.To)' >"
+     + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a>"
+
+    + "</td></tr>"
+    + "<tr><td class='Prompt1' colspan=4><button onClick='ValidateRnm(" + arg + ")' class='Small'>Submit</button>&nbsp;"
+        + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+   + "</table>"
+
+   document.all.dvPrompt.innerHTML = html;
+   document.all.dvPrompt.style.width = 350;
+   document.all.dvPrompt.style.pixelLeft= document.documentElement.scrollLeft + 10;
+   document.all.dvPrompt.style.pixelTop= document.documentElement.scrollTop + 135;
+   document.all.dvPrompt.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popPanel(action)
+{
+  var posX = document.documentElement.scrollLeft + 600;
+  var posY = document.documentElement.scrollTop + 60;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+      + "<tr><td class='Prompt1'>Event</td>"
+          + "<td class='Prompt1'>From</td>"
+          + "<td class='Prompt1'>To</td>"
+      + "</tr>"
+
+   if(action == "ADD")
+   {
+      panel += "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='Event' size=25 maxsize=100></td>"
+          + "<td class='Prompt1'><input class='Small' name='From' size=10 maxsize=10 >&nbsp;"
+            + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all.From)' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'><input class='Small' name='To' size=10 maxsize=10 >&nbsp;"
+            + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all.To)' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+      + "</tr>"
+    }
+    else
+    {
+      panel += "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='Event' size=25 maxsize=100 readonly></td>"
+          + "<td class='Prompt1'><input class='Small' name='From' size=10 maxsize=10 readonly></td>"
+          + "<td class='Prompt1'><input class='Small' name='To' size=10 maxsize=10 readonly></td>"
+      + "</tr>"
+    }
+    panel += "<tr><td class='Prompt1'>NP, Radio, TV</td>"
+          + "<td class='Prompt1'>E-Mail Blasts</td>"
+          + "<td class='Prompt1'>Bike Focus</td>"
+      + "</tr>"
+      + "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[0] + "' size=25 maxsize=100></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[1] + "' size=25 maxsize=100>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[1] + ", true)' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[2] + "' size=25 maxsize=100>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[2] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+      + "</tr>"
+
+      + "<tr><td class='Prompt1' colspan=2>Perm MD Dates</td>"
+          + "<td class='Prompt1' rowspan=2>Stores</td>"
+      + "</tr>"
+      + "<tr><td class='Prompt1'>Effective</td>"
+          + "<td class='Prompt1'>Packet</td>"
+      + "</tr>"
+      + "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[3] + "' size=10 maxsize=10 readonly>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[3] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[4] + "' size=10 maxsize=10 readonly>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[4] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[5] + "' size=25 maxsize=100 readonly></td>"
+      + "</tr>"
+
+      + "<tr><td class='Prompt1'>Outside Print<br>22 x 28<br>Major Hang</td>"
+          + "<td class='Prompt1'>Rci Produced<br>40 x 50 & 22 x 28<br>Store - Full Color</td>"
+          + "<td class='Prompt1'>PosterCreative<br>and Buyer<br>Turn-In</td>"
+      + "</tr>"
+      + "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[6] + "' size=25 maxsize=100></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[7] + "' size=25 maxsize=100></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[8] + "' size=25 maxsize=100>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[8] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+      + "</tr>"
+
+      + "<tr><td class='Prompt1'>Ship To Stores</td>"
+      + "<td class='Prompt1'>Release<br>Price Chgs</td>"
+      + "<td class='Prompt1'>Event<br>Scope</td>"
+      + "</tr>"
+      + "<tr>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[9] + "' size=25 maxsize=100>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[9] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'><input class='Small' name='" + Column[10] + "' size=25 maxsize=100>"
+          + "<a href='javascript:showCalendar(1, null, null, " + posX + ", " + posY + ", document.all." + Column[10] + ")' >"
+            + "<img src='calendar.gif' style='border=none' alt='Calendar Prompt' width='34' height='21'></a></td>"
+          + "<td class='Prompt1'>Personal<input class='Small' name='Scope' type='radio' value='1' checked>"
+            + "Office<input class='Small' name='Scope' type='radio' value='2'>"
+            + "All<input class='Small' name='Scope' type='radio' value='3'>"
+      + "</tr>"
+
+      if(action!='DLT') panel += "<tr><td class='Prompt1' colspan=4><button onClick='Validate(&#34;" + action + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      else panel += "<tr><td class='Prompt1' colspan=4><button onClick='Validate(&#34;" + action + "&#34;)' class='Small'>Delete</button>&nbsp;"
+
+     panel += "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+     panel += "</table>";
+  return panel;
+}
+
+//--------------------------------------------------------
+// populate values on entry panel
+//--------------------------------------------------------
+function popPanelValues(arg)
+{
+
+   var event = Event[arg].showSpecChar();
+   //var pos = Event[arg].indexOf("&#39;")
+   //if(pos >= 0) event =  Event[arg].substring(0, pos) + "'" + Event[arg].substring(pos+5);
+
+
+   document.all.Event.value = event;
+   document.all.From.value = From[arg];
+   document.all.To.value = To[arg];
+
+   document.all.Event.style.background = "#e7e7e7";
+   document.all.From.style.background = "#e7e7e7";
+   document.all.To.style.background = "#e7e7e7";
+
+   document.all.Event.style.border = "none";
+   document.all.From.style.border = "none";
+   document.all.To.style.border = "none";
+
+   // all column exclude stores
+   for(var i=0; i < Column.length; i++)
+   {
+      if (i != 5)  document.all[Column[i]].value = EvtText[arg][i].showSpecChar();
+   }
+
+   for(var i=0; i < EvtStr[arg].length; i++)
+   {
+      document.all[Column[5]].value += EvtStr[arg][i].showSpecChar() + " ";
+   }
+
+   // Event Scope
+   for(var i=0; i < 3; i++) {document.all.Scope[i].checked = false;}
+   if(Scope[arg].trim()=="") document.all.Scope[2].checked = true;
+   else if(Scope[arg].trim()=="OFFICE") document.all.Scope[1].checked = true;
+   else document.all.Scope[0].checked = true;
+
+}
+//--------------------------------------------------------
+// Show Stores Panel
+//--------------------------------------------------------
+function showStrPnl(sel)
+{
+   var hdr = "Store Selection List";
+
+   var html = "<table width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hideStrPanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popStrPnl() + "</tr></td>"
+
+    if(sel) html += "<tr><td class='Prompt1' colspan=2><button onClick='sbmSelStr()' class='Small'>Select</button>&nbsp;"
+    else html += "<tr><td class='Prompt1' colspan=2><button onClick='selStr()' class='Small'>Select</button>&nbsp;"
+    html +=  "<button onClick='clrStrSel()' class='Small'>Clear</button>&nbsp;"
+         +  "<button onClick='hideStrPanel();' class='Small'>Close</button></td></tr>"
+
+    html += "<tr><td class='Prompt1' colspan=2><button onClick='preSelectedStr(1)' class='Small'>All</button>&nbsp;"
+         + "<button onClick='preSelectedStr(2)' class='Small'>Bike</button>&nbsp;"
+         + "<button onClick='preSelectedStr(3)' class='Small'>Houston</button>&nbsp;"
+         + "<button onClick='preSelectedStr(4)' class='Small'>Sun & Ski</button>&nbsp;"
+         + "<button onClick='preSelectedStr(5)' class='Small'>Ski Chalet</button>&nbsp;"
+         + "</td></tr>"
+
+   + "</table>"
+
+   document.all.dvStore.innerHTML = html;
+   document.all.dvStore.style.pixelLeft= document.documentElement.scrollLeft + 600;
+   document.all.dvStore.style.pixelTop= document.documentElement.scrollTop + 220;
+   document.all.dvStore.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popStrPnl()
+{
+  var panel = "<div style='height:auto;'>"
+            + "<table width='100%' cellPadding='0' cellSpacing='0'>"
+
+
+  for(var i=0, j=0; i < Stores.length; i++, j++ )
+  {
+     if(j==0) panel += "<tr>"
+     panel += "<td class='Prompt'><input type='checkbox' class='Small' name='SelStr' value='"
+           + Stores[i] + "' onClick='chkSelStr(this)'>"
+           + Stores[i] +"</td>"
+     if(j == 9) {panel += "</tr>"; j=0;}
+  }
+
+  panel += "</table></div>";
+  return panel;
+}
+//--------------------------------------------------------
+// checked as selected group of stores
+//--------------------------------------------------------
+function preSelectedStr(grp)
+{
+   var max = document.all.SelStr.length
+   for(var i=0; i < max; i++ )
+   {
+     var str = document.all.SelStr[i].value
+     if(grp==1 ||
+        grp==2 && (str==3 || str==4  || str==5  || str==8  || str==10 || str==11
+               || str==20 || str==40 || str==45 || str==82 || str==88 || str==98) ||
+        grp==3 && (str==3 || str==4  || str==5  || str==8  || str==82) ||
+        grp==4 && (str!=35 && str!=46 && str!=50) ||
+        grp==5 && (str==35 || str==46 || str==50) )
+     { document.all.SelStr[i].checked = true; }
+     else { document.all.SelStr[i].checked = false; }
+   }
+}
+//--------------------------------------------------------
+// check selected Store number
+//--------------------------------------------------------
+function chkSelStr(str)
+{
+  var val = str.value
+  if (str.checked && val == "Hou"
+   || str.checked && val == "All Bike"
+   || str.checked && val == "Sun & Ski"
+   || str.checked && val == "Ski Chalet"
+   || str.checked && val == "All")
+   { rmvSelStr(val, "ALL") }
+   else { rmvSelStr(val, "CHAR") }
+}
+//--------------------------------------------------------
+// uncheck selected Store number
+//--------------------------------------------------------
+function rmvSelStr(val, type)
+{
+    var max = document.all.SelStr.length
+    for(var i=0; i < max; i++ )
+    {
+       var str = document.all.SelStr[i].value
+       if  (str != val && type == "ALL" || type == "CHAR" && isNaN(str))
+       {
+          document.all.SelStr[i].checked = false;
+       }
+    }
+}
+//--------------------------------------------------------
+// put select Store in main panel
+//--------------------------------------------------------
+function selStr()
+{
+  document.all.STORE.value = "";
+  var max = document.all.SelStr.length
+  for(var i=0; i < max; i++ )
+  {
+     if (document.all.SelStr[i].checked)
+     {
+        document.all.STORE.value += document.all.SelStr[i].value + " "
+     }
+  }
+}
+
+//--------------------------------------------------------
+// submit report with selected stores
+//--------------------------------------------------------
+function sbmSelStr()
+{
+  var url = 'EvtCalLst.jsp?submit=strsel'
+  for(var i=0; i < Qtr.length; i++) { url += "&Qtr=" + Qtr[i]}
+
+  var max = document.all.SelStr.length
+  for(var i=0; i < max; i++ )
+  {
+     if (document.all.SelStr[i].checked)
+     {
+        url += "&Str=" + document.all.SelStr[i].value;
+     }
+  }
+
+  alert(url)
+  //window.location.href=url;
+}
+//--------------------------------------------------------
+// Clear Store Selection
+//--------------------------------------------------------
+function clrStrSel()
+{
+  for(var i=0; i < Stores.length; i++ )
+  {
+     document.all.SelStr[i].checked = false;
+  }
+}
+//--------------------------------------------------------
+// Validate entry
+//--------------------------------------------------------
+function Validate(action)
+{
+  var msg = ""
+  var error = false;
+
+  var evt = document.all.Event.value.replaceSpecChar();
+
+  var from = document.all.From.value.trim();
+  var to = document.all.To.value.trim();
+
+  var cols = new Array(Column.length);
+  for(var i=0; i < Column.length; i++)
+  {
+    cols[i] = document.all[Column[i]].value.trim().replaceSpecChar();
+  }
+
+  var scope = 0;
+  for(var i=0; i < 3; i++)
+  {
+    if(document.all.Scope[i].checked) scope = document.all.Scope[i].value;
+  }
+
+  // Event cannot be blank
+  if(evt == "")
+  {
+     error = true;
+     msg += "Please, enter Event\n"
+  }
+  if(from == "")
+  {
+     error = true;
+     msg += "Please, enter From Date\n"
+  }
+
+  if (error) alert(msg)
+  else sbmEvent(action, evt, from, to, scope, cols);
+}
+
+//--------------------------------------------------------
+// Validate entry
+//--------------------------------------------------------
+function ValidateRnm(arg)
+{
+  var msg = ""
+  var error = false;
+
+  var evt = Event[arg].showSpecChar().replaceSpecChar();
+  var from = From[arg];
+  var to = To[arg];
+  // new name
+  var cols = new Array(Column.length);
+  cols[0] = document.all.Event.value.replaceSpecChar();
+  cols[1] = document.all.From.value;
+  cols[2] = document.all.To.value;
+
+  // Event cannot be blank
+  if(cols[0] == "")
+  {
+     error = true;
+     msg += "Please, enter Event\n"
+  }
+  if(cols[1] == "")
+  {
+     error = true;
+     msg += "Please, enter From Date\n"
+  }
+
+
+  if (error) alert(msg)
+  else sbmEvent("RENAME", evt, from, to, " ", cols);
+}
+
+
+//--------------------------------------------------------
+// Replace &, # signs on escape sequense;
+//--------------------------------------------------------
+function String.prototype.replaceSpecChar()
+{
+    var s = this;
+    var newStr = "";
+    var obj = ["'", "#", "&", "%"];
+    for(var i=0; i < s.length; i++)
+    {
+       var l = s.substring(i,i+1);
+       for(var j=0; j < obj.length; j++)
+       {
+          if(l == obj[j])  {  l = escape(obj[j]); break; }
+       }
+       newStr += l;
+    }
+    return newStr;
+}
+//--------------------------------------------------------
+// show  ',  &, # charachters on screen
+//--------------------------------------------------------
+function String.prototype.showSpecChar()
+{
+    var s = this;
+    var chk = ["&#39;", "&#38;", "&#35;", "&#37;"];
+    var exc = ["%27", "%26", "%23", "%25"];
+    for(var i=0; i < chk.length; i++)
+    {
+       while (s.match(chk[i])) { s = s.replace(chk[i], unescape(exc[i])); }
+    }
+    return s;
+}
+
+//--------------------------------------------------------
+// Submit group
+//--------------------------------------------------------
+function sbmEvent(action, evt, from, to, scope, cols)
+{
+  var url = "EvtCalEnt.jsp?"
+     + "Event=" + evt
+     + "&From=" + from
+     + "&To=" + to
+     + "&Scope=" + scope;
+
+  for(var i=0;  i < cols.length; i++)
+  {
+     url += "&Col=" + cols[i]
+  }
+
+  url += "&Action=" + action;
+
+  //alert(url)
+  //window.location = url;
+  window.frame1.location = url;
+}
+//--------------------------------------------------------
+// display error for entry
+//--------------------------------------------------------
+function displayError(Error)
+{
+   alert(Error)
+}
+//--------------------------------------------------------
+// restart page after entry done
+//--------------------------------------------------------
+function reStart()
+{
+  window.location.reload();
+}
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.dvPrompt.innerHTML = " ";
+   document.all.dvPrompt.style.visibility = "hidden";
+   hideStrPanel()
+}
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hideStrPanel()
+{
+   document.all.dvStore.innerHTML = " ";
+   document.all.dvStore.style.visibility = "hidden";
+}
+//--------------------------------------------------------
+// show document list
+//--------------------------------------------------------
+function showDoc(arg, type)
+{
+   var hdr = " Memo List";
+   var doc = EvtMemo;
+   if(type =='SIGN') { hdr = "Sign List";  doc = EvtSign; }
+   else if(type =='OUTPOST') { hdr = "Outside Printed Posters";  doc = EvtOutPrt; }
+   else if(type =='RCIPOST') { hdr = "Rci Produced Posters";  doc = EvtRciPrt; }
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+
+   html += "<tr><td class='Prompt1' colspan=2>&nbsp;</td></tr>"
+
+   // load event documents
+   for(var i=0, start = 0; i < doc[arg].length; i++)
+   {
+       start = doc[arg][i].lastIndexOf("/") + 1; // find where document name starts.
+       html += "<tr><td class='Prompt1' colspan=2>"
+            + "<a target='_blank' href='" + doc[arg][i] + "'>" + doc[arg][i].substring(start) + "</a></td></tr>"
+   }
+
+   if(doc[arg].length == 0) html += "<tr><td class='Prompt1' colspan=2>No documents attached to the event.</td></tr>"
+
+   html += "<tr><td class='Prompt1' colspan=2>&nbsp;</td></tr>"
+   html += "<tr><td class='Prompt1' colspan=2>"
+
+   <%if(bAll_EC_Auth){%>
+       // allow authorized user to add or delete documents for selected event and doc. type.
+       html += "<button onClick='updLink(" + arg + ", &#34;" + type + "&#34;)' class='Small'>W/w Documents</button>&nbsp;";
+   <%}%>
+
+   html += "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+      + "</table>"
+
+   if(doc[arg].length < 10) document.all.dvPrompt.style.height = doc[arg].length * 25;
+
+   document.all.dvPrompt.innerHTML = html;
+   document.all.dvPrompt.style.pixelLeft= document.documentElement.scrollLeft + 400;
+   document.all.dvPrompt.style.pixelTop= document.documentElement.scrollTop + 130;
+   document.all.dvPrompt.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// show Advertising list
+//--------------------------------------------------------
+function showAdv(arg)
+{
+   var hdr = " Advertising List";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+
+   html += "<tr><td class='Prompt1' colspan=2>&nbsp;</td></tr>"
+   html += "<tr><td class='Prompt1' colspan=2><table class='DataTable' width='100%' cellPadding=0 cellSpacing=0>"
+   html += "<tr class='DataTable'><th class='DataTable'>Market</th>"
+         + "<th class='DataTable'>Originating<br>Week</th>"
+         + "<th class='DataTable'>Media</th>"
+         + "<th class='DataTable'>Payee</th>"
+         + "<th class='DataTable'>Description<br>Week</th>"
+         + "<th class='DataTable'>Attached<br>Document</th>"
+         + "</tr>"
+
+   // load event documents
+   for(var i=0, start = 0; i < AdvMkt[arg].length; i++)
+   {
+       html += "<tr class='DataTable2'><td class='DataTable'>" + AdvMkt[arg][i] + " - " +AdvMktName[arg][i] +  "</td>"
+             + "<td class='DataTable'>" + AdvOrgWk[arg][i] + "</td>"
+             + "<td class='DataTable'>" + AdvMedDesc[arg][i] + "</td>"
+             + "<td class='DataTable'>" + AdvPayee[arg][i] + "</td>"
+             + "<td class='DataTable'>" + AdvPDesc[arg][i] + "</td>"
+             + "<td class='DataTable'>";
+       if(AdvDoc[arg][i].trim() != "")
+       {
+          html += "<a target='_blank' href='Advertising/" + AdvDoc[arg][i] + "'>" + AdvDoc[arg][i] + "</a>"
+       }
+       else { html += "&nbsp;"
+       }
+       html += "</td></tr>"
+   }
+
+   if(AdvMkt[arg].length == 0) html += "<tr><td class='Prompt1' colspan=5>No Advertising attached to the event.</td></tr>"
+
+   html += "</table></td></tr>"
+
+   html += "<tr><td class='Prompt1' colspan=2>&nbsp;</td></tr>"
+   html += "<tr><td class='Prompt1' colspan=2>"
+
+   <%if(bAll_EC_Auth){%>
+       // allow authorized user to add or delete documents for selected event and doc. type.
+       html += "<button onClick='updAdv(" + arg + ")' class='Small'>W/w Advertising</button>&nbsp;";
+   <%}%>
+
+   html += "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+      + "</table>"
+
+   if(AdvMkt[arg].length < 10) document.all.dvPrompt.style.height = AdvMkt[arg].length * 25;
+
+   document.all.dvPrompt.innerHTML = html;
+   document.all.dvPrompt.style.pixelLeft= document.documentElement.scrollLeft + 400;
+   document.all.dvPrompt.style.pixelTop= document.documentElement.scrollTop + 130;
+   document.all.dvPrompt.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// update document link
+//--------------------------------------------------------
+function updLink(arg, type)
+{
+  var url = 'EvtDocLst.jsp?' + "Event=" + Event[arg].showSpecChar().replaceSpecChar()
+          + "&From=" + From[arg]
+          + "&Type=" + type;
+  var WindowName = 'EvtDocLink';
+  var WindowOptions =
+   'width=900,height=600, left=10,top=50, resizable=yes , toolbar=yes, location=yes, directories=no, status=yes, scrollbars=yes,menubar=yes';
+
+  //alert(url)
+  window.open(url, WindowName, WindowOptions);
+}
+
+//--------------------------------------------------------
+// update advertising
+//--------------------------------------------------------
+function updAdv(arg)
+{
+  var url = 'EvtAdvLst.jsp?' + "Event=" + Event[arg].trim()
+          + "&From=" + From[arg]
+  var WindowName = 'EvtAdvLink';
+  var WindowOptions =
+   'width=900,height=600, left=10,top=10, resizable=yes , toolbar=yes, location=yes, directories=no, status=yes, scrollbars=yes,menubar=yes';
+
+  //alert(url)
+  window.open(url, WindowName, WindowOptions);
+}
+
+</SCRIPT>
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+
+</head>
+
+<body  onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvPrompt" class="dvPrompt"></div>
+<div id="dvStore" class="dvStore"></div>
+<!-------------------------------------------------------------------->
+  <table border="0" width="100%" height="100%">
+     <tr bgColor="moccasin">
+      <td ALIGN="center" VALIGN="TOP">
+       <b>Retail Concepts, Inc
+       <br>Event Calendar
+       <br>Quarter(s): <%for(int i=0; i< sQtr.length; i++){%>
+                        <%=sQtr[i]%><%if(i<sQtr.length-1){%>, <%} else {%>.<%}%>
+                    <%}%></b><br>
+
+        <a href="../"><font color="red" size="-1">Home</font></a>;
+        <a href="EvtCalSel.jsp"><font color="red" size="-1">Selection</font></a>;
+        <!----------------- start of ad table ------------------------>
+         <table class="DataTable" cellPadding="0" cellSpacing="0">
+           <thead style="overflow-y: visible;">
+             <tr class="DataTable">
+               <th class="DataTable" rowspan=2 >Month</th>
+               <th class="DataTable" rowspan=2 >Primary Event
+                 <%if(bAll_EC_Auth || bStr_EC_Auth){%><br><a href="javascript: chgEvent(-1, 'ADD');">Add Event</a><%}%>
+               </th>
+               <th class="DataTable1" rowspan=2 >D<br>e<br>l<br>e<br>t<br>e</th>
+               <th class="DataTable1" rowspan=2 >R<br>e<br>n<br>a<br>m<br>e</th>
+               <th class="DataTable" rowspan=2 >Event Dates</th>
+               <th class="DataTable1" rowspan=2 >M<br>e<br>m<br>o</th>
+               <th class="DataTable1" rowspan=2 >S<br>i<br>g<br>n</th>
+               <th class="DataTable1" rowspan=2 >A<br>d<br>v<br></th>
+               <th class="DataTable" colspan=2 nowrap>Advertising</th>
+               <th class="DataTable" rowspan=2 nowrap>BikeFocus<br>(Reg 22x28<br>& 40x50)</th>
+               <th class="DataTable" colspan=2 nowrap>Perm MD Dates</th>
+               <th class="DataTable" rowspan=2 nowrap><a href="javascript:showStrPnl(true)">Stores</a></th>
+               <th class="DataTable" rowspan=2 nowrap>Outside Print<br>"22 x 28"<br>Major Hang</th>
+               <th class="DataTable" rowspan=2 nowrap>Rci Produced<br>40 x 50 & 22 x 28<br>Store - Full Color</th>
+               <%if(bAll_EC_Auth){%><th class="DataTable" rowspan=2 nowrap>PosterCreative<br>and Buyer<br>Turn-In</th><%}%>
+               <th class="DataTable" rowspan=2 nowrap>Ship To<br>Stores</th>
+               <%if(bAll_EC_Auth){%><th class="DataTable" rowspan=2 nowrap>Release<br>Price Chgs</th><%}%>
+               <td class="PrintOnly" rowspan=2 >Primary Event</td>
+             </tr>
+
+             <tr class="DataTable">
+                <th class="DataTable">NP, Radio,<br>TV</th>
+                <th class="DataTable">E-Mail<br>Blasts</th>
+                <th class="DataTable">Effective</th>
+                <th class="DataTable">Packet</th>
+             </tr>
+           </thead>
+
+           <!--------------------- Event Detail ----------------------------->
+           <tbody overflow-y: visible;>
+           <%
+             String sSvMon = null;
+             String [] sMonProp = new String[]{"", ""};
+             for(int i=0; i < iNumOfEvt; i++){%>
+             <%if(sSvMon == null || !sSvMon.equals(sMon[i])){%>
+                <tr class="Divider"><td colspan=18>&nbsp;</td></tr>
+             <%}%>
+              <tr class="DataTable2">
+                <%if(sSvMon == null || !sSvMon.equals(sMon[i])){
+                     sMonProp = evtcal.getSelMon(sMon[i]); %>
+                     <td class="DataTable" rowspan="<%=sMonProp[1]%>"><%=sMonProp[0]%></td>
+                <%}%>
+
+                 <%if(sAuth[i].equals("1")){%>
+                    <td class="DataTable" nowrap>
+                       <a href="javascript: chgEvent(<%=i%>, 'UPD');"><%=sEvent[i]%></a></td>
+                 <%}
+                   else {%><td class="DataTable" nowrap><%=sEvent[i]%></td><%}%>
+
+                 <th class="DataTable1" nowrap><%if(sAuth[i].equals("1")){%><a href="javascript: chgEvent(<%=i%>, 'DLT');">D</a><%} else{%>&nbsp;<%}%></th>
+                 <th class="DataTable1" nowrap><%if(sAuth[i].equals("1")){%><a href="javascript: renameEvent(<%=i%>);">R</a><%} else{%>&nbsp;<%}%></th>
+
+                 <td class="DataTable" nowrap><%=sFrom[i] + " - " + sTo[i]%></td>
+                 <th class="DataTable1" nowrap><%if(bAll_EC_Auth || bEvtMemo[i]){%><a href="javascript:showDoc(<%=i%>, &#34;MEMO&#34;)">M</a><%} else{%>&nbsp;<%}%></th>
+                 <th class="DataTable1" nowrap><%if(bAll_EC_Auth || bEvtSign[i]){%><a href="javascript:showDoc(<%=i%>, &#34;SIGN&#34;)">S</a><%} else{%>&nbsp;<%}%></th>
+                 <th class="DataTable1" nowrap><%if(bAll_EC_Auth || bEvtAdv[i]){%><a href="javascript:showAdv(<%=i%>)">A</a><%} else{%>&nbsp;<%}%></th>
+
+                <%for(int j=0; j < iNumOfCol; j++){%>
+                  <!-- Store -->
+                  <%if(j == 5){%><td class="DataTable" nowrap>
+                     <%for(int k=0, l=0; k < sEvtStr[i].length; k++, l++){%>
+                          <%if(k > 0){%> <%}%><%if(l > 5){ l=0;%><br><%}%><%=sEvtStr[i][k]%>
+                     <%}%></td>
+                  <%}
+                    // Postres
+                    else if(bAll_EC_Auth && (j==8 || j==10) || (j!=8 && j!=10)) {%>
+                    <td class="DataTable" <%if(j != 1){%>nowrap<%}%>>
+                    <%if(j == 6){%>
+                       <a href="javascript:showDoc(<%=i%>, &#34;OUTPOST&#34;)"><%=sEvtText[i][j]%></a>&nbsp;
+                    <%}
+                      else if(j == 7){%>
+                       <a href="javascript:showDoc(<%=i%>, &#34;RCIPOST&#34;)"><%=sEvtText[i][j]%></a>&nbsp;
+                    <%} else {%>
+                       <%=sEvtText[i][j]%>&nbsp;
+                    <%}%>
+                    </td>
+                  <%}%>
+                <%}%>
+                 <td class="PrintOnly" nowrap><%=sEvent[i]%></td>
+              </tr>
+              <%sSvMon = sMon[i];%>
+           <%}%>
+           </tbody>
+         </table>
+         <!----------------- start of ad table ------------------------>
+      </td>
+     </tr>
+    </table>
+  </body>
+</html>
+<%}%>

@@ -1,0 +1,1299 @@
+      *‚********************************************************************
+      *‚Service Program Information Summary
+      *‚********************************************************************
+      *‚Program ID    -   PSemSng
+      *‚Program Name  -   Employee Weekly Pay Details calculated by Schedule
+      *‚Programmer    -   Vadim Rozen
+      *‚Date          -   10/01/2008
+      *‚Call from     -
+      *‚Description
+      *‚********************************************************************
+      *‚The Program generate data for Weekly Pay Detail for selected        .
+      *‚employee based on scheduled hours                                   .
+      *‚********************************************************************
+     H NoMain
+      *‚Compile control statements
+     H  BNDDIR('QC2LE')
+      *‚********************************************************************
+      *‚ Files
+      *‚********************************************************************
+      *‚RCI Employee Master File
+     fDiv1Sls   if   e           k disk    usropn
+      *‚RCI Employee Master File
+     fFsyPerl5  if   e           k disk    usropn
+      *‚ Fiscal period file by year/period
+     Ffsyperl6  if   e           k disk    usropn rename(isyper:perl6)
+     f                                     prefix(x:1)
+      *‚Minimum wage
+     fRciPMWF   if   e           k disk    usropn
+      *‚Employee master file
+     fRciEmp    if   e           k disk    usropn
+      *‚Employee Base master file
+     fEmpBase   if   e           k disk    usropn rename(empfmt:basfmt)
+      *‚Store Commission percentage
+     fPrPComp01 if   e           k disk    usropn
+      *‚Store Sales percentage
+     fPrPSls01  if   e           k disk    usropn
+      *‚Sales Plan forcasting for each day of week
+     fPrFcdL2   if   e           k disk    usropn
+      *‚Alternate Sales Goal
+     fPrSlGalL1 if   e           k disk    usropn
+      *‚********************************************************************
+      *‚ global variable definitions
+      *‚********************************************************************
+     d dInpStr         ds                  qualified
+     d  str                           5  0
+     d  from                           d
+     d  to                             d
+      *‚--------------------------------------------------------------------
+     d dInpEmp         ds                  qualified
+     d  emp                          40
+      *‚--------------------------------------------------------------------
+     d cMxIn           c                   const(50)
+     d MxInp           s              5i 0 inz(cMxIn)
+
+      *‚Schedual minute summary retrived from file by query
+     d dSchSum         ds                  occurs(cMxIn)
+     d  schENam                      40
+     d  schDate                      10d   datfmt(*iso)
+     d  schGrp                        5
+     d  schTyp                        3
+     d  schMin                       15  0
+     d dSDInd          ds                  occurs(cMxIn)
+     d  dsdi                          5i 0 dim(4)
+     d MxSch           s              5i 0
+
+      *‚Section & Group
+     d dSecGrp         ds                  occurs(cMxIn)
+     d  SgSec                         5
+     d  SgGrp                         5
+     d  SgType                        1
+     d dSGInd          ds                  occurs(cMxIn)
+     d  dsgi                          5i 0 dim(3)
+     d MxSec           s              5i 0
+
+      *‚Special Commission percent
+     d dComPrc         ds                  occurs(cMxIn)
+     d  CpMrLvl                       1
+     d  CpDiv                         2s 0
+     d  CpDpt                         3s 0
+     d  CpCls                         4s 0
+     d  CpSku                        10s 0
+     d  CxPct                         4  2
+     d  CpNet                         1
+     d dCpInd          ds                  occurs(cMxIn)
+     d  dcpi                          5i 0 dim(7)
+     d MxCom           s              5i 0
+
+
+      *‚LY Sales  - to calculate Special commissions
+     d dLySls          ds                  occurs(cMxIn)
+     d  LsDiv                         2  0
+     d  LsDpt                         3  0
+     d  LsCls                         4  0
+     d  LsSku                        10  0
+     d  LsRet                         9  2
+     d dLSInd          ds                  occurs(cMxIn)
+     d  dlsi                          5i 0 dim(5)
+     d MxLySls         s              5i 0
+      *‚--------------------------------------------------------------------
+     d aGrp            s             10    dim(20)
+     d aGrpTy          s              1    dim(20)
+     d MxGrp           s              5i 0
+      *‚--------------------------------------------------------------------
+     d SelBeg          s               d
+     d SelEnd          s               d
+     d SelEmp          s                   like(schENam)
+     d LyWkBeg         s               d
+     d LyWkEnd         s               d
+     d NumOfDays       s              5i 0
+      *‚--------------------------------------------------------------------
+     d dEmpSch         ds                  qualified
+     d  hrs                           9  0
+     d  reg                           9  0
+     d  vac                           9  0
+     d  hol                           9  0
+     d  slsmin                        9  0 dim(7)
+     d  regpay                        9  2
+     d  compay                        9  2
+     d  trnmin                        9  0
+     d  trnpay                        9  2
+     d  incpay                        9  2
+      *‚--------------------------------------------------------------------
+     d dSpcCom         ds                  qualified
+     d  MrLvl                              like(CpMrLvl) dim(20)
+     d  Div                                like(CpDiv)   dim(20)
+     d  Dpt                                like(CpDpt)   dim(20)
+     d  Cls                                like(CpCls)   dim(20)
+     d  Sku                                like(CpSku)   dim(20)
+     d  Pct                                like(CxPct)   dim(20)
+     d  Net                                like(CpNet)   dim(20)
+     d MxSPrc          s              5i 0
+
+     d dLvlPos         ds                  qualified
+     d  search                             dim(20)
+     d  lvl                           1    overlay(search:1)
+     d  from                          5s 0 overlay(search:2)
+     d  to                            5s 0 overlay(search:7)
+      *‚--------------------------------------------------------------------
+     d aGrpName        s             20    dim(12) ctdata
+     d aDptGrp         s             60    dim(12) ctdata
+      *‚--------------------------------------------------------------------
+     d aStrSlsMin      s              9  0 dim(7)
+      *‚--------------------------------------------------------------------
+     d aPlan           s              9  2 dim(7)
+      *‚--------------------------------------------------------------------
+     d TotMin          s              9  0
+     d TotPay          s              9  0
+      *‚--------------------------------------------------------------------
+     d dOutSch         ds                  qualified
+     d  emp                           5  0
+     d  empnm                        19
+     d  dept                          3
+     d  bdggrp                       20
+     d  hrs                           9  2
+     d  reg                           9  2
+     d  vac                           9  2
+     d  hol                           9  2
+     d  regpay                        9  2
+     d  compay                        9  2
+     d  allpay                        9  2
+     d  avg                           9  2
+     d  rate                          9  2
+     d  rat3                          9  2
+     d  slshrs                        9  2
+     d  hors                          1
+     d  comty                         1
+     d  orgstr                        5  0
+     d  trnhrs                        9  2
+     d  trnpay                        9  2
+     d  incpay                        9  2
+      *‚--------------------------------------------------------------------
+     d cmd             s          32767
+     d SlrEmpPaid      s               n
+     d StrIncRate      s              7  2
+      *‚--------------------------------------------------------------------
+     d SQL_NUM         c                   1
+     d totCom          s              9  2
+     d totHrs          s              9  2
+      *‚********************************************************************
+      *‚ Prototypes
+      *‚********************************************************************
+      *‚--------------------- Exported procedures --------------------------
+      *‚open files
+     d openPayFile     pr                  extproc('opnPayFile')
+      *‚reset all variables
+     d resetAll        pr                  extproc('resetAll')
+      *‚reset global variables to initialize process
+     d resetEmpPay     pr                  extproc('resetEmpPay')
+
+      *‚ set Store values to calculate schedule pays
+     d setStrSchPay    pr                  extproc('setStrSchPay')
+     d  input                              like(dInpStr)
+      *‚ set Store values to calculate schedule pays
+     d clcEmpSchPay    pr                  extproc('clcEmpSchPay')
+     d  input                              like(dInpEmp)
+
+      *‚ get Schedule employee pays
+     d getSchPay       pr                  extproc('getSchPay')
+     d  outSch                             like(dOutSch)
+
+      *‚ close files
+     d closePayFile    pr                  extproc('closePayFile')
+      *‚--------------------------------------------------------------------
+      *‚Set Store Schedule Scores
+     d getStrIncRate   pr             7  2
+      *‚prepare Statment for schedule file
+     d prepStmtSch     pr
+     d   single                        n   value
+      *‚get Schedual days minute summary
+     d getSchMin       pr              n
+      *‚close cursors for store values
+     d closeStrCsr     pr
+      *‚close cursors for employee values
+     d closeEmpCsr     pr
+
+      *‚prepare Statment for section and group on schedule
+     d prepStmtGrp     pr
+      *‚get Schedual days minute summary
+     d getSecGrp       pr              n
+
+      *‚prepare Statment - Commission processing
+     d prepStmtPrc     pr
+      *‚get Commission Percent
+     d getComPrc       pr              n
+      *‚set Commission Percent
+     d setSpcCom       pr
+      *‚calculate Special Commission
+     d clcSpcCom       pr
+      *‚get Special Commission Percents
+     d getSpcComPrc    pr             5  2
+     d  lvl                           1    value
+     d  search                       10  0 value
+
+      *‚prepare Statment - Last Year Sales for bike managers
+     d prepStmtSls     pr
+      *‚get Commission Percent
+     d getLySls        pr              n
+
+      *‚ get Ly Date
+     d getLyDate       pr              d
+     d  year                               like(pYr#) value
+     d  per                                like(pPer) value
+     d  daynum                        5i 0 value
+
+      *‚read Schedule Header
+     d readAllSch      pr
+
+      *‚get Budget Group Name
+     d getBdgGrp       pr            20
+     d  dept                          3    value
+
+      *‚read Schedule Header
+     d readSch         pr
+      *‚accumulate Special minutes (Sales, Training)
+     d acmSpcMin       pr
+     d   single                        n   value
+      *‚accumulate Minutes work by selected employee
+     d acmEmpMin       pr
+      *‚claculate employee payes
+     d clcEmpPay       pr
+      *‚ calculate Hourly Wage
+     d clcHrlWage      pr
+     d  rate                          7  2 value
+     d  wage                          9  2
+     d  incpay                        9  2
+      *‚claculate employee commissions
+     d clcEmpCom       pr
+
+
+      *‚set Section and Group and section Types
+     d setSecGrp       pr
+      *‚convert Minutes to Hours:Min format
+     d cvtMinHrs       pr             9  2
+     d  min                           9  0 value
+      *‚set commission Percentage and Percentage of sales Calculation
+     d setComPrc       pr
+      *‚set plan in Array
+     d setPlanArr      pr
+
+      *‚retreive employee property
+     d getEmpProp      pr
+
+      *‚Convert alpha to numeric
+     D atoi            pr            10i 0 extproc('atoi')
+     D   num                           *   options(*string) value
+
+     d cmdexc          pr                  extpgm('QCMDEXC')
+     d   cmd                      32767    const
+     d   lng                         15  5 const
+      *‚********************************************************************
+      *‚********************************************************************
+      *‚********************************************************************
+      *‚open files
+      *‚********************************************************************
+     p openPayFile     b                   export
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       open Div1Sls;
+       open RciPMWF;
+       open FsyPerl5;
+       open FsyPerl6;
+       open RciEmp;
+       open EmpBase;
+       open PrPComp01;
+       open PrPSls01;
+       open PrFcdL2;
+       open PrSlGalL1;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚reset all variables
+      *‚********************************************************************
+     p resetAll        b                   export
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       clear aStrSlsMin;
+       clear aPlan;
+       clear dEmpSch;
+
+       clear aGrp;
+       clear aGrpTy;
+       clear MxGrp;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚reset global variables to initialize process
+      *‚********************************************************************
+     p resetEmpPay     b                   export
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       clear dEmpSch;
+       SlrEmpPaid = *off;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚ set Schedule payment
+      *‚********************************************************************
+     p setStrSchPay    b                   export
+     d                 pi
+     d  input                              like(dInpStr)
+      *‚--------------------------------------------------------------------
+      /free
+       dInpStr= input;
+       chain (dInpStr.from) FsyPerl5;
+       SelBeg = dInpStr.from;
+       LyWkBeg = getLyDate(PYr# :PPer :%diff(SelBeg:piwb:*days) + 1);
+
+       chain (dInpStr.to) FsyPerl5;
+       SelEnd = dInpStr.to;
+       LyWkEnd = getLyDate(PYr# :PPer :%diff(SelEnd:piwb:*days) + 1);
+
+       //‚Set Inore Schedule Scores
+       StrIncRate = getStrIncRate();
+
+       NumOfDays = %diff(SelEnd : SelBeg : *days) + 1;
+
+       //‚set commission Percentage and Percentage of sales Calculation
+       setComPrc();
+
+       //‚set plan in Array
+       setPlanArr();
+
+       //‚set section and Group in array
+       setSecGrp();
+
+       //‚accumulate all Schedule minutes
+       readAllSch();
+
+       //‚close cursors
+       closeStrCsr();
+
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚ set Store values to calculate schedule pays
+      *‚********************************************************************
+     p clcEmpSchPay    b                   export
+     d                 pi
+     d  input                              like(dInpEmp)
+      *‚--------------------------------------------------------------------
+      /free
+       dInpEmp =  input;
+       SelEmp = dInpEmp.emp;
+
+       //‚retreive selected employee properties
+       getEmpProp();
+
+       //‚read Actual payment
+       readSch();
+
+       //‚calculate regular sales commissions
+       if %xfoot(dEmpSch.slsmin) > 0 and eHors = 'H' and eSCom = 'R';
+          clcEmpCom();
+       endIf;
+
+       //if eStat = '055' or eStat = '056';
+       if eHorS = 'H' and eSCom = 'S';
+          setSpcCom();
+          clcSpcCom();
+       endIf;
+
+       //‚close cursors
+       closeEmpCsr();
+
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚get Schedule payment
+      *‚********************************************************************
+     p getSchPay       b                   export
+     d                 pi
+     d  outSch                             like(dOutSch)
+     d avg             s              9  2
+      *‚--------------------------------------------------------------------
+      /free
+       clear dOutSch;
+
+       dOutSch.emp = erci;
+       dOutSch.empnm = ename;
+       dOutSch.dept = estat;
+       dOutSch.bdggrp = getBdgGrp(dOutSch.dept);
+       dOutSch.hrs = cvtMinHrs(dEmpSch.hrs);
+       dOutSch.reg = cvtMinHrs(dEmpSch.reg);
+       dOutSch.vac = cvtMinHrs(dEmpSch.vac);
+       dOutSch.hol = cvtMinHrs(dEmpSch.hol);
+
+       //‚payment information is allowed only for non-management personell
+       dOutSch.regpay = dEmpSch.regpay;
+       dOutSch.compay = dEmpSch.compay;
+       dOutSch.incpay = dEmpSch.incpay;
+
+       //‚calculate total weekly wage
+       dOutSch.allpay = dEmpSch.regpay + dEmpSch.compay + dEmpSch.incpay;
+
+       //‚calculate average pay per hour
+       if dEmpSch.hrs <> 0;
+          avg = %Dech(dOutSch.allpay * 60 / dEmpSch.hrs :9:2);
+       endIf;
+       dOutSch.avg = avg;
+
+       dOutSch.rate = eRate;
+       dOutSch.rat3 = eRat3;
+       dOutSch.slshrs = cvtMinHrs(%xFoot(dEmpSch.slsmin));
+       dOutSch.hors = eHors;
+       dOutSch.comty = eSCom;
+       dOutSch.orgstr = eStore;
+
+       dOutSch.trnhrs = cvtMinHrs(dEmpSch.trnmin);
+       dOutSch.trnpay = dEmpSch.trnpay;
+
+       outSch = dOutSch;
+
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚ close files
+      *‚********************************************************************
+     p closePayFile    b                   export
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       close Div1Sls;
+       close RciPMWF;
+       close FsyPerl5;
+       close FsyPerl6;
+       close RciEmp;
+       close EmpBase;
+       close PrPComp01;
+       close PrPSls01;
+       close PrFcdL2;
+       close PrSlGalL1;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚read Schedule Header
+      *‚********************************************************************
+     p readAllSch      b
+     d                 pi
+     d eof             s               n
+     d x               s              5i 0
+     d y               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       prepStmtSch(*off);
+       dow not getSchMin();
+         for x = 1 to MxSch;
+           %occur(dSchSum) = x;
+           %occur(dSdInd) = x;
+           //‚accumulate Sales minutes
+           acmSpcMin(*off);
+         endFor;
+       endDo;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚read Schedule payment
+      *‚********************************************************************
+     p readSch         b
+     d                 pi
+     d eof             s               n
+     d x               s              5i 0
+     d y               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       prepStmtSch(*on);
+       dow not getSchMin();
+         for x = 1 to MxSch;
+           %occur(dSchSum) = x;
+           %occur(dSdInd) = x;
+
+           //‚calcuate Employee payments
+           clcEmpPay();
+
+           //‚accumulate Minutes work by selected employee
+           acmEmpMin();
+
+           //‚accumulate Sales minutes
+           acmSpcMin(*on);
+         endFor;
+       endDo;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚accumulate Minutes work by selected employee
+      *‚********************************************************************
+     p acmEmpMin       b
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       if schENam = SelEmp;
+          dEmpSch.hrs += schMin;
+          select;
+            when schTyp = 'REG';
+              dEmpSch.reg += schMin;
+            when schTyp = 'VAC';
+              dEmpSch.vac += schMin;
+            when schTyp = 'HOL';
+              dEmpSch.hol += schMin;
+          endSl;
+       endIf;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚accumulate Special minutes (Sales, Training)
+      *‚********************************************************************
+     p acmSpcMin       b
+     d                 pi
+     d   single                        n   value
+     d x               s              5i 0
+     d day             s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       //‚check that group is sales group
+       x = %lookup(schGrp : aGrp : 1 : MxGrp);
+       day = %Diff(schDate : SelBeg : *days) + 1;
+
+       //‚accumulate sales minutes
+       if x > 0 and aGrpTy(x) = '1';
+          //‚Selected Employee work in sales groups
+          if single;
+             dEmpSch.slsmin(day) += schMin;
+          else;
+             //‚All Store Employee work in sales groups
+             aStrSlsMin(day) += schMin;
+          endIf;
+       endIf;
+
+       //‚accumulate training minutes
+       if x > 0 and aGrpTy(x) = 'T';
+          //‚Selected Employee training minutes
+          if single;
+             dEmpSch.trnmin += schMin;
+          endIf;
+       endIf;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚claculate employee payes
+      *‚********************************************************************
+     p clcEmpPay       b
+     d                 pi
+     d wage            s              9  2
+     d x               s              5i 0
+     d trnpay          s              9  2
+     d incpay          s              9  2
+     d regpay          s              9  2
+      *‚--------------------------------------------------------------------
+      /free
+       //‚check that group is sales group
+       x = %lookup(schGrp : aGrp : 1 : MxGrp);
+
+       if schTyp = 'REG';
+          //‚calculate wages for Salary employee once
+          if not SlrEmpPaid and eHorS = 'S' and eStore = dInpStr.str;
+             dEmpSch.regpay = erate / 2;
+             SlrEmpPaid = *on;
+
+          //‚hourly employee with regular commission
+          elseif eHorS = 'H' and aGrpTy(x) = 'T';
+             clcHrlWage(erate :trnpay :incpay);
+             dEmpSch.regpay += trnpay;
+             dEmpSch.trnpay += trnpay;
+             dEmpSch.incpay += incpay;
+
+          //‚hourly employee with regular commission
+          elseif eHorS = 'H';
+             clcHrlWage(erate:regpay:incpay);
+             dEmpSch.regpay += regpay;
+             dEmpSch.incpay += incpay;
+
+          //‚clc wage for other store employee as for hourly people
+          elseif eHorS = 'S' and eStore <> dInpStr.str;
+             clcHrlWage(erate:regpay:incpay);
+             dEmpSch.regpay += regpay;
+             dEmpSch.incpay += incpay;
+
+          //‚clc wage for bike managers
+          elseif eHorS <> 'S' and (eStat = '055' or eStat = '056');
+             eval(h) dEmpSch.regpay += erate * schMin / 60 ;
+          endIf;
+       endIf;
+
+       //‚calculate vac/holiday
+       if schTyp = 'VAC' or schTyp = 'HOL';
+          //‚calculate wages for Salary employee once
+          if not SlrEmpPaid and eHorS = 'S';
+             dEmpSch.regpay = erate / 2;
+             SlrEmpPaid = *on;
+          endIf;
+
+          //‚calculate wages for bike managers
+          if eHorS <> 'S' and (eStat = '055' or eStat = '056');
+             eval(h) dEmpSch.regpay += erate * schMin / 60;
+          //‚calculate wages for any other employee
+          elseif eHorS <> 'S';
+             eval(h) dEmpSch.regpay += erate * schMin / 60;
+          endIf;
+       endIf;
+
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚ calculate Hourly Wage
+      *‚********************************************************************
+     p clcHrlWage      b
+     d                 pi
+     d  rate                          7  2 value
+     d  wage                          9  2
+     d  incpay                        9  2
+     d allhrs          s              9  2
+     d curhrs          s              9  2
+     d ovt             s              9  2
+     d reg             s              9  2
+     d x               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       allhrs = %DecH(dEmpSch.reg / 60:9:2);
+       curhrs = %DecH(SchMin / 60:9:2);
+       //‚check that group is sales group
+       x = %lookup(schGrp : aGrp : 1 : MxGrp);
+
+
+       if allhrs <= 40 and allhrs + curhrs > 40;
+          ovt = allhrs + curhrs - 40;
+          reg = curHrs - ovt;
+       elseif allhrs > 40;
+          ovt = curHrs;
+       elseif allHrs + curHrs <= 40;
+          reg = curHrs;
+       endIf;
+
+       //‚calulate employee hourly wage
+       wage = rate * (reg + ovt * 1.5);
+       incpay = StrIncRate * (reg + ovt * 1.5);
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚claculate employee commissions
+      *‚********************************************************************
+     p clcEmpCom       b
+     d                 pi
+     d hrs             s              9  2 dim(7)
+     d allhrs          s              9  2 dim(7)
+     d x               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       eval(h) hrs = dEmpSch.slsmin / 60;
+       eval(h) allhrs = aStrSlsMin / 60;
+
+       for x = 1 to NumOfDays;
+         if allhrs(x) <> 0;
+            dEmpSch.compay += perc/100.00 * aPlan(x) / allhrs(x)
+               * hrs(x) * cprc/100.00;
+            totCom += perc/100.00 * aPlan(x) / allhrs(x)
+               * hrs(x) * cprc/100.00;
+            totHrs += hrs(x);
+         endIf;
+       EndFor;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚set Section and Group and section Types
+      *‚********************************************************************
+     p setSecGrp       b
+     d                 pi
+     d eof             s               n
+     d x               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       prepStmtGrp();
+       dow not getSecGrp();
+         for x = 1 to MxSec;
+           %occur(dSecGrp) = x;
+           %occur(dSGInd) = x;
+           MxGrp += 1;
+           aGrp(MxGrp) = SgGrp;
+           aGrpTy(MxGrp) = SgType;
+         endFor;
+       endDo;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚set Special Commission Percent
+      *‚********************************************************************
+     p setSpcCom       b
+     d                 pi
+     d x               s              5i 0
+     d y               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       clear dSpcCom;
+       clear MxSPrc;
+       clear dLvlPos;
+
+       //‚S-Sku, C-Class, P-Department, D-Division
+       dLvlPos.lvl(1) = 'S';
+       dLvlPos.lvl(2) = 'C';
+       dLvlPos.lvl(3) = 'P';
+       dLvlPos.lvl(4) = 'D';
+
+       //‚prepare Statment Commission processing
+       prepStmtPrc();
+       //‚get Commission Percent
+       dow not getComPrc();
+         for x = 1 to MxCom;
+           %occur(dComPrc) = x;
+           %occur(dCPInd) = x;
+
+           MxSPrc += 1;
+           dSpcCom.MrLvl(MxSPrc) = CpMrLvl;
+           dSpcCom.Div(MxSPrc) = CpDiv;
+           dSpcCom.Dpt(MxSPrc) = CpDpt;
+           dSpcCom.Cls(MxSPrc) = CpCls;
+           dSpcCom.Sku(MxSPrc) = CpSku;
+           dSpcCom.Pct(MxSPrc) = CxPct;
+           dSpcCom.Net(MxSPrc) = CpNet;
+
+           //‚save positions of merchandise level for search)
+           y = %lookup(dSpcCom.MrLvl(MxSPrc) :dLvlPos.lvl :1 :4);
+           if dLvlPos.from(y) = 0;
+              dLvlPos.from(y) = MxSPrc;
+           endIf;
+           dLvlPos.to(y) = MxSPrc;
+         endFor;
+       endDo;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚calculate Special Commission
+      *‚********************************************************************
+     p clcSpcCom       b
+     d                 pi
+     d x               s              5i 0
+     d y               s              5i 0
+     d prc             s              5  2
+     d search          s             10  0
+     d total           s             11  2
+      *‚--------------------------------------------------------------------
+      /free
+       //‚prepare Statment - Last Year Sales
+       prepStmtSls();
+
+       //‚get Last Year Sales
+       dow not getLySls();
+         for x = 1 to MxLySls;
+           %occur(dLySls) = x;
+           %occur(dLSInd) = x;
+
+           //‚search special commission percents
+           for y = 1 to 4;
+             if dLvlPos.lvl(y) = 'S';
+                search = LsSku;
+             elseif dLvlPos.lvl(y) = 'C';
+                search = LsCls;
+             elseif dLvlPos.lvl(y) = 'P';
+                search = LsDpt;
+             elseif dLvlPos.lvl(y) = 'D';
+                search = LsDiv;
+             endIf;
+
+             prc = getSpcComPrc(dLvlPos.lvl(y):search);
+             total += LsRet;
+
+             if prc > 0;
+                leave;
+             endIf;
+           endFor;
+           //‚calculate special commission percents
+           dEmpSch.compay += %DecH(LsRet * prc/100 : 9 :2);
+         endFor;
+       endDo;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚get Special Commission Percents
+      *‚********************************************************************
+     p getSpcComPrc    b
+     d                 pi             5  2
+     d  lvl                           1    value
+     d  search                       10  0 value
+     d x               s              5i 0
+     d prc             s                   like(getSpcComPrc)
+     d y               s              5i 0
+     d from            s              5i 0
+     d numelm          s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       x = %lookup(lvl:dLvlPos.lvl:1:4);
+       numelm = dLvlPos.to(x) - dLvlPos.from(x) + 1;
+
+       if lvl = 'S' and dLvlPos.from(x) > 0;
+          y = %lookup(search :dSpcCom.sku :dLvlPos.from(x) : numelm);
+       elseif lvl = 'C' and dLvlPos.from(x) > 0;
+          y = %lookup(search :dSpcCom.cls :dLvlPos.from(x) : numelm);
+       elseif lvl = 'P' and dLvlPos.from(x) > 0;
+          y = %lookup(search :dSpcCom.dpt :dLvlPos.from(x) : numelm);
+       elseif lvl = 'D' and dLvlPos.from(x) > 0;
+          y = %lookup(search :dSpcCom.div :dLvlPos.from(x) : numelm);
+       endIf;
+
+       if  y > 0;
+           prc = dSpcCom.Pct(y);
+       endIf;
+       return prc;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚prepare Statment for schedule file
+      *‚********************************************************************
+     p prepStmtSch     b
+     d                 pi
+     d   single                        n   value
+     d stmt            s           1024
+      *‚--------------------------------------------------------------------
+      /free
+       stmt = 'select sdenam, sddate, sdgrp, sdhtyp,'
+         + ' sum((midnight_seconds(sdetim) - midnight_seconds(sdbTim))/60)'
+         + ' from prschdd'
+         + ' where ';
+
+       //‚select dates
+       stmt = %trim(stmt) + ' sddate >= ' + x'7D' + %char(SelBeg)
+         + x'7D' + ' and sddate <= ' + x'7D' + %char(SelEnd) + x'7D';
+
+       //‚get only selected employee
+       if single;
+          stmt = %trim(stmt) + ' and SdENam = '
+               + x'7D' + %Trim(SelEmp) + x'7D';
+       else;
+          stmt = %trim(stmt)
+            + ' and exists(select 1 from ScStrGrp inner join SCSTRSec'
+            + ' on Sgsec = SeSec where sgstr=sdstr'
+            + ' and sggrp = sdgrp'
+            + ' and SESLS =' + x'7D' + '1' + x'7D' + ')'
+            + ' and exists (select 1 from rciemp e where'
+            + ' erci = dec(substr(sdENam,1,4),4, 0)'
+            + ' and e.ehors =' + x'7D' + 'H' + x'7D'
+            + ' and e.eSCom =' + x'7D' + 'R' + x'7D' + ')';
+       endIf;
+
+       //‚ommit Holidays, Vacation and Day Offs.
+       stmt = %trim(stmt) + ' and SdHTyp <> ' + x'7D' + 'OFF' + x'7D';
+
+       //‚select store
+       stmt = %trim(stmt) + ' and sdstr=' + %char(dInpStr.str);
+
+       stmt = %trim(stmt) + ' group by sdenam, sddate, sdgrp, sdhtyp';
+       stmt = %trim(stmt) + ' order by sdenam, sddate, sdgrp, sdhtyp';
+      /end-free
+
+     c/EXEC SQL
+      + INCLUDE SQLDA
+     c/END-EXEC
+
+      *‚set prepare statement
+     c/EXEC SQL
+      + PREPARE SQLSTM FROM :stmt
+     c/END-EXEC
+
+     c/EXEC SQL
+      + DECLARE crs_SchDtl cursor for SQLSTM
+     c/END-EXEC
+
+     c/EXEC SQL
+      + open crs_SchDtl
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚get Schedula days minute summary
+      *‚********************************************************************
+     p getSchMin       b
+     d                 pi              n
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+     c+ fetch crs_SchDtl for :MxInp rows into :dSchSum :dSDInd
+     c/END-EXEC
+
+      /free
+       MxSch = SqlEr3;
+       return sqlcod <> 0;
+      /end-Free
+     p                 e
+      *‚********************************************************************
+      *‚prepare Statment for section and group on schedule
+      *‚********************************************************************
+     p prepStmtGrp     b
+     d                 pi
+     d stmt            s           1024
+      *‚--------------------------------------------------------------------
+      /free
+       stmt = 'select SgSec, SgGrp, SeSls'
+         + ' from ScStrGrp inner join SCSTRSec on Sgsec = SeSec'
+         + ' where sgstr=' + %char(dInpStr.str)
+         + ' order by sgsec, sggrp';
+      /end-free
+
+     c/EXEC SQL
+      + INCLUDE SQLDA
+     c/END-EXEC
+
+      *‚set prepare statement
+     c/EXEC SQL
+      + PREPARE SQLSTM1 FROM :stmt
+     c/END-EXEC
+
+     c/EXEC SQL
+      + DECLARE crs_SecGrp cursor for SQLSTM1
+     c/END-EXEC
+
+     c/EXEC SQL
+      + open crs_SecGrp
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚get Schedual days minute summary
+      *‚********************************************************************
+     p getSecGrp       b
+     d                 pi              n
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+     c+ fetch crs_SecGrp for :MxInp rows into :dSecGrp :dSgInd
+     c/END-EXEC
+
+      /free
+       MxSec = SqlEr3;
+       return sqlcod <> 0;
+      /end-Free
+     p                 e
+      *‚********************************************************************
+      *‚prepare Statment Commission processing
+      *‚********************************************************************
+     p prepStmtPrc     b
+     d                 pi
+     d stmt            s           1024
+      *‚--------------------------------------------------------------------
+      /free
+       stmt = 'select srml, sdiv, sdpt, scls, ssku, spct, ssm'
+        + ' from RciPscF'
+        + ' where soa =' + x'7D' + 'A' + x'7D'
+        + ' and semp = ' + %subst(SelEmp:1:4)
+        + ' order by srml, sdiv, sdpt, scls, ssku';
+      /end-free
+
+     c/EXEC SQL
+      + INCLUDE SQLDA
+     c/END-EXEC
+
+      *‚set prepare statement
+     c/EXEC SQL
+      + PREPARE SQLSTM2 FROM :stmt
+     c/END-EXEC
+
+     c/EXEC SQL
+      + DECLARE crs_ComPrc cursor for SQLSTM2
+     c/END-EXEC
+
+     c/EXEC SQL
+      + open crs_ComPrc
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚get Commission Percent
+      *‚********************************************************************
+     p getComPrc       b
+     d                 pi              n
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+     c+ fetch crs_ComPrc for :MxInp rows into :dComPrc :dCpInd
+     c/END-EXEC
+
+      /free
+       MxCom = SqlEr3;
+       return sqlcod <> 0;
+      /end-Free
+     p                 e
+      *‚********************************************************************
+      *‚prepare Statment - Last Year Sales for bike managers
+      *‚********************************************************************
+     p prepStmtSls     b
+     d                 pi
+     d stmt            s           1024
+      *‚--------------------------------------------------------------------
+      /free
+       stmt = 'with slsf as('
+            + 'select idiv, idpt, icls, isku, dec(sum(eret),9,2) as ret'
+        + ' from rcisacm inner join ipithdr'
+        + ' on ecls=icls and even=iven and esty=isty'
+        + ' and eclr=iclr and esiz=isiz'
+        + ' where edai >=' + x'7D' + %char(LyWkBeg) + x'7D'
+        + ' and edai <= ' + x'7D' + %char(LyWkEnd) + x'7D'
+        + ' and eTyp <> ' + x'7D' + '80' + x'7D'
+        + ' and eist = ' + %char(dInpStr.str)
+        + ' group by idiv, idpt, icls, isku'
+
+        + ' select *  from slsf'
+        + ' where exists( select 1 from RciPscF where'
+        + ' soa =' + x'7D' + 'A' + x'7D'
+        + ' and (srml = ' + x'7D' + 'S' + x'7D' + ' and isku = ssku'
+        + ' or srml = ' + x'7D' + 'C' + x'7D' + ' and icls = scls'
+        + ' or srml = ' + x'7D' + 'P' + x'7D' + ' and idpt = sdpt'
+        + ' or srml = ' + x'7D' + 'D' + x'7D' + ' and idiv = sdiv))'
+        + ' order by idiv, idpt, icls, isku';
+      /end-free
+
+     c/EXEC SQL
+      + INCLUDE SQLDA
+     c/END-EXEC
+
+      *‚set prepare statement
+     c/EXEC SQL
+      + PREPARE SQLSTM3 FROM :stmt
+     c/END-EXEC
+
+     c/EXEC SQL
+      + DECLARE crs_LySls cursor for SQLSTM3
+     c/END-EXEC
+
+     c/EXEC SQL
+      + open crs_LySls
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚get Commission Percent
+      *‚********************************************************************
+     p getLySls        b
+     d                 pi              n
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+     c+ fetch crs_LySls for :MxInp rows into :dLySls :dLsInd
+     c/END-EXEC
+
+      /free
+       MxLySls = SqlEr3;
+       return sqlcod <> 0;
+      /end-Free
+     p                 e
+      *‚********************************************************************
+      *‚convert Minutes to Hours:Min format
+      *‚********************************************************************
+     p cvtMinHrs       b
+     d                 pi             9  2
+     d  min                           9  0 value
+     d  hrs            s                   like(cvtMinHrs)
+     d h               s              5  0
+     d m               s              2  0
+      *‚--------------------------------------------------------------------
+      /free
+       eval(h) hrs = min / 60;
+       return hrs;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚retreive employee property
+      *‚********************************************************************
+     p getEmpProp      b
+     d                 pi
+     d kEmp            s                   like(erci)
+     d baseSch         s               n
+      *‚--------------------------------------------------------------------
+      /free
+       baseSch = SelEnd > d'2099-01-01';
+       kEmp = atoi(%subst(SelEmp:1:4));
+
+       select;
+         When baseSch and %SubSt(SelEmp:6:8) <> 'New Hire';
+           chain (kEmp) EmpBase;
+         When %SubSt(SelEmp:6:8) <> 'New Hire';
+           chain (kEmp) RciEmp;
+       endSl;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚set commission Percentage and Percentage of sales Calculation
+      *‚********************************************************************
+     p setComPrc       b
+     d                 pi
+      *‚--------------------------------------------------------------------
+      /free
+       //‚get Store sales procent
+       setgt (dInpStr.str:SelBeg) PrPSls01;
+       readpe (dInpStr.str) PrPSls01;
+
+       //‚get Store comission procent
+       setgt (dInpStr.str:SelBeg  ) PrPComp01;
+       readpe (dInpStr.str) PrPComp01;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚set plan in Array
+      *‚********************************************************************
+     p setPlanArr      b
+     d                 pi
+     d x               s              5i 0
+     d kDate           s                   like(FDDat)
+     d nextDt          s                   like(FDDat)
+      *‚--------------------------------------------------------------------
+      /free
+       for x = 1 to  NumOfDays;
+         //‚get Store sales procent
+         kDate = atoi(%char(SelBeg + %Days(x-1) :*iso0));
+
+         clear FDBSLS;
+         chain (dInpStr.str:kDate) PrFcdL2;
+
+         clear SgBSls;
+         chain (dInpStr.str: SelBeg + %Days(x-1)) PrSlGalL1;
+
+         if %found(PrSlGalL1);
+            aPlan(x) = SgBSls;
+         else;
+            aPlan(x) = FDBSLS;
+         endIf;
+
+       endFor;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚ get Ly Date
+      *‚********************************************************************
+     p getLyDate       b
+     d                 pi              d
+     d  year                               like(pYr#) value
+     d  per                                like(pPer) value
+     d  daynum                        5i 0 value
+     d x               s              5i 0
+      *‚--------------------------------------------------------------------
+      /free
+       //‚correct year comparison for 53 period year and next after.
+       if year = 2008 and per = 53;
+          per = 1;
+       elseif year = 2009;
+          year += (-1);
+          per += 1;
+       else;
+          year += (-1);
+       endIf;
+
+       setll (year:per) FsyPerl6;
+       for x = 1 to daynum;
+         reade (year:per) FsyPerl6;
+       endFor;
+       return xida;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚close cursors for store value queries
+      *‚********************************************************************
+     p closeStrCsr     b
+     d                 pi
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+      + close crs_SchDtl
+     c/END-EXEC
+     c/EXEC SQL
+      + close crs_SecGrp
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚close cursors
+      *‚********************************************************************
+     p closeEmpCsr     b
+     d                 pi
+      *‚--------------------------------------------------------------------
+     c/EXEC SQL
+      + close crs_SchDtl
+     c/END-EXEC
+     c/EXEC SQL
+      + close crs_ComPrc
+     c/END-EXEC
+     c/EXEC SQL
+      + close crs_LySls
+     c/END-EXEC
+     p                 e
+      *‚********************************************************************
+      *‚get Budget Group Name
+      *‚********************************************************************
+     p getBdgGrp       b
+     d                 pi            20
+     d  dept                          3    value
+     d x               s              5i 0
+     d dSingle         ds                  qualified
+     d   dpt                          3    dim(20)
+     d y               s              5i 0
+     d grpnm           s                   like(getBdgGrp)
+      *‚--------------------------------------------------------------------
+      /free
+       for x = 1 to %Elem(aDptGrp);
+         dSingle = aDptGrp(x);
+         y = %lookup(dept:dSingle.dpt);
+         if y > 0;
+            grpnm = aGrpName(x);
+            leave;
+         endIf;
+       endFor;
+
+       return grpnm;
+      /end-free
+     p                 e
+      *‚********************************************************************
+      *‚Set Store Schedule Scores
+      *‚********************************************************************
+     p getStrIncRate   b
+     d                 pi             7  2
+     d kDate           s               d
+     d svStr           s              5  0 static
+     d svWkbeg         s               d   static
+     d svWkend         s               d   static
+     d incpay          s              7  2 static
+      *‚--------------------------------------------------------------------
+      /free
+       //‚retreive itfrom file only for first date of selected week
+       if svStr <> dInpStr.str or svWkend <> piwe or svWkbeg <> piwb;
+          svStr = dInpStr.str;
+          svWkend = piwe;
+          svWkbeg = piwb;
+
+          if %date() > piwe;
+             kDate = piwe;
+          else;
+             kDate = piwe - %days(7);
+          endIf;
+          clear DsHPay;
+          chain (dInpStr.str:kDate) Div1Sls;
+          incpay = DsHPay;
+       endIf;
+
+       return incpay;
+      /end-free
+     p                 e
+      *‚********************************************************************
+**
+Hourly Managers
+Selling
+Oper.coor/Cashier
+Shipping/Receiving
+Bike Tech
+Bike Builder
+Bike Service Manager
+Driver
+Ski Tech
+Instructors
+Merchandisers
+Trn/Meet/Cln
+**
+045047
+055042043044057061062072091097
+022093095
+032
+054
+052
+056
+085
+074
+076082
+
+

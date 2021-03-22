@@ -1,0 +1,609 @@
+<%@ page import="payrollreports.SetWkPay, java.util.*"%>
+<%
+   String sStore = request.getParameter("STORE");
+   String sThisStrName = request.getParameter("STRNAME");
+   String sWeekend = request.getParameter("WEEKEND");
+   String sMonth = request.getParameter("MONBEG");
+   String sSort = request.getParameter("SORT");
+
+   if(sSort == null) sSort = "SGEMP";
+   String sGrpType = sSort.substring(0,2);
+   String sReverse = null;
+   if(sGrpType.equals("SG")) sReverse = "GP" + sSort.substring(2);
+   else sReverse = "SG" + sSort.substring(2);
+
+
+  String [] sMgr = null;
+  String [] sSls = null;
+  String [] sSBk = null;
+  String [] sNSl = null;
+  String [] sNRc = null;
+  String [] sNBk = null;
+  String [] sNOt = null;
+  String [] sTrn = null;
+
+  int iNumOfMgr = 0;
+  int iNumOfSls = 0;
+  int iNumOfSBk = 0;
+  int iNumOfNSl = 0;
+  int iNumOfNRc = 0;
+  int iNumOfNBk = 0;
+  int iNumOfNOt = 0;
+  int iNumOfTrn = 0;
+
+  String [] sMgrHrs = null;
+  String [] sSlsHrs = null;
+  String [] sSBkHrs = null;
+  String [] sNSlHrs = null;
+  String [] sNRcHrs = null;
+  String [] sNBkHrs = null;
+  String [] sNOtHrs = null;
+  String [] sTrnHrs = null;
+
+  String [] sMgrPay = null;
+  String [] sSlsPay = null;
+  String [] sSBkPay = null;
+  String [] sNSlPay = null;
+  String [] sNRcPay = null;
+  String [] sNBkPay = null;
+  String [] sNOtPay = null;
+
+  String [] sTrnPay = null;
+
+  String [] sMgrAvg = null;
+  String [] sSlsAvg = null;
+  String [] sSBkAvg = null;
+  String [] sNSlAvg = null;
+  String [] sNRcAvg = null;
+  String [] sNBkAvg = null;
+  String [] sNOtAvg = null;
+
+  String [] sTrnAvg = null;
+
+  String [] sMgrPGPay = null;
+  String [] sSlsPGPay = null;
+  String [] sSBkPGPay = null;
+  String [] sNSlPGPay = null;
+  String [] sNRcPGPay = null;
+  String [] sNBkPGPay = null;
+  String [] sNOtPGPay = null;
+
+  String [] sTrnPGPay = null;
+
+  String [] sMgrTtl = null;
+  String [] sSlsTtl = null;
+  String [] sSBkTtl = null;
+  String [] sNSlTtl = null;
+  String [] sNRcTtl = null;
+  String [] sNBkTtl = null;
+  String [] sNOtTtl = null;
+  String [] sTrnTtl = null;
+
+  String [] sMgrGrp = null;
+  String [] sSlsGrp = null;
+  String [] sNSlGrp = null;
+
+
+  String sTotMgrHrs = null;
+  String sTotSlsHrs = null;
+  String sTotSBkHrs = null;
+  String sTotNSlHrs = null;
+  String sTotNRcHrs = null;
+  String sTotNBkHrs = null;
+  String sTotNOtHrs = null;
+  String sTotTrnHrs = null;
+
+  String sTotMgrPay = null;
+  String sTotSlsPay = null;
+  String sTotSBkPay = null;
+  String sTotNSlPay = null;
+  String sTotNRcPay = null;
+  String sTotNBkPay = null;
+  String sTotNOtPay = null;
+  String sTotTrnPay = null;
+
+  String sTotMgrAvg = null;
+  String sTotSlsAvg = null;
+  String sTotSBkAvg = null;
+  String sTotNSlAvg = null;
+  String sTotNRcAvg = null;
+  String sTotNBkAvg = null;
+  String sTotNOtAvg = null;
+  String sTotTrnAvg = null;
+
+  String sTotMgrPrc = null;
+  String sTotSlsPrc = null;
+  String sTotSBkPrc = null;
+  String sTotNSlPrc = null;
+  String sTotNRcPrc = null;
+  String sTotNBkPrc = null;
+  String sTotNOtPrc = null;
+  String sTotTrnPrc = null;
+
+  String sTotRepHrs = null;
+  String sTotRepPay = null;
+  String sTotRepAvg = null;
+
+  //-------------- Security ---------------------
+   String sAppl = "PAYROLL";
+   if (session.getAttribute("USER")==null || session.getAttribute(sAppl)==null
+   && !session.getAttribute("APPLICATION").equals(sAppl))
+  {
+     response.sendRedirect("SignOn1.jsp?TARGET=SchWkPay.jsp&APPL=" + sAppl + "&" + request.getQueryString());
+  }
+
+  // -------------- End Security -----------------
+   else{
+    SetWkPay WkPay = new SetWkPay(sStore, sWeekend, sSort);
+    iNumOfMgr = WkPay.getNumOfMgr();
+    sMgr = WkPay.getMgr();
+    sMgrHrs = WkPay.getMgrHrs();
+    sMgrPay = WkPay.getMgrPay();
+    sMgrAvg = WkPay.getMgrAvg();
+    sMgrPGPay = WkPay.getMgrPGPay();
+    sMgrTtl = WkPay.getMgrTtl();
+    sMgrGrp = WkPay.getMgrGrp();
+
+    iNumOfSls = WkPay.getNumOfSls();
+    sSls = WkPay.getSls();
+    sSlsHrs = WkPay.getSlsHrs();
+    sSlsPay = WkPay.getSlsPay();
+    sSlsAvg = WkPay.getSlsAvg();
+    sSlsPGPay = WkPay.getSlsPGPay();
+    sSlsTtl = WkPay.getSlsTtl();
+    sSlsGrp = WkPay.getSlsGrp();
+
+    iNumOfSBk = WkPay.getNumOfSBk();
+    sSBk = WkPay.getSBk();
+    sSBkHrs = WkPay.getSBkHrs();
+    sSBkPay = WkPay.getSBkPay();
+    sSBkAvg = WkPay.getSBkAvg();
+    sSBkPGPay = WkPay.getSBkPGPay();
+    sSBkTtl = WkPay.getSBkTtl();
+
+    iNumOfNSl = WkPay.getNumOfNSl();
+    sNSl = WkPay.getNSl();
+    sNSlHrs = WkPay.getNSlHrs();
+    sNSlPay = WkPay.getNSlPay();
+    sNSlAvg = WkPay.getNSlAvg();
+    sNSlPGPay = WkPay.getNSlPGPay();
+    sNSlTtl = WkPay.getNSlTtl();
+    sNSlGrp = WkPay.getNSlGrp();
+
+    iNumOfNRc = WkPay.getNumOfNRc();
+    sNRc = WkPay.getNRc();
+    sNRcHrs = WkPay.getNRcHrs();
+    sNRcPay = WkPay.getNRcPay();
+    sNRcAvg = WkPay.getNRcAvg();
+    sNRcPGPay = WkPay.getNRcPGPay();
+    sNRcTtl = WkPay.getNRcTtl();
+
+    iNumOfNBk = WkPay.getNumOfNBk();
+    sNBk = WkPay.getNBk();
+    sNBkHrs = WkPay.getNBkHrs();
+    sNBkPay = WkPay.getNBkPay();
+    sNBkAvg = WkPay.getNBkAvg();
+    sNBkPGPay = WkPay.getNBkPGPay();
+    sNBkTtl = WkPay.getNBkTtl();
+
+    iNumOfNOt = WkPay.getNumOfNOt();
+    sNOt = WkPay.getNOt();
+    sNOtHrs = WkPay.getNOtHrs();
+    sNOtPay = WkPay.getNOtPay();
+    sNOtAvg = WkPay.getNOtAvg();
+    sNOtPGPay = WkPay.getNOtPGPay();
+    sNOtTtl = WkPay.getNOtTtl();
+
+    iNumOfTrn = WkPay.getNumOfTrn();
+    sTrn = WkPay.getTrn();
+    sTrnHrs = WkPay.getTrnHrs();
+    sTrnPay = WkPay.getTrnPay();
+    sTrnAvg = WkPay.getTrnAvg();
+    sTrnPGPay = WkPay.getTrnPGPay();
+    sTrnTtl = WkPay.getTrnTtl();
+
+    sTotMgrHrs = WkPay.getTotMgrHrs();
+    sTotSlsHrs = WkPay.getTotSlsHrs();
+    sTotSBkHrs = WkPay.getTotSBkHrs();
+    sTotNSlHrs = WkPay.getTotNSlHrs();
+    sTotNRcHrs = WkPay.getTotNRcHrs();
+    sTotNBkHrs = WkPay.getTotNBkHrs();
+    sTotNOtHrs = WkPay.getTotNOtHrs();
+    sTotTrnHrs = WkPay.getTotTrnHrs();
+
+    sTotMgrPay = WkPay.getTotMgrPay();
+    sTotSlsPay = WkPay.getTotSlsPay();
+    sTotSBkPay = WkPay.getTotSBkPay();
+    sTotNSlPay = WkPay.getTotNSlPay();
+    sTotNRcPay = WkPay.getTotNRcPay();
+    sTotNBkPay = WkPay.getTotNBkPay();
+    sTotNOtPay = WkPay.getTotNOtPay();
+    sTotTrnPay = WkPay.getTotTrnPay();
+
+    sTotMgrAvg = WkPay.getTotMgrAvg();
+    sTotSlsAvg = WkPay.getTotSlsAvg();
+    sTotSBkAvg = WkPay.getTotSBkAvg();
+    sTotNSlAvg = WkPay.getTotNSlAvg();
+    sTotNRcAvg = WkPay.getTotNRcAvg();
+    sTotNBkAvg = WkPay.getTotNBkAvg();
+    sTotNOtAvg = WkPay.getTotNOtAvg();
+    sTotTrnAvg = WkPay.getTotTrnAvg();
+
+    sTotMgrPrc = WkPay.getTotMgrPrc();
+    sTotSlsPrc = WkPay.getTotSlsPrc();
+    sTotSBkPrc = WkPay.getTotSBkPrc();
+    sTotNSlPrc = WkPay.getTotNSlPrc();
+    sTotNRcPrc = WkPay.getTotNRcPrc();
+    sTotNBkPrc = WkPay.getTotNBkPrc();
+    sTotNOtPrc = WkPay.getTotNOtPrc();
+    sTotNOtPrc = WkPay.getTotNOtPrc();
+    sTotTrnPrc = WkPay.getTotTrnPrc();
+
+    sTotRepHrs = WkPay.getTotRepHrs();
+    sTotRepPay = WkPay.getTotRepPay();
+    sTotRepAvg = WkPay.getTotRepAvg();
+
+    WkPay.disconnect();
+   }
+%>
+<html>
+<head>
+<style>
+        body {background:ivory;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        a.Menu:link { color:black; text-decoration:none }
+        a.Menu:visited { color:black; text-decoration:none }
+        a.Menu:hover { color:red; text-decoration:none }
+
+        table.DataTable { border: darkred solid 1px; background:#FFE4C4;text-align:center;}
+        th.DataTable { background:#FFCC99; padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+
+        td.DataTable2 { color:brown;  background: Linen; border-top: darkred solid 1px; border-bottom: darkred solid 1px; padding-top:0px; padding-bottom:0px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+
+        td.Total  { background:cornsilk; border-top: darkred solid 1px; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+        td.Total1 { background:cornsilk; border-top: darkred solid 1px; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:right; font-family:Arial; font-size:10px }
+        td.Total2 { background:cornsilk; border-top: darkred solid 1px; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:center; font-family:Arial; font-size:10px }
+        td.Total3 { color:red; background:cornsilk; border-right: darkred solid 1px; border-top: double darkred; border-bottom: darkred solid 1px; padding-top:3px; padding-bottom:3px; text-align:left; font-family:Arial; font-size:11px; font-weight:bold }
+        td.Total4 { background:cornsilk; border-top: double darkred; padding-right:3px; border-bottom: darkred solid 1px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:right; font-family:Arial; font-size:10px }
+        td.Total5 { background:cornsilk; border-top: double darkred; border-bottom: darkred solid 1px; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:center; font-family:Arial; font-size:10px }
+
+
+@media screen
+{
+        td.DataTable { background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+        td.DataTable3 { background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:right; font-family:Arial; font-size:10px }
+        td.DataTable4 { background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-bottom: #FFE4C4 solid 1px; border-right: darkred solid 1px; text-align:center; font-family:Arial; font-size:10px }
+}
+
+@media print {
+        td.DataTable {   border-bottom: darkred solid 1px; background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+        td.DataTable3 {   border-bottom: darkred solid 1px; background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:right; font-family:Arial; font-size:10px }
+        td.DataTable4 {   border-bottom: darkred solid 1px; background:lightgrey; padding-right:3px; padding-left:3px; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:center; font-family:Arial; font-size:10px }
+}
+
+</style>
+<SCRIPT language="JavaScript1.2">
+function sortBy(sort)
+{
+  var uri = "SchWkPay.jsp?STORE=<%=sStore%>"
+          + "&STRNAME=<%=sThisStrName%>"
+          + "&WEEKEND=<%=sWeekend%>"
+          + "&MONBEG=<%=sMonth%>"
+          + "&SORT=" + sort;
+  window.location.href = uri;
+}
+</SCRIPT>
+</head>
+<!-------------------------------------------------------------------->
+<body >
+<!-------------------------------------------------------------------->
+<!-------------------------------------------------------------------->
+  <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr bgColor="moccasin"><td ALIGN="center" VALIGN="TOP" colspan="3">
+      <b>Budget Weekly Pay Details</b>
+     </tr>
+     <tr bgColor="moccasin">
+        <td ALIGN="left" VALIGN="TOP"><b>&nbsp;Store:&nbsp;<%=sStore + " - " + sThisStrName%></b></td>
+        <td ALIGN="center" VALIGN="TOP">&nbsp;</td>
+        <td ALIGN="right" VALIGN="TOP"><b>Week Ending:&nbsp;<%=sWeekend%>&nbsp;</b></td>
+     </tr>
+     <tr bgColor="moccasin">
+        <td ALIGN="center" VALIGN="TOP" colspan="3">
+        <a href="mailto:"><font color="red" size="-1">E-mail</font></a>;&#62;
+        <a href="../"><font color="red" size="-1">Home</font></a>&#62;
+        <a href="StrScheduling.html"><font color="red" size="-1">Payroll</font></a>&#62;
+        <a href="FiscalMonthSel.jsp"><font color="red" size="-1">Store Selector</font></a>&#62;
+        <a href="FiscalMonthBudget.jsp?STORE=<%=sStore%>&STRNAME=<%=sThisStrName%>&MONBEG=<%=sMonth%>">
+          <font color="red" size="-1">Budget</font></a>&#62;
+         <font color="red" size="-1">This page</font><br>
+         <%if(sGrpType.equals("SG")){%>
+            <font size="-1">Click <a href="javascript: sortBy('<%=sReverse%>');"><font size="-1">
+              here</font></a> to remove subgroups</font>.
+         <%}
+         else {%><font size="-1">Click <a href="javascript: sortBy('<%=sReverse%>');"><font color="red">
+              here</font></a> to add subgroups</font>.
+         <%}%>
+        <!------------- start of dollars table ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+         <tr>
+           <th class="DataTable" ><a href="javascript:sortBy('<%=sGrpType%>EMP')">Employee</a></th>
+           <%if(!sGrpType.equals("SG")){%>
+              <th class="DataTable" >Subgroup</th>
+           <%}%>
+           <th class="DataTable" >Title</th>
+           <th class="DataTable" ><a href="javascript:sortBy('<%=sGrpType%>HRS')">Total<br>hours</a></th>
+           <th class="DataTable" ><a href="javascript:sortBy('<%=sGrpType%>PAY')">Total<br>Pay $</a></th>
+           <th class="DataTable" ><a href="javascript:sortBy('<%=sGrpType%>AVG')">Avg<br>wage</a></th>
+           <th class="DataTable" ><a href="javascript:sortBy('<%=sGrpType%>PRC')">% to<br>Grp</a></th>
+           <th class="DataTable" >% of<br>Total</th>
+         </tr>
+         <!----------------- Managers ------------------------>
+         <tr>
+           <td class="Total3" colspan="8">Managers</td>
+         </tr>
+         <%for(int i=0; i < iNumOfMgr; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sMgr[i]%></td>
+           <%if(!sGrpType.equals("SG")){%>
+             <td class="DataTable4"><%=sMgrGrp[i]%></td>
+           <%}%>
+           <td class="DataTable4"><%=sMgrTtl[i]%></td>
+           <td class="DataTable3"><%=sMgrHrs[i]%></td>
+           <td class="DataTable3">$<%=sMgrPay[i]%></td>
+           <td class="DataTable3">$<%=sMgrAvg[i]%></td>
+           <td class="DataTable3"><%=sMgrPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+         <%}%>
+         <!----------------- Group Total ------------------------>
+         <%if(iNumOfMgr != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <%if(!sGrpType.equals("SG")){%>
+             <td class="Total1">&#160;</td>
+            <%}%>
+            <td class="Total1"><%=sTotMgrHrs%></td>
+            <td class="Total1">$<%=sTotMgrPay%></td>
+            <td class="Total1">$<%=sTotMgrAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotMgrPrc%>%</td>
+          </tr>
+         <%}%>
+         <!----------------- Sellers ------------------------>
+         <tr>
+           <td class="Total3" colspan="8">Sellers</td>
+         </tr>
+         <!-----------------Regular Sellers ------------------------>
+         <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Regular Sales</td>
+         </tr>
+         <%}%>
+        <%for(int i=0; i < iNumOfSls; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sSls[i]%></td>
+           <%if(!sGrpType.equals("SG")){%>
+             <td class="DataTable4"><%=sSlsGrp[i]%></td>
+           <%}%>
+           <td class="DataTable4"><%=sSlsTtl[i]%></td>
+           <td class="DataTable3"><%=sSlsHrs[i]%></td>
+           <td class="DataTable3">$<%=sSlsPay[i]%></td>
+           <td class="DataTable3">$<%=sSlsAvg[i]%></td>
+           <td class="DataTable3"><%=sSlsPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfSls != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <%if(!sGrpType.equals("SG")){%>
+             <td class="Total1">&#160;</td>
+            <%}%>
+            <td class="Total1"><%=sTotSlsHrs%></td>
+            <td class="Total1">$<%=sTotSlsPay%></td>
+            <td class="Total1">$<%=sTotSlsAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotSlsPrc%>%</td>
+          </tr>
+         <%}%>
+        <!----------------- Bike Sellers ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Bike Sales</td>
+          </tr>
+         <%for(int i=0; i < iNumOfSBk; i++) {%>
+          <tr>
+           <td class="DataTable"><%=sSBk[i]%></td>
+           <td class="DataTable4"><%=sSBkTtl[i]%></td>
+           <td class="DataTable3"><%=sSBkHrs[i]%></td>
+           <td class="DataTable3">$<%=sSBkPay[i]%></td>
+           <td class="DataTable3">$<%=sSBkAvg[i]%></td>
+           <td class="DataTable3"><%=sSBkPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+          </tr>
+         <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfSBk != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <td class="Total1"><%=sTotSBkHrs%></td>
+            <td class="Total1">$<%=sTotSBkPay%></td>
+            <td class="Total1">$<%=sTotSBkAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotSBkPrc%>%</td>
+          </tr>
+         <%}%>
+        <%}%>
+         <!----------------- Non Selling personnel ------------------------>
+         <tr>
+           <td class="Total3" colspan="8">Non-Sellers</td>
+         </tr>
+         <!----------------- Cashiers ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Cashiers</td>
+         </tr>
+       <%}%>
+        <%for(int i=0; i < iNumOfNSl; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sNSl[i]%></td>
+           <%if(!sGrpType.equals("SG")){%>
+             <td class="DataTable4"><%=sNSlGrp[i]%></td>
+           <%}%>
+           <td class="DataTable4"><%=sNSlTtl[i]%></td>
+           <td class="DataTable3"><%=sNSlHrs[i]%></td>
+           <td class="DataTable3">$<%=sNSlPay[i]%></td>
+           <td class="DataTable3">$<%=sNSlAvg[i]%></td>
+           <td class="DataTable3"><%=sNSlPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfNSl != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <%if(!sGrpType.equals("SG")){%>
+             <td class="Total1">&#160;</td>
+            <%}%>
+            <td class="Total1"><%=sTotNSlHrs%></td>
+            <td class="Total1">$<%=sTotNSlPay%></td>
+            <td class="Total1">$<%=sTotNSlAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotNSlPrc%>%</td>
+          </tr>
+         <%}%>
+        <!----------------- Receiving ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Receiving</td>
+         </tr>
+        <%for(int i=0; i < iNumOfNRc; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sNRc[i]%></td>
+           <td class="DataTable4"><%=sNRcTtl[i]%></td>
+           <td class="DataTable3"><%=sNRcHrs[i]%></td>
+           <td class="DataTable3">$<%=sNRcPay[i]%></td>
+           <td class="DataTable3">$<%=sNRcAvg[i]%></td>
+           <td class="DataTable3"><%=sNRcPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfNRc != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <td class="Total1"><%=sTotNRcHrs%></td>
+            <td class="Total1">$<%=sTotNRcPay%></td>
+            <td class="Total1">$<%=sTotNRcAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotNRcPrc%>%</td>
+          </tr>
+         <%}%>
+        <%}%>
+        <!----------------- Bike Shop ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Bike Shop</td>
+         </tr>
+        <%for(int i=0; i < iNumOfNBk; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sNBk[i]%></td>
+           <td class="DataTable4"><%=sNBkTtl[i]%></td>
+           <td class="DataTable3"><%=sNBkHrs[i]%></td>
+           <td class="DataTable3">$<%=sNBkPay[i]%></td>
+           <td class="DataTable3">$<%=sNBkAvg[i]%></td>
+           <td class="DataTable3"><%=sNBkPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfNBk != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <td class="Total1"><%=sTotNBkHrs%></td>
+            <td class="Total1">$<%=sTotNBkPay%></td>
+            <td class="Total1">$<%=sTotNBkAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotNBkPrc%>%</td>
+          </tr>
+         <%}%>
+         <%}%>
+        <!----------------- Other ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="DataTable2" colspan="8">&nbsp;&nbsp;Other</td>
+         </tr>
+        <%for(int i=0; i < iNumOfNOt; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sNOt[i]%></td>
+           <td class="DataTable4"><%=sNOtTtl[i]%></td>
+           <td class="DataTable3"><%=sNOtHrs[i]%></td>
+           <td class="DataTable3">$<%=sNOtPay[i]%></td>
+           <td class="DataTable3">$<%=sNOtAvg[i]%></td>
+           <td class="DataTable3"><%=sNOtPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfNOt != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <td class="Total1"><%=sTotNOtHrs%></td>
+            <td class="Total1">$<%=sTotNOtPay%></td>
+            <td class="Total1">$<%=sTotNOtAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotNOtPrc%>%</td>
+          </tr>
+         <%}%>
+        <%}%>
+
+        <!----------------- Trainig ------------------------>
+        <%if(sGrpType.equals("SG")){%>
+         <tr>
+           <td class="Total3" colspan="8">&nbsp;&nbsp;Training</td>
+         </tr>
+        <%for(int i=0; i < iNumOfTrn; i++) {%>
+         <tr>
+           <td class="DataTable"><%=sTrn[i]%></td>
+           <td class="DataTable4"><%=sTrnTtl[i]%></td>
+           <td class="DataTable3"><%=sTrnHrs[i]%></td>
+           <td class="DataTable3">$<%=sTrnPay[i]%></td>
+           <td class="DataTable3">$<%=sTrnAvg[i]%></td>
+           <td class="DataTable3"><%=sTrnPGPay[i]%>%</td>
+           <td class="DataTable4">--</td>
+         </tr>
+        <%}%>
+        <!----------------- Group Total ------------------------>
+         <%if(iNumOfTrn != 0){%>
+          <tr>
+            <td class="Total" colspan="2">Total</td>
+            <td class="Total1"><%=sTotTrnHrs%></td>
+            <td class="Total1">$<%=sTotTrnPay%></td>
+            <td class="Total1">$<%=sTotTrnAvg%></td>
+            <td class="Total2">100%</td>
+            <td class="Total1"><%=sTotTrnPrc%>%</td>
+          </tr>
+         <%}%>
+        <%}%>
+        <!----------------- Store Table ------------------------>
+         <tr>
+           <td class="Total3" colspan="2">Store Total</td>
+           <%if(!sGrpType.equals("SG")){%>
+             <td class="Total4">&#160;</td>
+            <%}%>
+            <td class="Total4"><%=sTotRepHrs%></td>
+            <td class="Total4">$<%=sTotRepPay%></td>
+            <td class="Total4">$<%=sTotRepAvg%></td>
+            <td class="Total5">--</td>
+            <td class="Total5">100%</td>
+         </tr>
+     </table>
+<!------------- end of data table ------------------------>
+                </td>
+            </tr>
+       </table>
+
+
+  </body>
+</html>

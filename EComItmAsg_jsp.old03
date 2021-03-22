@@ -1,0 +1,984 @@
+<%@ page import="ecommerce.EComItmAsg"%>
+<%
+    String sSelStr = request.getParameter("Str");
+    String [] sStatus = request.getParameterValues("Sts");
+    String sStsFrDate = request.getParameter("StsFrDate");
+    String sStsToDate = request.getParameter("StsToDate");
+    String sSort = request.getParameter("Sort");
+
+    if(sSort==null) sSort = "ORD";
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+   response.sendRedirect("SignOn1.jsp?TARGET=EComItmAsg.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{
+    String sAuthStr = session.getAttribute("STORE").toString().trim();
+    String sUser = session.getAttribute("USER").toString();
+    EComItmAsg itmasgn = new EComItmAsg(sSelStr, sStatus, sStsFrDate, sStsToDate, sSort, sUser);
+    int iNumOfItm = itmasgn.getNumOfItm();
+    int iNumOfStr = itmasgn.getNumOfStr();
+    String [] sStr = itmasgn.getStr();
+    String sStrJsa = itmasgn.getStrJsa();
+
+    // authorized to changed assign store and notes
+    boolean bAssign = sAuthStr.equals("ALL");
+    // authorized to changed send str and notes
+    boolean bSend = !sAuthStr.equals("ALL");
+
+    String sStrAllowed = session.getAttribute("STORE").toString();
+    String sPrinter = "QPRINT4";
+    if(!sStrAllowed.equals("ALL"))
+    {
+       sPrinter = "S" + sStrAllowed + "OUTQ";
+    }
+%>
+<HTML>
+<HEAD>
+<title>E-Commerce</title>
+<META content="RCI, Inc." name="E-Commerce"></HEAD>
+
+<style>body {background:ivory;}
+        a:link { color:blue; font-size:10px} a:visited { color:blue; font-size:10px}  a:hover { color:green; font-size:10px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}  a:hover.small { color:red; font-size:10px}
+
+        table.DataTable { border:darkred solid 1px; background: darkred; font-size:10px }
+
+        th.DataTable { border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding- top:3px;
+                       border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       padding-bottom:3px; text-align:center; font-size:11px; text-decoration: underline;}
+
+        tr.DataTable0 { background: #E7E7E7; font-size:10px }
+        tr.DataTable1 { background: yellow; font-size:10px }
+        tr.DataTable2 { background: darkred; font-size:1px}
+
+        td.DataTable { border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTableC { cursor:hand; border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTable1 { border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable1C { cursor:hand; border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable2 { border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+        td.DataTable2C { cursor:hand; border-right:darkred solid 1px; border-bottom:darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+        td.DataTable01 { cursor:hand;padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+
+        .Small {font-size:10px }
+        .btnSmall {font-size:8px; display:none;}
+
+        div.dvItem { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 1px; width:50; background-color:LemonChiffon; z-index:10;
+              text-align:center; vertical-align:top; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+
+</style>
+
+
+<script name="javascript1.2">
+//==============================================================================
+// Global variables
+//==============================================================================
+var Sts = new Array();
+<%for(int i=0; i < sStatus.length; i++){%>Sts[<%=i%>]= "<%=sStatus[i]%>";<%}%>
+var StsFrDate = "<%=sStsFrDate%>"
+var StsToDate = "<%=sStsToDate%>"
+
+var NumOfItm = <%=iNumOfItm%>;
+var NumOfStr = <%=iNumOfStr%>;
+var Store = [<%=sStrJsa%>];
+
+var SelObj = null;
+var ChgOrder = new Array(NumOfItm);
+
+var StrAllowed = "<%=sStrAllowed%>";
+
+document.onkeyup=catchEscape
+
+//==============================================================================
+// run on loading
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvItem"]);
+   for(var i=0; i < NumOfItm; i++)
+   {
+      for(var j=0; j < NumOfStr; j++)
+      {
+         ChgOrder[i] = new Array(eval(NumOfStr) * 4 + 4);
+      }
+   }
+}
+//==============================================================================
+// run on loading
+//==============================================================================
+function catchEscape()
+{
+   var key = window.event
+   if (key.keyCode=="27"){ hidePanel(); }
+}
+//==============================================================================
+// set selected Quantity
+//==============================================================================
+function setQtySel(site, ord, sku, str, sts, qty, asgqty,availqty,  action, obj)
+{
+  SelObj = obj;
+
+  var pos = getPosition(obj);
+  var qtynm = "Assign Qty: ";
+  if(action == "CHGPICK"){qtynm = "Pick Qty: ";}
+  else if(action == "CHGSEND"){qtynm = "Send Qty: ";}
+
+
+  var html = "<table cellPadding='0' cellSpacing='0'>"
+    + "<tr>"
+    + "<td nowrap class='Small'>" + qtynm + "</td>"
+    + "<td nowrap><select class='Small' id='selQty'></select></td>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Employee Number: </td>"
+       + "<td nowrap class='Small'><input class='Small' id='Emp' size=4 maxlength=4></td>"
+    + "</tr>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Comment: </td>"
+       + "<td nowrap class='Small'><TextArea class='Small' id='txaNote' cols=30 rows=3></TextArea></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+    + "</tr>"
+
+    + "<tr>"
+         + "<td nowrap class='Small'><button onClick='ValidateStrPickSendQty("
+            + "&#34;" + site + "&#34;,&#34;" + ord + "&#34;,&#34;" + sku + "&#34;"
+            + ",&#34;" + str + "&#34;"
+            + ",&#34;" + qty + "&#34;"
+            + ",&#34;" + asgqty + "&#34;"
+            + ",&#34;" + availqty + "&#34;"
+            + ",&#34;" + action + "&#34;)' class='Small'>Chg</button>"
+       + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+/*    + "<button onClick='chgSelQty(" + i + ", " + j + ")' class='Small'>Chg</button>"
+    + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+*/
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+  // populate quantity
+  popQtyFld(qty, asgqty, availqty, action);
+}
+//==============================================================================
+// populate quantity
+//==============================================================================
+function popQtyFld(qty, asgqty, availqty, action)
+{
+   var max = eval(asgqty);
+   var asg = null;
+   if(action == "CHGPICK" || action == "CHGSEND" || action == "CHGASG")
+   {
+      if(availqty < asgqty){ max = availqty; }
+   }
+
+   for(var i=0; i <= max; i++) {  document.all.selQty.options[i] = new Option(i,i) }
+}
+//==============================================================================
+// validate assigned send  and
+//==============================================================================
+function ValidateStrPickSendQty(site,ord,sku,str,currqty,asgqty,availqty,action)
+{
+    var error = false;
+    var msg = "";
+    document.all.tdError.innerHTML="";
+
+    var qty = document.all.selQty.options[document.all.selQty.selectedIndex].value;
+    if(qty == currqty){error = true; msg += "<br>You did not change current quantity";}
+
+    var emp = document.all.Emp.value.trim();
+    if(emp==""){error = true; msg += "<br>Please enter your employee number"; }
+    else if(isNaN(emp)){error = true; msg += "<br>The employee number is not numeric"; }
+
+    var note = document.all.txaNote.value.trim();
+    if(note=="" && qty < asgqty){error = true; msg += "<br>Please explain why pick or send quantity less then assigned."; }
+
+    if(error){ document.all.tdError.innerHTML=msg; }
+    else{ sbmStrPickSendQty(site, ord, sku, str, qty, emp, note, action); }
+}
+//==============================================================================
+// submit store status changes
+//==============================================================================
+function sbmStrPickSendQty(site,ord,sku,str, qty, emp, note, action)
+{
+    note = note.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmStrSts"
+
+    var html = "<form name='frmChgStrSts'"
+       + " METHOD=Post ACTION='EComItmAsgSave.jsp'>"
+       + "<input name='Site'>"
+       + "<input name='Order'>"
+       + "<input name='Sku'>"
+       + "<input name='Str'>"
+       + "<input name='Qty'>"
+       + "<input name='Emp'>"
+       + "<input name='Note'>"
+       + "<input name='Action'>"
+     html += "</form>"
+
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Site.value = site;
+   window.frame1.document.all.Order.value = ord;
+   window.frame1.document.all.Sku.value = sku;
+   window.frame1.document.all.Str.value = str;
+   window.frame1.document.all.Qty.value = qty;
+   window.frame1.document.all.Emp.value = emp;
+   window.frame1.document.all.Note.value = note;
+   window.frame1.document.all.Action.value=action;
+
+   window.frame1.document.frmChgStrSts.submit();
+}
+//==============================================================================
+// set Note Text Area
+//==============================================================================
+function setNote(site, ord, sku, str, text, action, obj)
+{
+  SelObj = obj;
+
+  var pos = getPosition(obj);
+  var html = "<table cellPadding='0' cellSpacing='0'>"
+    + "<tr>"
+       + "<td nowrap>Note: <TextArea class='Small' id='txaNote' cols=30 rows=3></TextArea></td>"
+    + "</tr>"
+    + "<tr>"
+       + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td nowrap><button onClick='ValidateNote("
+         + "&#34;" + site + "&#34;,&#34;" + ord + "&#34;,&#34;" + sku + "&#34;"
+         + ",&#34;" + str + "&#34;"
+         + ",&#34;" + action + "&#34;"
+         + ")' class='Small'>Chg</button>"
+         + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+  // populate note
+  document.all.txaNote.value = text;
+}
+//==============================================================================
+// validate assigned send  and
+//==============================================================================
+function ValidateNote(site,ord,sku,str,action)
+{
+    var error = false;
+    var msg = "";
+    document.all.tdError.innerHTML="";
+
+    var note = document.all.txaNote.value.trim();
+    if(note==""){error = true; msg += "Please enter note."; }
+
+    if(error){ document.all.tdError.innerHTML=msg; }
+    else{ sbmNote(site, ord, sku, str, note, action); }
+}
+//==============================================================================
+// submit store status changes
+//==============================================================================
+function sbmNote(site, ord, sku, str, note, action)
+{
+    note = note.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmStrSts"
+
+    var html = "<form name='frmChgStrSts'"
+       + " METHOD=Post ACTION='EComItmAsgSave.jsp'>"
+       + "<input name='Site'>"
+       + "<input name='Order'>"
+       + "<input name='Sku'>"
+       + "<input name='Str'>"
+       + "<input name='Note'>"
+       + "<input name='Action'>"
+     html += "</form>"
+
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Site.value = site;
+   window.frame1.document.all.Order.value = ord;
+   window.frame1.document.all.Sku.value = sku;
+   window.frame1.document.all.Str.value = str;
+   window.frame1.document.all.Note.value = note;
+   window.frame1.document.all.Action.value=action;
+
+   window.frame1.document.frmChgStrSts.submit();
+}
+//==============================================================================
+// set Mail Tracking ID
+//==============================================================================
+function setMail(site, ord, sku, str, text, action, obj)
+{
+  SelObj = obj;
+
+  var pos = getPosition(obj);
+  var html = "<table cellPadding='0' cellSpacing='0'>"
+    + "<tr>"
+       + "<td nowrap>Mail #: <input class='Small' id='inpMail' size=30 maxlength=30></td>"
+    + "</tr>"
+    + "<tr>"
+       + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td nowrap><button onClick='ValidateMail("
+         + "&#34;" + site + "&#34;,&#34;" + ord + "&#34;,&#34;" + sku + "&#34;"
+         + ",&#34;" + str + "&#34;"
+         + ",&#34;" + action + "&#34;"
+         + ")' class='Small'>Chg</button>"
+         + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+  // populate quantity
+  document.all.inpMail.value = text;
+}
+//==============================================================================
+// validate assigned send  and
+//==============================================================================
+function ValidateMail(site,ord,sku,str,action)
+{
+    var error = false;
+    var msg = "";
+    document.all.tdError.innerHTML="";
+
+    var note = document.all.inpMail.value.trim();
+    if(note==""){error = true; msg += "Please enter mail number."; }
+
+    if(error){ document.all.tdError.innerHTML=msg; }
+    else{ sbmMail(site, ord, sku, str, note, action); }
+}
+//==============================================================================
+// submit store status changes
+//==============================================================================
+function sbmMail(site, ord, sku, str, note, action)
+{
+    note = note.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmStrSts"
+
+    var html = "<form name='frmChgStrSts'"
+       + " METHOD=Post ACTION='EComItmAsgSave.jsp'>"
+       + "<input name='Site'>"
+       + "<input name='Order'>"
+       + "<input name='Sku'>"
+       + "<input name='Str'>"
+       + "<input name='Note'>"
+       + "<input name='Action'>"
+     html += "</form>"
+
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Site.value = site;
+   window.frame1.document.all.Order.value = ord;
+   window.frame1.document.all.Sku.value = sku;
+   window.frame1.document.all.Str.value = str;
+   window.frame1.document.all.Note.value = note;
+   window.frame1.document.all.Action.value=action;
+
+   window.frame1.document.frmChgStrSts.submit();
+}
+//==============================================================================
+// set selected Quantity
+//==============================================================================
+function setStatus(site, ord, sku, sts, obj)
+{
+  SelObj = obj;
+
+  var pos = getPosition(obj);
+  var html = "<table cellPadding='0' cellSpacing='0'>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Status: </td>"
+       + "<td nowrap class='Small'><select class='Small' id='selSts'></select></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td nowrap class='Small'>Employee Number: </td>"
+       + "<td nowrap class='Small'><input class='Small' id='Emp' size=4 maxlength=4></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td nowrap class='Small'>Comment: </td>"
+       + "<td nowrap class='Small'><TextArea class='Small' id='txaNote' cols=30 rows=3></TextArea></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td nowrap class='Small'><button onClick='ValidateSts(&#34;" + site + "&#34;,&#34;" + ord + "&#34;,&#34;" + sku + "&#34;)' class='Small'>Chg</button>"
+       + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+  // populate quantity
+  popStatus(site, ord, sku, sts);
+}
+//==============================================================================
+// populate quantity
+//==============================================================================
+function popStatus(site, ord, sku, sts)
+{
+   var arg = 0;
+   var sel = document.all.selSts;
+
+   if(sts != "Open"){ sel.options[arg++] = new Option("Open", "Open"); }
+   if(sts != "Assign"){ sel.options[arg++] = new Option("Assign", "Assign"); }
+   if(sts != "Sent") {sel.options[arg++] = new Option("Sent", "Sent"); }
+   if(sts != "Cancel"){ sel.options[arg++] = new Option("Cancel ", "Cancel"); }
+}
+//==============================================================================
+// validate store status changes
+//==============================================================================
+function ValidateSts(site,ord,sku)
+{
+    var error = false;
+    var msg = "";
+    document.all.tdError.innerHTML="";
+
+    var sts = document.all.selSts.options[document.all.selSts.selectedIndex].value;
+    var emp = document.all.Emp.value.trim();
+    if(emp==""){error = true; msg += "<br>Please enter your employee number"; }
+    else if(isNaN(emp)){error = true; msg += "<br>The employee number is not numeric"; }
+
+    var note = document.all.txaNote.value.trim();
+    if(note==""){error = true; msg += "<br>Please enter note to explain statsus changes."; }
+
+    if(error){ document.all.tdError.innerHTML=msg; }
+    else{ sbmSts(site,ord,sku, sts, emp, note); }
+}
+//==============================================================================
+// submit store status changes
+//==============================================================================
+function sbmSts(site,ord,sku, sts, emp, note)
+{
+    note = note.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmStrSts"
+
+    var html = "<form name='frmChgStrSts'"
+       + " METHOD=Post ACTION='EComItmAsgSave.jsp'>"
+       + "<input name='Site'>"
+       + "<input name='Order'>"
+       + "<input name='Sku'>"
+       + "<input name='Sts'>"
+       + "<input name='Emp'>"
+       + "<input name='Note'>"
+       + "<input name='Action'>"
+     html += "</form>"
+
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Site.value = site;
+   window.frame1.document.all.Order.value = ord;
+   window.frame1.document.all.Sku.value = sku;
+   window.frame1.document.all.Sts.value = sts;
+   window.frame1.document.all.Emp.value = emp;
+   window.frame1.document.all.Note.value = note;
+   window.frame1.document.all.Action.value="CHGSTS";
+
+   window.frame1.document.frmChgStrSts.submit();
+}
+//==============================================================================
+// set selected Quantity
+//==============================================================================
+function setStrSts(site, ord, sku, str, sts, obj)
+{
+  SelObj = obj;
+
+  var pos = getPosition(obj);
+
+  var html = "<table cellPadding='0' cellSpacing='0'>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Status: </td>"
+       + "<td nowrap class='Small'><select class='Small' id='selSts'></select></td>"
+    + "</tr>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Employee Number: </td>"
+       + "<td nowrap class='Small'><input class='Small' id='Emp' size=4 maxlength=4></td>"
+    + "</tr>"
+    + "<tr>"
+       + "<td nowrap class='Small'>Comment: </td>"
+       + "<td nowrap class='Small'><TextArea class='Small' id='txaNote' cols=30 rows=3></TextArea></td>"
+    + "</tr>"
+
+    + "<tr>"
+       + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+    + "</tr>"
+
+    + "<tr>"
+         + "<td nowrap class='Small'><button onClick='ValidateStrSts(&#34;" + site + "&#34;,&#34;" + ord + "&#34;,&#34;" + sku + "&#34;,&#34;" + str + "&#34;)' class='Small'>Chg</button>"
+       + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+  // populate quantity
+  popStrSts(site, ord, sku, str, sts);
+}
+//==============================================================================
+// populate quantity
+//==============================================================================
+function popStrSts(site, ord, sku, str, sts)
+{
+   var arg = 0;
+   var sel = document.all.selSts;
+
+   if(sts != "Assign"){ sel.options[arg++] = new Option("Assign", "Assign"); }
+   if(sts != "Pick") {sel.options[arg++] = new Option("Pick", "Pick"); }
+   if(sts != "Cannot Fill") {sel.options[arg++] = new Option("Cannot Fill", "Cannot Fill");}
+}
+//==============================================================================
+// validate store status changes
+//==============================================================================
+function ValidateStrSts(site,ord,sku,str)
+{
+    var error = false;
+    var msg = "";
+    document.all.tdError.innerHTML="";
+
+    var sts = document.all.selSts.options[document.all.selSts.selectedIndex].value;
+    var emp = document.all.Emp.value.trim();
+    if(emp==""){error = true; msg += "<br>Please enter your employee number"; }
+    else if(isNaN(emp)){error = true; msg += "<br>The employee number is not numeric"; }
+
+    var note = document.all.txaNote.value.trim();
+    if(note==""){error = true; msg += "<br>Please enter note to explain statsus changes."; }
+
+    if(error){ document.all.tdError.innerHTML=msg; }
+    else{ sbmStrSts(site,ord,sku,str, sts, emp, note); }
+}
+//==============================================================================
+// submit store status changes
+//==============================================================================
+function sbmStrSts(site,ord,sku,str, sts, emp, note)
+{
+    note = note.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmStrSts"
+
+    var html = "<form name='frmChgStrSts'"
+       + " METHOD=Post ACTION='EComItmAsgSave.jsp'>"
+       + "<input name='Site'>"
+       + "<input name='Order'>"
+       + "<input name='Sku'>"
+       + "<input name='Str'>"
+       + "<input name='Sts'>"
+       + "<input name='Emp'>"
+       + "<input name='Note'>"
+       + "<input name='Action'>"
+     html += "</form>"
+
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Site.value = site;
+   window.frame1.document.all.Order.value = ord;
+   window.frame1.document.all.Sku.value = sku;
+   window.frame1.document.all.Str.value = str;
+   window.frame1.document.all.Sts.value = sts;
+   window.frame1.document.all.Emp.value = emp;
+   window.frame1.document.all.Note.value = note;
+   window.frame1.document.all.Action.value="CHGSTRSTS";
+
+   window.frame1.document.frmChgStrSts.submit();
+}
+//==============================================================================
+// retreive comment for selected store
+//==============================================================================
+function getStrCommt(site, ord, sku, str, obj)
+{
+   SelObj = obj;
+
+   url = "EComItmAsgCommt.jsp?"
+      + "Site=" + site
+      + "&Order=" + ord
+      + "&Sku=" + sku
+      + "&Str=" + str
+      + "&Action=GETSTRCMMT"
+
+   window.frame1.location.href = url;
+}
+//==============================================================================
+// display comment for selected store
+//==============================================================================
+function showComments(type,emp, commt, recusr, recdt, rectm, str)
+{
+   var pos = getPosition(SelObj);
+
+   var html = "<table border=1 style='font-size:12px' cellPadding='0' cellSpacing='0' width='100%'>"
+    + "<tr style='background:#FFCC99'>"
+       + "<th>Type</th>"
+       + "<th>Store</th>"
+       + "<th nowrap>Emp #</th>"
+       + "<th>Comment</th>"
+       + "<th>Recorded by</th>"
+    + "</tr>"
+   for(var i=0; i < commt.length; i++)
+   {
+      html += "<tr>"
+        + "<td nowrap>" + type[i] + "</td>"
+      if(str[i] != "0") { html += "<td style='text-align:right' nowrap>" + str[i] + "&nbsp;</td>" }
+      else{ html += "<td style='text-align:right' nowrap>H.O.&nbsp;</td>" }
+
+      html += "<td nowrap>&nbsp;" + emp[i] + "</td>"
+        + "<td>" + commt[i] + "</td>"
+        + "<td nowrap>" + recusr[i] + " " + recdt[i] + " " + rectm[i] + "</td>"
+   }
+
+   html += "<tr>"
+    + "<td nowrap class='Small' style='text-align:center' colspan=5>"
+       + "<button onClick='hidePanel();' class='Small'>Close</button>"
+    + "</td></tr></table>"
+
+  document.all.dvItem.style.width=500;
+  document.all.dvItem.innerHTML = html;
+  document.all.dvItem.style.pixelLeft= pos[0];
+  document.all.dvItem.style.pixelTop= pos[1];
+  document.all.dvItem.style.visibility = "visible";
+
+}
+//==============================================================================
+// display return error from save process
+//==============================================================================
+function rtnWithError(err)
+{
+   document.all.tdError.innerHTML = "";
+   var br = "";
+   for(var i=0; i < err.length; i++)
+   {
+      document.all.tdError.innerHTML = br + err[i];
+      br = "<br>";
+   }
+}
+//==============================================================================
+// get object coordinats
+//==============================================================================
+function getPosition(obj)
+{
+   var pos = [0, 0];
+
+   // position menu on the screen
+   if (obj.offsetParent)
+   {
+     while (obj.offsetParent)
+     {
+       pos[0] += obj.offsetLeft
+       pos[1] += obj.offsetTop
+       obj = obj.offsetParent;
+     }
+   }
+   else if (obj.x)
+   {
+     pos[0] += obj.x;
+     pos[1] += obj.y;
+   }
+   return pos;
+}
+//==============================================================================
+// Hide selection screen
+//==============================================================================
+function hidePanel()
+{
+   document.all.dvItem.innerHTML = " ";
+   document.all.dvItem.style.visibility = "hidden";
+   SelObj = null;
+}
+//==============================================================================
+// resort table
+//==============================================================================
+function resort(sort)
+{
+  url = "EComItmAsg.jsp?Sort=" + sort
+  for(var i=0; i < Sts.length;  i++)
+  {
+     url += "&Sts=" + Sts[i];
+  }
+  url += "&StsFrDate=" + StsFrDate;
+  url += "&StsToDate=" + StsToDate;
+
+  window.location.href=url;
+}
+//==============================================================================
+// show error
+//==============================================================================
+function showError(err)
+{
+   var text = "";
+   for(var i=0; i < err.length; i++){ text += err(i); }
+   alert(err);
+}
+//==============================================================================
+// update store quantity cell
+//==============================================================================
+function updStrProp(value, action)
+{
+   SelObj.innerHTML = value;
+   SelObj.style.backgroundColor = "yellow";
+   hidePanel();
+}
+//==============================================================================
+// re-use frame
+//==============================================================================
+function reuseFrame()
+{
+  window.frame1.close();
+}
+//==============================================================================
+// print pick slip
+//==============================================================================
+function prtPackSlip(site, ord, printer, outq, outqlib, whsOrStr, str)
+{
+  var url = "EComOrdReprint.jsp?Site=" + site
+      + "&Order=" + ord
+  if (printer != null) { url += "&Printer=" + printer }
+  if (outq != null) { url += "&Outq=" + outq + "&OutqLib=" + outqlib}
+  url += "&WhsOrStr=" + whsOrStr
+  url += "&Str=" + str
+
+  //alert(url)
+  //window.location.href=url
+  window.frame1.location.href=url
+}
+</script>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+
+<BODY onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvItem" class="dvItem"></div>
+<!-------------------------------------------------------------------->
+
+
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR bgColor=moccasin>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>E-Commerce: Items w/o Inventory
+        </B><br>
+
+        <a href="../" class="small"><font color="red">Home</font></a>&#62;
+        <a href="EComItmAsgSel.jsp" class="small"><font color="red">Select</font></a>&#62;
+
+        <font size="-1">This Page.</font>&nbsp;&nbsp;
+        <font size="-1">T=Mail Tracking ID</font>&nbsp;&nbsp;
+        <font size="-1">N=Store Note</font>&nbsp;&nbsp;
+<!-- ======================================================================= -->
+       <table class="DataTable" cellPadding="0" cellSpacing="0">
+         <tr class="DataTable">
+             <th class="DataTable" rowspan=3><a href="javascript: resort('ORD')">Order #</a></th>
+             <th class="DataTable" rowspan=2><a href="javascript: resort('ORDSTS')">Ord<br>Sts</a></th>
+             <th class="DataTable" >SKU</th>
+             <th class="DataTable"><a href="javascript: resort('PSTS')">Pick<br>Sts</a></th>
+             <th class="DataTable" rowspan=2><a href="javascript: resort('USERNM')">Last Changed<br>by User</a></th>
+             <th class="DataTable" rowspan=3>L<br>o<br>g</th>
+             <th class="DataTable" rowspan=3>E<br>M<br>a<br>i<br>l</th>
+             <th class="DataTable" rowspan=3>Assigned<br>to<br>Stores</th>
+             <th class="DataTable">&nbsp;</th>
+             <th class="DataTable" colspan=<%=iNumOfStr * 6%>>Store</th>
+          </tr>
+            <tr class="DataTable">
+              <th class="DataTable">QTY</th>
+              <th class="DataTable"><a href="javascript: resort('PSDATE')">Pick Sts<br>Date</a></th>
+              <th class="DataTable" >T</th>
+            <%for(int i=0; i < iNumOfStr; i++){%>
+               <th class="DataTable" colspan=<%=5%>><%=sStr[i]%></th>
+               <th class="DataTable" rowspan=2>&nbsp;</th>
+            <%}%>
+          <tr class="DataTable">
+            <th class="DataTable" colspan=4>Home Office Note</th>
+            <th class="DataTable" >N</th>
+            <%for(int i=0; i < iNumOfStr; i++){%>
+               <th class="DataTable">Str<br>Satus</th>
+               <th class="DataTable">Asg<br>Qty</th>
+               <th class="DataTable">Pick<br>Qty</th>
+               <th class="DataTable">Snd<br>Qty</th>
+               <th class="DataTable">Avail<br>Qty</th>
+            <%}%>
+         </tr>
+       <!-- ============================ Details =========================== -->
+       <%String SvOrd = null;%>
+       <%boolean bOrdClr = false;%>
+       <%for(int i=0; i < iNumOfItm; i++ )
+         {
+            itmasgn.setItmList();
+            String sOrd = itmasgn.getOrd();
+            String sSite = itmasgn.getSite();
+            String sOrdSts = itmasgn.getOrdSts();
+            String sSku = itmasgn.getSku();
+            String sQty = itmasgn.getQty();
+            String sPickSts = itmasgn.getPickSts();
+            String sPStsDate = itmasgn.getPStsDate();
+            String sPStsUser = itmasgn.getPStsUser();
+            String sUserName = itmasgn.getUserName();
+            String [] sAsgQty = itmasgn.getAsgQty();
+            String [] sSndQty = itmasgn.getSndQty();
+            String [] sAvlQty = itmasgn.getAvlQty();
+            String [] sPckQty = itmasgn.getPckQty();
+            String [] sMail = itmasgn.getMail();
+            String sAsgNote = itmasgn.getAsgNote();
+            String [] sStrNote = itmasgn.getStrNote();
+            String [] sStrSts = itmasgn.getStrSts();
+
+            String sAsgQtyJsa = itmasgn.getAsgQtyJsa();
+            String sSndQtyJsa = itmasgn.getSndQtyJsa();
+            String sPckQtyJsa = itmasgn.getPckQtyJsa();
+            String sAvlQtyJsa = itmasgn.getAvlQtyJsa();
+            String sStrNoteJsa = itmasgn.getStrNoteJsa();
+            String sStrStsJsa = itmasgn.getStrStsJsa();
+            String sMailJsa = itmasgn.getMailJsa();
+
+            String sAsgStrLst = "";
+            String sComa = "";
+            boolean bStrAssgn = false;
+            for(int j=0; j < iNumOfStr; j++)
+            {
+                if(!sAsgQty[j].equals("")){sAsgStrLst += sComa + sStr[j]; sComa=",";bStrAssgn = true;}
+            }
+
+            boolean bStrSend = false;
+            for(int j=0; j < iNumOfStr; j++)
+            {
+                if(!sSndQty[j].equals("") && !sSndQty[j].equals("0")){bStrSend = true;}
+            }
+
+            String sOrdClr = "";
+            if (i==0) { SvOrd = sOrd; }
+            //if(sPickSts.equals("Send")){ sOrdClr = "#ACFA58"; }
+            //else if(sPickSts.equals("Assign")){ sOrdClr = "#F4FA58"; }
+
+            if(!SvOrd.equals(sOrd)){ bOrdClr = !bOrdClr; SvOrd = sOrd;}
+            if(bOrdClr){ sOrdClr = "#E7E7E7"; }
+            else { sOrdClr = "Cornsilk"; }
+       %>
+         <tr class="DataTable0" <%if(!sOrdClr.equals("")){%>style="background:<%=sOrdClr%>"<%}%>>
+            <td class="DataTable" rowspan=3 nowrap>
+               <a href="EComOrdInfo.jsp?Site=<%=sSite%>&Order=<%=sOrd%>" target="_blank"><%=sOrd%></a><br><br>
+            </td>
+            <td class="DataTable1" rowspan=2 nowrap><%=sOrdSts%></td>
+            <td class="DataTable" nowrap><%=sSku%></td>
+            <td class="DataTableC" id="tdPSts<%=i%>"><a href="javascript: setStatus('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sPickSts%>', document.all.tdPSts<%=i%>);"><%=sPickSts%></a></td>
+
+            <td class="DataTable1" rowspan=2 nowrap><%=sUserName%></td>
+            <th class="DataTable" style="vertical-align:middle;" rowspan=3 id="thLog<%=i%>">
+                <a href="javascript: getStrCommt('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '0', document.all.thLog<%=i%>);">&nbsp;L&nbsp;</a>
+            </th>
+            <th class="DataTable" style="vertical-align:middle;"  rowspan=3><a href="javascript:email('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>')">E</a></th>
+            <td class="DataTable1" rowspan=3 nowrap><%=sAsgStrLst%></td>
+            <td class="DataTable">&nbsp;</td>
+            <%for(int j=0; j < iNumOfStr; j++){%>
+              <td class="DataTable1" rowspan=3 nowrap id="tdStr<%=i%><%=j%>">
+                  <a href="javascript: setStrSts('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', '<%=sStrSts[j]%>', document.all.spStrSts<%=i%><%=j%>);"><span id="spStrSts<%=i%><%=j%>"><%=sStrSts[j]%></span></a>
+                  <br><a href="javascript: getStrCommt('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', document.all.spStrCommt<%=i%><%=j%>);"><span id="spStrCommt<%=i%><%=j%>">Log/Commt</span></a>
+                  <br><%if(!sAsgQty[j].equals("0") && !sAsgQty[j].equals("")){%>
+                      <a href="javascript: prtPackSlip('<%=sSite%>' , '<%=sOrd%>','<%=sPrinter%>', null, null, 'N', '<%=sStr[j]%>')"><span id="spStrCommt<%=i%><%=j%>">Print</span></a>
+                  <%}%>
+              </td>
+              <%if(bAssign){%>
+                 <td class="DataTable2C" id="tdAsg" onClick="javascript: setQtySel('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', '<%=sStrSts[j]%>', '<%=sAsgQty[j]%>', '<%=sQty%>', '<%=sAvlQty[j]%>', 'CHGASG', this);"><%=sAsgQty[j]%></td>
+              <%}
+                else {%><td class="DataTable2" id="tdAsg"><%=sAsgQty[j]%></td><%}%>
+
+              <%if(bSend && sAuthStr.trim().equals(sStr[j].trim())){%><td class="DataTable2C" id="tdPck" onClick="javascript: setQtySel('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', '<%=sStrSts[j]%>', '<%=sPckQty[j]%>','<%=sAsgQty[j]%>','<%=sAvlQty[j]%>', 'CHGPICK',this);"><%=sPckQty[j]%></td><%}
+              else {%><td class="DataTable2" id="tdPck" ><%=sPckQty[j]%></td><%}%>
+
+              <%if(bSend && sAuthStr.trim().equals(sStr[j].trim())){%><td class="DataTable2C" id="tdSnd" onClick="javascript: setQtySel('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', '<%=sStrSts[j]%>', '<%=sSndQty[j]%>', '<%=sAsgQty[j]%>','<%=sAvlQty[j]%>', 'CHGSEND', this);"><%=sSndQty[j]%></td><%}
+              else {%><td class="DataTable2" id="tdSnd" ><%=sSndQty[j]%></td><%}%>
+              <td class="DataTable2" id="tdAvl" nowrap ><%=sAvlQty[j]%></td>
+              <th class="DataTable" rowspan=3>&nbsp;</th>
+            <%}%>
+          </tr>
+
+          <tr class="DataTable0" <%if(!sOrdClr.equals("")){%>style="background:<%=sOrdClr%>"<%}%>>
+            <td class="DataTable2"><%=sQty%></td>
+            <td class="DataTable"><%=sPStsDate%></td>
+            <td class="DataTable">T</td>
+            <%for(int j=0; j < iNumOfStr; j++){%>
+              <%if(bSend){%><td class="DataTable1C" colspan=4 id="tdMail<%=i%>" onClick="javascript: setMail('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>', '<%=sMail[j]%>', 'ADDSTRMAIL',this);" nowrap><%=sMail[j]%></td><%}
+              else {%><td class="DataTable1" colspan=4 id="tdMail" nowrap><%=sMail[j]%></td><%}%>
+            <%}%>
+          </tr>
+          <tr class="DataTable0" <%if(!sOrdClr.equals("")){%>style="background:<%=sOrdClr%>"<%}%>>
+            <%if(bAssign){%><td class="DataTable1C" colspan=4 id="tdNote" onClick="javascript: setNote('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '0', '<%=sAsgNote%>', 'ADDSKUNOTE',this);"><%=sAsgNote%></td><%}
+            else {%><td class="DataTable1" colspan=4 id="tdNote"><%=sAsgNote%></td><%}%>
+
+            <td class="DataTable">N</td>
+            <%for(int j=0; j < iNumOfStr; j++){%>
+              <%if(bSend){%><td class="DataTable1C" colspan=4 id="tdStrNote" onClick="javascript: setNote('<%=sSite%>' , '<%=sOrd%>', '<%=sSku%>', '<%=sStr[j]%>','<%=sStrNote[j]%>', 'ADDSTRNOTE', this);"><%=sStrNote[j]%></td><%}
+              else {%><td class="DataTable1" colspan=4 id="tdStrNote"><%=sStrNote[j]%></td><%}%>
+            <%}%>
+          </tr>
+          <tr class="DataTable2"><td>&nbsp;</td></tr>
+       <%}%>
+     </table>
+<!-- ======================================================================= -->
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>
+<%
+   itmasgn.disconnect();
+   itmasgn = null;
+   }
+%>

@@ -1,0 +1,774 @@
+<%@ page import="agedanalysis.Planning, java.util.*"%>
+<%
+   String [] sStore = request.getParameterValues("STORE");
+   String sDivision = request.getParameter("DIVISION");
+   String sDepartment = request.getParameter("DEPARTMENT");
+   String sClass = request.getParameter("CLASS");
+   String sNumMon = request.getParameter("NumMon");
+   String sRetVal = request.getParameter("RetVal");
+   String sCstVal = request.getParameter("CstVal");
+   String sUntVal = request.getParameter("UntVal");
+
+   if(sClass == null) sClass = "ALL";
+   if(sRetVal == null) sRetVal = "0";
+   if(sCstVal == null) sCstVal = "0";
+   if(sUntVal == null) sUntVal = "0";
+
+   //System.out.println(sStore  + " " + sDivision + " " + sDepartment + " " + sClass
+   //       + " " + sNumMon + " " + sRetVal + " " + sCstVal + " " + sUntVal);
+   Planning plans = new Planning(sStore, sDivision, sDepartment, sClass, sNumMon,
+                                          sRetVal, sCstVal, sUntVal);
+
+    int iNumOfMon = plans.getNumOfMon();
+    String [] sMonBeg = plans.getMonBeg();
+    String [] sMonEnd = plans.getMonEnd();
+    String [] sMonName = plans.getMonName();
+    String [] sTyMon = plans.getTyMon();
+    String [] sLyMon = plans.getLyMon();
+
+    int iNumOfVal = plans.getNumOfVal();
+    String [] sValue = plans.getValue();
+
+    // plan
+    String [][] sPlanRet = plans.getSlsPlanRet();
+    String [][] sPlanInv = plans.getSlsPlanInv();
+    String [][] sPlanMkd = plans.getSlsPlanMkd();
+    String [][] sPlanGrm = plans.getSlsPlanGrm();
+    String [][] sPlanAvr = plans.getSlsPlanAvr();
+    String [][] sPlanImu = plans.getSlsPlanImu();
+    String [][] sPlanCmu = plans.getSlsPlanCmu();
+    String [][] sPlanMrm = plans.getSlsPlanMrm();
+    String [][] sPlanMmu = plans.getSlsPlanMmu();
+    String [][] sPlanMkdSls = plans.getSlsPlanMkdSls();
+    String [][] sPlanSellOff = plans.getSlsPlanSellOff();
+    String [][] sPlanMvi = plans.getSlsPlanMvi();
+    String [][] sPlanGmroi = plans.getSlsPlanGmroi();
+
+    // TY history
+    String [][] sTySls = plans.getTySls();
+    String [][] sTyEin = plans.getTyEin();
+    String [][] sTyMkd = plans.getTyMkd();
+    String [][] sTyGrm = plans.getTyGrm();
+    String [][] sTyPrh = plans.getTyPrh();
+    String [][] sTyAvr = plans.getTyAvr();
+    String [][] sTyImu = plans.getTyImu();
+    String [][] sTyCmu = plans.getTyCmu();
+    String [][] sTyMrm = plans.getTyMrm();
+    String [][] sTyMmu = plans.getTyMmu();
+    String [][] sTyMkdSls = plans.getTyMkdSls();
+    String [][] sTySellOff = plans.getTySellOff();
+    String [][] sTyMvi = plans.getTyMvi();
+    String [][] sTyGmroi = plans.getTyGmroi();
+
+    // LY history
+    String [][] sLySls = plans.getLySls();
+    String [][] sLyEin = plans.getLyEin();
+    String [][] sLyMkd = plans.getLyMkd();
+    String [][] sLyGrm = plans.getLyGrm();
+    String [][] sLyPrh = plans.getLyPrh();
+    String [][] sLyAvr = plans.getLyAvr();
+    String [][] sLyImu = plans.getLyImu();
+    String [][] sLyCmu = plans.getLyCmu();
+    String [][] sLyMrm = plans.getLyMrm();
+    String [][] sLyMmu = plans.getLyMmu();
+    String [][] sLyMkdSls = plans.getLyMkdSls();
+    String [][] sLySellOff = plans.getLySellOff();
+    String [][] sLyMvi = plans.getLyMvi();
+    String [][] sLyGmroi = plans.getLyGmroi();
+
+    // Totals
+    String [] sTotPlnRet = plans.getTotPlnRet();
+    String [] sTotPlnInv = plans.getTotPlnInv();
+    String [] sTotPlnMkd = plans.getTotPlnMkd();
+    String [] sTotPlnGrm = plans.getTotPlnGrm();
+    String [] sTotPlnAvr = plans.getTotPlnAvr();
+    String [] sTotPlnImu = plans.getTotPlnImu();
+    String [] sTotPlnCmu = plans.getTotPlnCmu();
+    String [] sTotPlnMrm = plans.getTotPlnMrm();
+    String [] sTotPlnMmu = plans.getTotPlnMmu();
+    String [] sTotPlnMkdSls = plans.getTotPlnMkdSls();
+    String [] sTotPlnSellOff = plans.getTotPlnSellOff();
+    String [] sTotPlnMvi = plans.getTotPlnMvi();
+    String [] sTotPlnGmroi = plans.getTotPlnGmroi();
+
+    String [] sTotTyRet = plans.getTotTyRet();
+    String [] sTotTyInv = plans.getTotTyInv();
+    String [] sTotTyMkd = plans.getTotTyMkd();
+    String [] sTotTyGrm = plans.getTotTyGrm();
+    String [] sTotTyPrh = plans.getTotTyPrh();
+    String [] sTotTyAvr = plans.getTotTyAvr();
+    String [] sTotTyImu = plans.getTotTyImu();
+    String [] sTotTyCmu = plans.getTotTyCmu();
+    String [] sTotTyMrm = plans.getTotTyMrm();
+    String [] sTotTyMmu = plans.getTotTyMmu();
+    String [] sTotTyMkdSls = plans.getTotTyMkdSls();
+    String [] sTotTySellOff = plans.getTotTySellOff();
+    String [] sTotTyMvi = plans.getTotTyMvi();
+    String [] sTotTyGmroi = plans.getTotTyGmroi();
+
+    String [] sTotLyRet = plans.getTotLyRet();
+    String [] sTotLyInv = plans.getTotLyInv();
+    String [] sTotLyMkd = plans.getTotLyMkd();
+    String [] sTotLyGrm = plans.getTotLyGrm();
+    String [] sTotLyPrh = plans.getTotLyPrh();
+    String [] sTotLyAvr = plans.getTotLyAvr();
+    String [] sTotLyImu = plans.getTotLyImu();
+    String [] sTotLyCmu = plans.getTotLyCmu();
+    String [] sTotLyMrm = plans.getTotLyMrm();
+    String [] sTotLyMmu = plans.getTotLyMmu();
+    String [] sTotLyMkdSls = plans.getTotLyMkdSls();
+    String [] sTotLySellOff = plans.getTotLySellOff();
+    String [] sTotLyMvi = plans.getTotLyMvi();
+    String [] sTotLyGmroi = plans.getTotLyGmroi();
+
+    plans.disconnect();
+
+    String sCSSCls = "DataTable";
+    StringBuffer sbStr = new StringBuffer();
+    for(int i=0; i < sStore.length; i++)
+    {
+       sbStr.append(sStore[i] + " ");
+    }
+ %>
+
+<html>
+<head>
+
+<style>body {background:ivory;}
+        a:link { color:blue; font-size:12px } a:visited { color:blue; font-size:12px }  a:hover { color:blue; font-size:12px }
+        table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+        th.DataTable { background:#FFCC99;padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+
+        th.InvData { background:#FFCC99;padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+        td.InvData { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:right;}
+
+
+        tr.DataTable { background:#E7E7E7; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:white; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:CornSilk; font-family:Arial; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:right;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:center;}
+
+
+        div.dvForm {background:Khaki; border: darkblue solid 2px; padding-top:3px; height:30px;
+                    font-family:Arial; font-size:10px; text-align:center;}
+        select.Small {font-family:Arial; font-size:10px }
+        input.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        button.Small {margin-top:3px; font-family:Arial; font-size:10px }
+
+        div.Promo { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:250; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+</style>
+<SCRIPT language="JavaScript1.2">
+//report parameters
+var Store = ["ALL", "1", "2", "3", "4", "5", "8", "10", "11", "12", "20", "28",
+             "30", "40", "45", "61", "82", "88", "98", "99" , "100", "101", "199"];
+
+<%for(int i=0; i < sStore.length; i++) {%>  Store[<%=i%>] = "<%=sStore[i]%>"; <%}%>
+
+var Division = "<%=sDivision%>";
+var Department = "<%=sDepartment%>";
+var Class = "<%=sClass%>";
+var NumMon = "<%=sNumMon%>";
+var RetVal = "<%=sRetVal%>";
+var CstVal = "<%=sCstVal%>";
+var UntVal = "<%=sUntVal%>";
+var New = 0;
+
+// prompt arrays
+var strLst = null;
+var strName = null;
+var divLst = null;
+var divName = null;
+var dptLst = null;
+var dptName = null;
+var dptGrpLst = null;
+var clsLst = null;
+var clsName = null;
+//--------------- Global variables -----------------------
+//--------------- End of Global variables ----------------
+function bodyLoad()
+{
+}
+//--------------------------------------------------------
+// show selection screen
+//--------------------------------------------------------
+function selectPanel()
+{
+   var html = "<table border='0'>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right' nowrap>Division (<a href='javascript: rtvDivDptCls(1)'>Prompt</a>): </td>"
+         + "<td><input name='DIVISION' value='" + Division + "' class='Small' size='3' maxlength='3'><br>"
+         + "<select name='DivSel' onchange='doDivSelect(this.selectedIndex);' class='Small' style='visibility:hidden'></select></td>"
+         + "<td style='text-align:right'>&nbsp;&nbsp; Department: </td>"
+         + "<td><input name='DEPARTMENT' value='" + Department + "' class='Small' size='3' maxlength='3'><br>"
+         + "<select name='DptSel' onchange= 'doDptSel(this.selectedIndex)' class='Small' style='visibility:hidden'></select></td>"
+       + "</tr>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right' nowrap>Class (<a href='javascript: rtvDivDptCls(2)'>Prompt</a>): </td>"
+         + "<td><input name='CLASS' value='" + Class + "' class='Small' size='4' maxlength='4'><br>"
+         + "<select name='ClsSel' onchange= 'doClsSelect(this.selectedIndex)' class='Small' style='visibility:hidden'></select></td>"
+       + "</tr>"
+       + "<tr style='font-size:10px'>"
+       + "<td style='text-align:right'>Store: </td>"
+       + "<td colspan='3'>"
+
+       for(var i=0; i < Store.length; i++)
+       {
+         html += "<input name='STORE' type='checkbox' value='" + Store[i] + "' class='Small'>" + Store[i]
+         if(i == 7 || i == 14) html += "<br>";
+       }
+
+       html += "</td></tr>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right'>Value: </td>"
+         + "<td>"
+           + "<input name='RetVal' type='checkbox' value='1' class='Small' size='4' maxlength='4'>Retail<br>"
+           + "<input name='CstVal' type='checkbox' value='1' class='Small' size='4' maxlength='4'>Cost<br>"
+           + "<input name='UntVal' type='checkbox' value='1' class='Small' size='4' maxlength='4'>Unit<br>"
+         + "</td>"
+         + "<td style='text-align:right' nowrap>Number of Month: </td>"
+         + "<td><input name='NumMon' value='" + NumMon + "' class='Small' size='2' maxlength='2'></td>"
+       + "</tr>"
+
+       + "<tr style='font-size:10px'>"
+         + "<td colspan='4' style='text-align:center' >"
+           + "<button onClick='hidePanel()' class='Small'>Close</button>&nbsp;"
+           + "<button onClick='validateReport(false)' class='Small'>Submit</button>&nbsp;"
+           + "<button onClick='validateReport(true)' class='Small'>Submit in New Window</button>"
+         + "</td>"
+       + "</tr>"
+
+       + "</table>"
+   document.all.promo.innerHTML = html;
+   document.all.promo.style.pixelLeft= 20;
+   document.all.promo.style.pixelTop= 20;
+   document.all.promo.style.visibility = "visible";
+   checkSelValues();
+}
+//--------------------------------------------------------
+// Check selected values
+//--------------------------------------------------------
+function checkSelValues()
+{
+   if(RetVal=="1") document.all.RetVal.checked=true;
+   if(CstVal=="1") document.all.CstVal.checked=true;
+   if(UntVal=="1") document.all.UntVal.checked=true;
+}
+//--------------------------------------------------------
+// validate report with new selection
+//--------------------------------------------------------
+function validateReport(newwin)
+{
+  var msg = " ";
+  var error = false;
+  var div = document.all.DIVISION.value.toUpperCase();
+  var dpt = document.all.DEPARTMENT.value.toUpperCase();
+  var cls = document.all.CLASS.value.toUpperCase();
+  var str = document.all.STORE.value.toUpperCase();
+  var ret = document.all.RetVal.checked;
+  var cst = document.all.CstVal.checked;
+  var unt = document.all.UntVal.checked;
+  var mon = document.all.NumMon.value;
+
+  // validate division
+  if (div!="ALL" && isNaN(div) || div!="ALL" && (div < 1 || div > 99))
+  {
+     msg += "\nPlease, enter correct division number."
+     error = true;
+  }
+  // validate department
+  if (dpt!="ALL" && isNaN(dpt) || dpt!="ALL" && (dpt < 1 || dpt > 999))
+  {
+     msg += "\nPlease, enter correct department number."
+     error = true;
+  }
+  // validate class
+  if (cls!="ALL" && isNaN(cls) || cls!="ALL" && (cls < 1 || cls > 9999))
+  {
+     msg += "\nPlease, enter correct class number."
+     error = true;
+  }
+  // validate store
+  if (str!="ALL" && isNaN(str) || str!="ALL" && (str < 1 || str > 98))
+  {
+     msg += "\nPlease, enter correct store number."
+     error = true;
+  }
+
+  // validate values
+  if (!ret && !cst && !unt)
+  {
+     msg += "\nPlease, check at least 1 value."
+     error = true;
+  }
+  // validate values
+  if (isNaN(mon) || eval(mon) < 1 || eval(mon) > 12)
+  {
+     msg += "\nPlease, enter correct number of month: from 1 to 12."
+     error = true;
+  }
+
+
+  // show error or submit report
+  if(error) alert(msg);
+  else submitReport(div, dpt, cls, str, ret, cst, unt, mon, newwin);
+}
+//--------------------------------------------------------
+// submit report with new selection
+//--------------------------------------------------------
+function submitReport(div, dpt, cls, str, ret, cst, unt, mon, newwin)
+{
+   var url = "Planning.jsp"
+     + "?DIVISION=" + div
+     + "&DEPARTMENT=" + dpt
+     + "&CLASS=" + cls
+     + "&STORE=" + str
+     + "&NumMon=" + mon
+   if(ret) url += "&RetVal=1"
+   if(cst) url += "&CstVal=1"
+   if(unt) url += "&UntVal=1"
+
+   // close selection panel
+   hidePanel();
+
+   //alert(url);
+   if (newwin)
+   {
+     var WindowName = 'Planning' + New++;
+     var WindowOptions =
+     'resizable=yes , toolbar=yes, location=yes, directories=yes, status=yes, scrollbars=yes,menubar=yes';
+      window.open(url, WindowName, WindowOptions);
+   }
+   else window.location.href=url;
+}
+
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.promo.innerHTML = " ";
+   document.all.promo.style.visibility = "hidden";
+}
+//--------------------------------------------------------
+// retreive div, dpt, cls and str
+//--------------------------------------------------------
+function rtvDivDptCls(mode)
+{
+  var div = document.all.DIVISION.value.toUpperCase();
+  var dpt = document.all.DEPARTMENT.value.toUpperCase();
+
+  if(div.trim()=="") div ="ALL";
+  if(dpt.trim()=="") dpt ="ALL";
+
+  var url = 'DivDptClsSel.jsp?'
+  if (mode==2)
+  {
+     url += "mode=" + mode
+       + "&DIVISION=" + div
+       + "&DEPARTMENT=" + dpt
+  }
+  else  { url += "mode=" + mode }
+
+ //alert(url);
+ //window.location.href = url;
+ window.frame1.location = url;
+}
+
+//---------------------------------------------------------
+// populate Div, dpt, class list
+//---------------------------------------------------------
+function popDivDptCls(mode, div, divNames, dpt, dptNames, dep_div, cls, clsNames, str, strNames)
+{
+    window.frame1.location = null;
+    strLst = str;
+    strName = strNames;
+    divLst = div;
+    divName = divNames;
+    dptLst = dpt;
+    dptName = dptNames;
+    dptGrpLst = dep_div;
+    clsLst= cls;
+    clsName = clsNames;
+
+    // load div/dpt
+    if(mode==1)
+    {
+       doDivSelect(null);
+       document.all.DivSel.style.visibility="visible";
+       document.all.DptSel.style.visibility="visible";
+       document.all.ClsSel.style.visibility="hidden";
+    }
+    // load classes
+    else
+    {
+       doClsSelect(null);
+       document.all.DivSel.style.visibility="hidden";
+       document.all.DptSel.style.visibility="hidden";
+       document.all.ClsSel.style.visibility="visible";
+    }
+
+    document.all.DIVISION.readOnly=true;
+    document.all.DEPARTMENT.readOnly=true;
+}
+
+//==============================================================================
+// popilate division selection
+//==============================================================================
+function doDivSelect(id) {
+    var df = document.all;
+    var allowed;
+
+    if (id == null || id == 0)
+    {
+        //  populate the division list
+        for (var i = 0; i < divLst.length; i++)
+            df.DivSel.options[i] = new Option(divName[i],divLst[i]);
+        id = 0;
+    }
+    else
+    {
+      df.DIVISION.value = df.DivSel.options[df.DivSel.selectedIndex].value
+      df.DEPARTMENT.value = "ALL";
+    }
+
+    allowed = dptGrpLst[id].split(":");
+
+    //  clear current depts
+    for (var i = df.DptSel.length; i >= 0; i--) df.DptSel.options[i] = null;
+
+    //  if all are to be displayed
+    if (allowed[0] == "all")
+    {
+       for (var i = 0; i < dptLst.length; i++)
+       {
+         df.DptSel.options[i] = new Option(dptName[i],dptLst[i]);
+       }
+    }
+    //  else display the desired depts
+    else
+    {
+       for (var i = 0; i < allowed.length; i++)
+                df.DptSel.options[i] = new Option(dptName[allowed[i]],
+                                                        dptLst[allowed[i]]);
+    }
+}
+//==============================================================================
+// populate class selection
+//==============================================================================
+function doClsSelect(id) {
+  var df = document.all;
+  if(id==null)
+  {
+     //  clear current classes
+     for (var i = df.ClsSel.length; i >= 0; i--)  df.ClsSel.options[i] = null;
+
+     //  populate the class list
+     for (var i = 0; i < clsLst.length; i++)  { df.ClsSel.options[i] = new Option(clsName[i], clsLst[i]); }
+  }
+  else
+  {
+     document.all.CLASS.value = document.all.ClsSel.options[id].value;
+  }
+}
+//==============================================================================
+// Copy selected department to input department field
+//==============================================================================
+function doDptSel(id)
+{
+   document.all.DEPARTMENT.value = document.all.DptSel.options[id].value;
+}
+
+//---------------------------------------------------------
+//create String method Trim
+//---------------------------------------------------------
+function String.prototype.trim()
+{ //trim leading and trailing spaces
+    var s = this;
+    var obj = /^(\s*)([\W\w]*)(\b\s*$)/;
+    if (obj.test(s)) { s = s.replace(obj, '$2'); }
+    var obj = /  /g;
+    while (s.match(obj)) { s = s.replace(obj, " "); }
+    return s;
+}
+</SCRIPT>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe
+  id="frame1"
+  src=""
+  frameborder=0 height="0" width="0">
+</iframe>
+<!-------------------------------------------------------------------->
+  <div id="promo" class="Promo"></div>
+<!-------------------------------------------------------------------->
+
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP">
+        <b>Retail Concepts, Inc
+        <br>Planning</b>
+      </td>
+     </tr>
+
+     <tr>
+      <td ALIGN="Center" VALIGN="TOP" colspan=3>
+
+      <b>Store: <%=sbStr.toString()%>
+         &nbsp;&nbsp; Division: <%=sDivision%>
+         &nbsp;&nbsp; Department: <%=sDepartment%>
+         &nbsp;&nbsp; Class: <%=sClass%></b><br>
+
+      <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+          <a href="PlanningSel.jsp?mode=1">
+            <font color="red" size="-1">Planning Selection</font></a>&#62;
+          <font size="-1">This Page.</font>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="javascript: selectPanel();">Report Parameters</a>
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <p><h5>This Year Plan</h5>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+        <tr>
+	  <th class="DataTable">Month</th>
+          <th class="DataTable">R<br>C<br>U</th>
+          <th class="DataTable">Sales<br>Plan</th>
+          <th class="DataTable">Markdown<br>Plan</th>
+          <th class="DataTable">Inventory<br>Plan</th>
+          <th class="DataTable">Gross<br>Profit</th>
+          <th class="DataTable">Average<br>Price</th>
+          <th class="DataTable">IMU</th>
+          <th class="DataTable">CMU</th>
+          <th class="DataTable">MRM</th>
+          <th class="DataTable">MMU</th>
+          <th class="DataTable">Mkd/<br>Sls</th>
+          <th class="DataTable">Sell<br>Off</th>
+          <th class="DataTable">MVI</th>
+          <th class="DataTable">GMROI</th>
+        </tr>
+<!------------------------------- Data Detail --------------------------------->
+           <%for(int i=0; i < iNumOfMon; i++) {%>
+
+             <%for(int j=0; j < iNumOfVal; j++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(j==0) {%>
+                     <td class="DataTable2" rowspan="<%=iNumOfVal%>"><%=sMonName[i]%></td>
+                   <%}%>
+                   <td class="DataTable"><%=sValue[j]%></td>
+                   <td class="DataTable"><%=sPlanRet[j][i]%></td>
+                   <td class="DataTable"><%=sPlanMkd[j][i]%></td>
+                   <td class="DataTable"><%=sPlanInv[j][i]%></td>
+                   <td class="DataTable"><%=sPlanGrm[j][i]%></td>
+                   <td class="DataTable"><%=sPlanAvr[j][i]%></td>
+                   <td class="DataTable"><%=sPlanImu[j][i]%></td>
+                   <td class="DataTable"><%=sPlanCmu[j][i]%></td>
+                   <td class="DataTable"><%=sPlanMrm[j][i]%></td>
+                   <td class="DataTable"><%=sPlanMmu[j][i]%></td>
+                   <td class="DataTable"><%=sPlanMkdSls[j][i]%></td>
+                   <td class="DataTable"><%=sPlanSellOff[j][i]%></td>
+                   <td class="DataTable"><%=sPlanMvi[j][i]%></td>
+                   <td class="DataTable"><%=sPlanGmroi[j][i]%></td>
+                </tr>
+             <%}%>
+
+             <% // change line color
+               if (sCSSCls.equals("DataTable")) sCSSCls = "DataTable1";
+               else sCSSCls = "DataTable";
+            %>
+           <%}%>
+<!------------------- Company Total -------------------------------->
+      <!------------------- Report Total -------------------------------->
+           <%for(int i=0; i < iNumOfVal; i++) {%>
+              <tr class="DataTable2">
+                <td class="DataTable1" nowrap>Total</td>
+                <td class="DataTable"><%=sValue[i]%></td>
+                <td class="DataTable"><%=sTotPlnRet[i]%></td>
+                <td class="DataTable"><%=sTotPlnMkd[i]%></td>
+                <td class="DataTable"><%=sTotPlnInv[i]%></td>
+                <td class="DataTable"><%=sTotPlnGrm[i]%></td>
+                <td class="DataTable"><%=sTotPlnAvr[i]%></td>
+                <td class="DataTable"><%=sTotPlnImu[i]%></td>
+                <td class="DataTable"><%=sTotPlnCmu[i]%></td>
+                <td class="DataTable"><%=sTotPlnMrm[i]%></td>
+                <td class="DataTable"><%=sTotPlnMmu[i]%></td>
+                <td class="DataTable"><%=sTotPlnMkdSls[i]%></td>
+                <td class="DataTable"><%=sTotPlnSellOff[i]%></td>
+                <td class="DataTable"><%=sTotPlnMvi[i]%></td>
+                <td class="DataTable"><%=sTotPlnGmroi[i]%></td>
+              </tr>
+           <%}%>
+      </table>
+      <!-------------------------------------------------------------------->
+      <!----------------------- end of plan table -------------------------->
+      <!-------------------------------------------------------------------->
+      <!----------------- beginning of Last Year table --------------------->
+      <!-------------------------------------------------------------------->
+      <p><h5>Prior 13 - 24 Months Actual</h5>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+        <tr>
+	  <th class="DataTable">Month</th>
+          <th class="DataTable">R<br>C<br>U</th>
+          <th class="DataTable">Monthly<br>Sales</th>
+          <th class="DataTable">Monthly<br>Markdown</th>
+          <th class="DataTable">Monthly<br>Inventory</th>
+          <th class="DataTable">Gross<br>Profit</th>
+          <th class="DataTable">Monthly<br>Purchases</th>
+          <th class="DataTable">Average<br>Price</th>
+          <th class="DataTable">IMU</th>
+          <th class="DataTable">CMU</th>
+          <th class="DataTable">MRM</th>
+          <th class="DataTable">MMU</th>
+          <th class="DataTable">Mkd/<br>Sls</th>
+          <th class="DataTable">Sell<br>Off</th>
+          <th class="DataTable">MVI</th>
+          <th class="DataTable">GMROI</th>
+        </tr>
+<!------------------------------- Data Detail --------------------------------->
+           <%for(int i=0; i < iNumOfMon; i++) {%>
+
+             <%for(int j=0; j < iNumOfVal; j++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(j==0) {%>
+                     <td class="DataTable2" rowspan="<%=iNumOfVal%>"><%=sLyMon[i]%></td>
+                   <%}%>
+                   <td class="DataTable"><%=sValue[j]%></td>
+                   <td class="DataTable"><%=sLySls[j][i]%></td>
+                   <td class="DataTable"><%=sLyMkd[j][i]%></td>
+                   <td class="DataTable"><%=sLyEin[j][i]%></td>
+                   <td class="DataTable"><%=sLyGrm[j][i]%></td>
+                   <td class="DataTable"><%=sLyPrh[j][i]%></td>
+                   <td class="DataTable"><%=sLyAvr[j][i]%></td>
+                   <td class="DataTable"><%=sLyImu[j][i]%></td>
+                   <td class="DataTable"><%=sLyCmu[j][i]%></td>
+                   <td class="DataTable"><%=sLyMrm[j][i]%></td>
+                   <td class="DataTable"><%=sLyMmu[j][i]%></td>
+                   <td class="DataTable"><%=sLyMkdSls[j][i]%></td>
+                   <td class="DataTable"><%=sLySellOff[j][i]%></td>
+                   <td class="DataTable"><%=sLyMvi[j][i]%></td>
+                   <td class="DataTable"><%=sLyGmroi[j][i]%></td>
+                </tr>
+             <%}%>
+
+             <% // change line color
+               if (sCSSCls.equals("DataTable")) sCSSCls = "DataTable1";
+               else sCSSCls = "DataTable";
+            %>
+           <%}%>
+<!------------------- Company Total -------------------------------->
+      <!------------------- Report Total -------------------------------->
+           <%for(int i=0; i < iNumOfVal; i++) {%>
+              <tr class="DataTable2">
+                <td class="DataTable1" nowrap>Total</td>
+                <td class="DataTable"><%=sValue[i]%></td>
+                <td class="DataTable"><%=sTotLyRet[i]%></td>
+                <td class="DataTable"><%=sTotLyMkd[i]%></td>
+                <td class="DataTable"><%=sTotLyInv[i]%></td>
+                <td class="DataTable"><%=sTotLyGrm[i]%></td>
+                <td class="DataTable"><%=sTotLyPrh[i]%></td>
+                <td class="DataTable"><%=sTotLyAvr[i]%></td>
+                <td class="DataTable"><%=sTotLyImu[i]%></td>
+                <td class="DataTable"><%=sTotLyCmu[i]%></td>
+                <td class="DataTable"><%=sTotLyMrm[i]%></td>
+                <td class="DataTable"><%=sTotLyMmu[i]%></td>
+                <td class="DataTable"><%=sTotLyMkdSls[i]%></td>
+                <td class="DataTable"><%=sTotLySellOff[i]%></td>
+                <td class="DataTable"><%=sTotLyMvi[i]%></td>
+                <td class="DataTable"><%=sTotLyGmroi[i]%></td>
+              </tr>
+           <%}%>
+      </table>
+      <!-------------------------------------------------------------------->
+      <!--------------------- end of Last Year table ----------------------->
+      <!-------------------------------------------------------------------->
+      <!----------------- beginning of This Year table --------------------->
+      <!-------------------------------------------------------------------->
+      <p><h5>Prior 1 - 12 Months Actual</h5>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+        <tr>
+	  <th class="DataTable">Month</th>
+          <th class="DataTable">R<br>C<br>U</th>
+          <th class="DataTable">Monthly<br>Sales</th>
+          <th class="DataTable">Monthly<br>Markdown</th>
+          <th class="DataTable">Monthly<br>Inventory</th>
+          <th class="DataTable">Gross<br>Profit</th>
+          <th class="DataTable">Monthly<br>Purchases</th>
+          <th class="DataTable">Average<br>Price</th>
+          <th class="DataTable">IMU</th>
+          <th class="DataTable">CMU</th>
+          <th class="DataTable">MRM</th>
+          <th class="DataTable">MMU</th>
+          <th class="DataTable">Mkd/<br>Sls</th>
+          <th class="DataTable">Sell<br>Off</th>
+          <th class="DataTable">MVI</th>
+          <th class="DataTable">GMROI</th>
+        </tr>
+<!------------------------------- Data Detail --------------------------------->
+           <%for(int i=0; i < iNumOfMon; i++) {%>
+
+             <%for(int j=0; j < iNumOfVal; j++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(j==0) {%>
+                     <td class="DataTable2" rowspan="<%=iNumOfVal%>"><%=sTyMon[i]%></td>
+                   <%}%>
+                   <td class="DataTable"><%=sValue[j]%></td>
+                   <td class="DataTable"><%=sTySls[j][i]%></td>
+                   <td class="DataTable"><%=sTyMkd[j][i]%></td>
+                   <td class="DataTable"><%=sTyEin[j][i]%></td>
+                   <td class="DataTable"><%=sTyGrm[j][i]%></td>
+                   <td class="DataTable"><%=sTyPrh[j][i]%></td>
+                   <td class="DataTable"><%=sTyAvr[j][i]%></td>
+                   <td class="DataTable"><%=sTyImu[j][i]%></td>
+                   <td class="DataTable"><%=sTyCmu[j][i]%></td>
+                   <td class="DataTable"><%=sTyMrm[j][i]%></td>
+                   <td class="DataTable"><%=sTyMmu[j][i]%></td>
+                   <td class="DataTable"><%=sTyMkdSls[j][i]%></td>
+                   <td class="DataTable"><%=sTySellOff[j][i]%></td>
+                   <td class="DataTable"><%=sTyMvi[j][i]%></td>
+                   <td class="DataTable"><%=sTyGmroi[j][i]%></td>
+                </tr>
+             <%}%>
+
+             <% // change line color
+               if (sCSSCls.equals("DataTable")) sCSSCls = "DataTable1";
+               else sCSSCls = "DataTable";
+            %>
+           <%}%>
+<!------------------- Company Total -------------------------------->
+      <!------------------- Report Total -------------------------------->
+           <%for(int i=0; i < iNumOfVal; i++) {%>
+              <tr class="DataTable2">
+                <td class="DataTable1" nowrap>Total</td>
+                <td class="DataTable"><%=sValue[i]%></td>
+                <td class="DataTable"><%=sTotTyRet[i]%></td>
+                <td class="DataTable"><%=sTotTyMkd[i]%></td>
+                <td class="DataTable"><%=sTotTyInv[i]%></td>
+                <td class="DataTable"><%=sTotTyGrm[i]%></td>
+                <td class="DataTable"><%=sTotTyPrh[i]%></td>
+                <td class="DataTable"><%=sTotTyAvr[i]%></td>
+                <td class="DataTable"><%=sTotTyImu[i]%></td>
+                <td class="DataTable"><%=sTotTyCmu[i]%></td>
+                <td class="DataTable"><%=sTotTyMrm[i]%></td>
+                <td class="DataTable"><%=sTotTyMmu[i]%></td>
+                <td class="DataTable"><%=sTotTyMkdSls[i]%></td>
+                <td class="DataTable"><%=sTotTySellOff[i]%></td>
+                <td class="DataTable"><%=sTotTyMvi[i]%></td>
+                <td class="DataTable"><%=sTotTyGmroi[i]%></td>
+              </tr>
+           <%}%>
+      </table>
+ <!--------------------- end of This Year table ----------------------->
+
+  </table>
+ </body>
+</html>

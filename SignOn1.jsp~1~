@@ -1,0 +1,181 @@
+<%@ page import="tomcatsecurity.Signon, java.util.*"%>
+<%
+   String sUser = request.getParameter("USER");
+   String sPassword = request.getParameter("PASSWORD");
+   String sAppl = request.getParameter("APPL");
+   String sSbmString = request.getParameter("SbmString");
+   String sErrorMsg= null;
+
+   Enumeration en = request.getParameterNames();
+   String [] sPrmValue = null;
+   String sParam = null;
+   String sTarget = null;
+   StringBuffer sbQuery = new StringBuffer() ;
+   String sQstMrk = "?";
+
+   if(sUser == null && sSbmString == null)
+   {
+      while (en.hasMoreElements())
+      {
+        sParam = en.nextElement().toString();
+        //sPrmValue = request.getParameter(sParam);
+        sPrmValue = request.getParameterValues(sParam);
+
+        if(sParam.equals("TARGET"))
+        {
+          sTarget = sPrmValue[0];
+        }
+        else if(!sParam.equals("APPL"))
+        {
+          for(int i=0; i < sPrmValue.length; i++)
+          {
+             sbQuery.append(sQstMrk + sParam + "=" + sPrmValue[i]);
+             sQstMrk = "&";
+          }
+        }
+      }
+      sSbmString = sTarget + sbQuery.toString();
+     }
+
+   if(sUser!=null)
+   {
+     Signon signon = new Signon(sUser, sPassword);
+     int iNumOfApp = signon.getNumOfApp();
+     String [] sUserApp = signon.getApplication();
+     String sAccess = signon.getAccess();
+     int iNumOfStr = signon.getNumOfStr();
+     String [] sStore = signon.getStore();
+     boolean bFound = false;
+
+     en = session.getAttributeNames();
+     Vector vAttr = new Vector();
+     while(en.hasMoreElements()) { vAttr.add((String) en.nextElement()); }
+     Iterator it = vAttr.iterator();
+     while(it.hasNext()) { session.removeAttribute(it.next().toString());}
+
+
+     if(sAccess.equals("E"))
+     {
+       sErrorMsg = "User Id or password is not valid, please enter again.";
+     }
+     else
+     {
+       // change interval to never expired for homeoffice
+       if(sStore[0].trim().equals("ALL"))  { session.setMaxInactiveInterval(-1);  }
+       else{ session.setMaxInactiveInterval(600);  }
+
+       session.setAttribute("USER", sUser);
+       session.setAttribute("ACCESS", sAccess);
+       session.setAttribute("STORE", sStore[0]);
+       session.setAttribute("DATE", new Date());
+
+       Vector vStore = new Vector(iNumOfStr);
+       for(int i=0; i < iNumOfStr; i++) { vStore.add(sStore[i]); }
+
+       session.setAttribute("STRLST", vStore);
+
+       //System.out.println(sUser + "|" + sAccess + "|" + sStore);
+
+       for(int i=0; i < iNumOfApp; i++)
+       {
+         session.setAttribute(sUserApp[i], sUserApp[i]);
+         if(sUserApp[i].equals(sAppl)) bFound = true;
+       }
+
+       if  (bFound || sAppl.equals("ALL") || sAppl.equals("NONE"))
+       {
+         response.sendRedirect(sSbmString);
+       }
+       else
+       {
+         sErrorMsg = "User is not authorized for application";
+       }
+
+     }
+     signon.disconnect();
+   }
+
+%>
+
+<html>
+<head>
+
+<meta http-equiv="refresh">
+
+<style>body {background:ivory;}");
+       a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+       table.DataTable { border: darkred solid 1px;background:#FFE4C4;text-align:center;}
+       th.DataTable { padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;background:#FFE4C4;border-right: darkred solid 1px;text-align:center; font-family:Arial; font-size:10px }
+       td.DataTable { background:lightgrey; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+       td.DataTable1 { background:cornsilk; padding-top:3px; padding-bottom:3px; border-right: darkred solid 1px; text-align:left; font-family:Arial; font-size:10px }
+</style>
+<SCRIPT language="JavaScript1.2">
+function bodyLoad()
+{
+  document.oncontextmenu = function()
+  {
+    alert("Right Click is disable on this page")
+    return false
+  }
+  document.forms[0].USER.focus()
+}
+
+//==============================================================================
+// validate
+//==============================================================================
+function Validate()
+{
+   if (document.forms[0].PASSWORD.value == "")
+   {
+     alert("Please, enter password.")
+     return false
+   }
+   else return true
+}
+</SCRIPT>
+          </head>
+ <body  onload="bodyLoad();">
+
+  <table border="0" width="100%" height="100%">
+     <tr>
+      <td height="20%" COLSPAN="2" align=center>
+        <img src="Sun_ski_logo1.jpg" /></td>
+     </tr>
+     <tr bgColor="moccasin">
+      <td ALIGN="center" VALIGN="TOP">
+       <b>Retail Concepts, Inc
+       <br>Application Authorization</b><br>
+
+       <!-- Dispaly Error Message -->
+       <%if(sErrorMsg!=null){%>
+       <p align=center><font color=red><%=sErrorMsg%></font>
+       <%}%>
+
+      <form name="getStore" action="SignOn1.jsp?<%=request.getQueryString()%>" method="POST" onSubmit="return Validate();">
+      <table>
+      <tr>
+         <td>User:</td>
+         <td><input name="USER" type="TEXT" size="10" maxlength="10" autocomplete="off"></td>
+      <tr>
+        <td>Password:</td>
+        <td><input name="PASSWORD" type="PASSWORD"  size="10" maxlength="10"  autocomplete="off"></td>
+
+      </tr>
+      <tr>
+         <td colspan="2" align="center"><input type="submit" value="Continue"></td>
+      </tr>
+      </table>
+
+      <input name="SbmString" type="hidden" value="<%=sSbmString  %>">
+
+      </form>
+      <table>
+         <tr><td align="center"><a href="../"><font color="red" size="-1">Home</font></a>&#62;</td></tr>
+         <tr><td align="left">For new Intranet ID’s or changes to existing accounts, please send an email to the IT Help Desk at <a href="mailto: support@retailconcepts.cc">support@retailconcepts.cc</a>
+         <!--tr><td align="left">If you are a vendor representative and have not yet registered, please, click <a href="VenRegistration.jsp">here</a>.</td></tr -->
+      </table>
+    </td>
+   </tr>
+  </table>
+ </body>
+</html>

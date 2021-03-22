@@ -1,0 +1,451 @@
+<%@ page import="rciutility.RunSQLStmt, rental.RentContractInfo, rciutility.StoreSelect, java.sql.*, java.util.*, java.text.*"%>
+<%
+   String sSelContId = request.getParameter("ContId");
+
+   if(sSelContId == null){ sSelContId = "0000000000"; }
+
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+if (session.getAttribute("USER")==null)
+{
+     response.sendRedirect("SignOn1.jsp?TARGET=RentContractInfo.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{
+      boolean bChgCust = session.getAttribute("RECHGCUST") != null;
+
+      StoreSelect StrSelect = null;
+      String sStrAllowed = session.getAttribute("STORE").toString();
+      String sUser = session.getAttribute("USER").toString();
+
+      if (sStrAllowed != null && sStrAllowed.startsWith("ALL"))
+      {
+        StrSelect = new StoreSelect(10);
+      }
+      else
+      {
+         Vector vStr = (Vector) session.getAttribute("STRLST");
+         String [] sStrAlwLst = new String[ vStr.size()];
+         Iterator iter = vStr.iterator();
+
+         int iStrAlwLst = 0;
+         while (iter.hasNext()){ sStrAlwLst[iStrAlwLst] = (String) iter.next(); iStrAlwLst++; }
+
+         if (vStr.size() > 1) { StrSelect = new StoreSelect(sStrAlwLst); }
+         else StrSelect = new StoreSelect(new String[]{sStrAllowed});
+      }
+
+      String [] sStrAlw = StrSelect.getStrLst();
+
+      String sPickDt = "";
+      String sRtnDt = "";
+      String sSts = null;
+      String sStr = null;
+      String sStrJsa = "";
+      String sUserNm = null;
+      String sPayReq = null;
+
+      RentContractInfo rentinfo = null;
+      int iNumOfSkr = 0;
+      if(!sSelContId.equals("0000000000"))
+      {
+         rentinfo = new RentContractInfo(sSelContId, sUser);
+         sPickDt = rentinfo.getPickDt();
+         sRtnDt = rentinfo.getRtnDt();
+         sSts = rentinfo.getSts();
+         sStr = rentinfo.getStr();
+         sUserNm = rentinfo.getUserNm();
+         sPayReq = rentinfo.getPayReq();
+
+         if(sSts.equals(""))
+         {
+           response.sendRedirect("RentContListSel.jsp");
+         }
+
+         // Skiers List and personal info
+         iNumOfSkr = rentinfo.getNumOfSkr();
+      }
+      else
+      {
+          String sStmt = "select store"
+             + " from RCI.ReStr"
+             + " where store in ("
+             ;
+          String sComa = "";
+          for(int i=0; i < sStrAlw.length; i++)
+          {
+             if(sStrAlw[i] != null)
+             {
+               sStmt += sComa + sStrAlw[i];
+               sComa = ",";
+             }
+          }
+          sStmt +=  ")" ;
+
+          sStmt += " order by store";
+          RunSQLStmt runsql = new RunSQLStmt();
+          runsql.setPrepStmt(sStmt);
+          ResultSet rs = runsql.runQuery();
+          int j=0;
+          sComa= "";
+
+          while(runsql.readNextRecord())
+          {
+             String sStrAll = runsql.getData("store").trim();
+             sStrJsa += sComa + "\"" + sStrAll + "\"";
+             j++;
+             sComa=",";
+          }
+
+      }
+
+      SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+      Calendar cal = Calendar.getInstance();
+      String sToday = sdf.format(cal.getTime());
+      sdf = new SimpleDateFormat("h:mm a");
+      String sCurTime = sdf.format(cal.getTime());
+
+%>
+
+<html>
+<head>
+<title>Rent_Equipment_Order</title>
+
+<style>
+</style>
+
+<SCRIPT language="JavaScript1.2">
+</script>
+
+
+</head>
+<body >
+    <table border="0" cellPadding="0"  cellSpacing="0" width="100%">
+
+    <tr>
+    <td>
+  <!-------------------------- Contract Info ------------------------------------>
+    <div id="dvCont" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+      <table cellPadding="0" cellSpacing="0" id="tbDept">
+        <tr class="DataTable">
+          <td class="DataTable" style="font-size:14px;"><b>Pick Up </b></td>
+          <td class="DataTable">
+              <button class="Small" name="Down" onClick="setDate('DOWN', 'FrDate')">&#60;</button>
+            <input name="FrDate" style="font-weight:bold;" type="text" size=10 maxlength=10 readonly>&nbsp;
+              <button class="Small" name="Up" onClick="setDate('UP', 'FrDate')">&#62;</button>
+              <a href="javascript:showCalendar(1, null, null, 400, 150, document.all.FrDate)" >
+              <img src="calendar.gif" alt="Calendar Prompt" width="34" height="21"></a>
+
+          </td>
+          <td class="DataTable" style="font-size:14px;"><b> &nbsp; &nbsp; Drop Off </b></td>
+          <td class="DataTable">
+              <button class="Small" name="Down" onClick="setDate('DOWN', 'ToDate')">&#60;</button>
+              <input name="ToDate" style="font-weight:bold;" type="text" size=10 maxlength=10 readonly>&nbsp;
+              <button class="Small" name="Up" onClick="setDate('UP', 'ToDate')">&#62;</button>
+              <a href="javascript:showCalendar(1, null, null, 630, 150, document.all.ToDate)" >
+              <img src="calendar.gif" alt="Calendar Prompt" width="34" height="21"></a>
+
+            <%for(int i=0; i < 25; i++){%>&nbsp;<%}%>
+               <button class="Small" onclick="window.close()">Done</button> &nbsp;
+          </td>
+        </tr>
+      </table>
+    </div>
+    <br>
+
+    <%System.out.println(0);%>
+  <!------------------------- New Skiers Info entry panel --------------------->
+     <div id="dvNewSkiers" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+     <table cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+       <tr class="DataTable">
+         <td class="DataTable">
+           First Name &nbsp; <input class='Small2' name="FName" maxlength=30 size=30 onFocus="this.select()"> &nbsp;
+           M.I. &nbsp; <input class='Small2' name="MInit" maxlength=1 size=1 onFocus="this.select()" > &nbsp;
+           Last Name &nbsp; <input class='Small2' name="LName" maxlength=30 size=30 onFocus="this.select()">
+           &nbsp; &nbsp;
+           <input type="hidden" name="Cust" readOnly>
+           <input name="Action" type="hidden">
+           <a id="lnkRtnCust" href="javascript: getCustLst()">Returning Customer<a> &nbsp; &nbsp; &nbsp;
+           <span id="CustLastChgDt" style="display:none;"></span>
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           Home Address &nbsp; <input class='Small2' name="Addr1" maxlength=50 size=50 onFocus="this.select()"> &nbsp;
+                               <input class='Small2' name="Addr2" maxlength=50 size=50 onFocus="this.select()"> &nbsp;
+           <br>City &nbsp; <input class='Small2' name="City" maxlength=50 size=50 onFocus="this.select()"> &nbsp;
+               State &nbsp; <input class='Small2' name="State" maxlength=2 size=2 onFocus="this.select()"> &nbsp;
+               Zip Code &nbsp; <input class='Small2' name="Zip" maxlength=10 size=10 onFocus="this.select()"> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           E-Mail &nbsp; <input class='Small2' name="EMail" maxlength=50 size=50 onFocus="this.select()"> &nbsp;
+           Home Phone &nbsp; <input class='Small2' name="HPhone" maxlength=20 size=20 onFocus="this.select()"> &nbsp;
+           Mobile Phone &nbsp; <input class='Small2' name="CPhone" maxlength=20 size=20 onFocus="this.select()"> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           Age &nbsp; <input class='Small2' name="BirthDt" maxlength=2 size=2 onFocus="this.select()"> &nbsp;
+           Group Name &nbsp; <input class='Small2' name="Group" maxlength=20 size=20 onFocus="this.select()"> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           <table border=1 cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+            <tr class="DataTable">
+             <td class="DataTable">Weight (lbs.) &nbsp; <input class='Small2' name="Weight" maxlength=3 size=3> &nbsp;
+                 Height (ft) &nbsp; <input class='Small2' name="HeightFt" maxlength=1 size=1> &nbsp;
+                        (in) &nbsp; <input class='Small2' name="HeightIn" maxlength=2 size=2> &nbsp;
+                 Shoe Size &nbsp; <input class='Small2' name="ShoeSiz" maxlength=4 size=4> &nbsp;
+                 Mondo Size &nbsp; <input class='Small2' name="MondoSiz" maxlength=5 size=5> &nbsp;
+             </td>
+             <td class="DataTable">Skier Type &nbsp; <input class='radio' type="radio" name="SkiType" value="-1"> -I &nbsp;
+                             <input class='radio' type="radio" name="SkiType" value="1"> I &nbsp;
+                             <input class='radio' type="radio" name="SkiType" value="2"> II &nbsp;
+                             <input class='radio' type="radio" name="SkiType" value="3"> III &nbsp;
+                             <input class='radio' type="radio" name="SkiType" value="3+"> III+ &nbsp; &nbsp;
+             </td>
+             <td class="DataTable">
+                    SB Stance &nbsp; <input class='radio' type="radio" name="SkiType" value="R"> Regular &nbsp;
+                                 <input class='radio' type="radio" name="SkiType" value="G"> Goofy &nbsp;
+                <br>Angle &nbsp; Left <input class='Small2' name="AngleLeft" maxlength=2 size=2> &nbsp;
+                          &nbsp; Right <input class='Small2' name="AngleRight" maxlength=2 size=2> &nbsp;
+             </td>
+            <tr>
+           </table>
+         </td>
+       </tr>
+    </table>
+
+    <%System.out.println(1);%>
+    <%if(!sSelContId.equals("0000000000")){%>
+       <button class="Small" onclick="validateSkier();">Save Skier</button> &nbsp;
+       <button class="Small" onclick="showSkierPanel(false);">Close</button>
+    <%}%>
+
+    <%System.out.println(2);%>
+    </div>
+
+    <%System.out.println(3);%>
+    <%if(!sSelContId.equals("0000000000") && sSts != null && (sSts.equals("OPEN") || sSts.equals("PICKEDUP"))){%>
+       <button class="Small" id="btnAddSkier" onclick="showSkierPanel(true);">Add Skier</button>
+       <br>
+    <%}%>
+    <%System.out.println(4);%>
+  <!----------------------- end of new skier entry table ---------------------->
+
+
+  <!---------------------- Exist Skiers Info panel ---------------------------->
+     <%for(int i=0; i < iNumOfSkr;i++){%>
+     <%
+       rentinfo.setSkiersInfo();
+
+       String sCust = rentinfo.getCust();
+       String sFName = rentinfo.getFName();
+       String sMInit = rentinfo.getMInit();
+       String sLName = rentinfo.getLName();
+       String sAddr1 = rentinfo.getAddr1();
+       String sAddr2 = rentinfo.getAddr2();
+       String sCity = rentinfo.getCity();
+       String sState = rentinfo.getState();
+       String sZip = rentinfo.getZip();
+       String sEMail = rentinfo.getEMail();
+       String sHPhone = rentinfo.getHPhone();
+       String sCPhone = rentinfo.getCPhone();
+       String sGroup = rentinfo.getGroup();
+       String sBDate = rentinfo.getBDate();
+       String sHeightFt = rentinfo.getHeightFt();
+       String sHeightIn = rentinfo.getHeightIn();
+       String sWeight = rentinfo.getWeight();
+       String sShoeSiz = rentinfo.getShoeSiz();
+       String sSkierType = rentinfo.getSkierType();
+       String sStance = rentinfo.getStance();
+       String sMondoSiz = rentinfo.getMondoSiz();
+       String sAngleLeft = rentinfo.getAngleLeft();
+       String sAngleRight = rentinfo.getAngleRight();
+       String sHist = rentinfo.getHist();
+       String sPayee = rentinfo.getPayee();
+
+       // checkout inventory
+       rentinfo.setSkrInv();
+       int iNumOfInv = rentinfo.getNumOfInv();
+       String [] sInvId = rentinfo.getInvId();
+       String [] sBootLen = rentinfo.getBootLen();
+       String [] sLeftToe = rentinfo.getLeftToe();
+       String [] sRightToe = rentinfo.getRightToe();
+       String [] sLeftHeal = rentinfo.getLeftHeal();
+       String [] sRightHeal = rentinfo.getRightHeal();
+       String [] sInvStr = rentinfo.getInvStr();
+       String [] sCls = rentinfo.getCls();
+       String [] sVen = rentinfo.getVen();
+       String [] sSty = rentinfo.getSty();
+       String [] sClr = rentinfo.getClr();
+       String [] sSiz = rentinfo.getSiz();
+       String [] sSrlNum = rentinfo.getSrlNum();
+       String [] sTestDt = rentinfo.getTestDt();
+       String [] sGrade = rentinfo.getGrade();
+       String [] sDesc = rentinfo.getDesc();
+       String [] sClrNm = rentinfo.getClrNm();
+       String [] sSizNm = rentinfo.getSizNm();
+
+     %>
+     <div id="dvSkiers" style="background:#e7e7e7; border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+     <table cellPadding="0" cellSpacing="0" id="tbSkier" width="100%" style="background:#e7e7e7;">
+       <tr class="DataTable1">
+         <td class="DataTable">
+           First Name &nbsp; <input class='Small4' name="FName<%=i%>" maxlength=30 size=30 value="<%=sFName%>" readOnly> &nbsp;
+           M.I. &nbsp; <input class='Small4' name="MInit<%=i%>" maxlength=1 size=1 value="<%=sMInit%>" readOnly> &nbsp;
+           Last Name &nbsp; <input class='Small4' name="LName<%=i%>" maxlength=30 size=30 value="<%=sLName%>" readOnly>
+           &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Customer: &nbsp;<%=sCust%>
+         </td>
+         <td class="DataTable" style="font-size:50px;font-weight:bold" rowspan=4><%=i+1%></td>
+       </tr>
+       <tr class="DataTable1">
+         <td class="DataTable">
+           Home Address &nbsp; <input class='Small4' name="Addr1<%=i%>" maxlength=50 size=50 value="<%=sAddr1%>" readOnly> &nbsp;
+                               <input class='Small4' name="Addr2<%=i%>" maxlength=50 size=50 value="<%=sAddr2%>" readOnly> &nbsp;
+           <br>City &nbsp; <input class='Small4' name="City<%=i%>" maxlength=50 size=50 value="<%=sCity%>" readOnly> &nbsp;
+               State &nbsp; <input class='Small4' name="State<%=i%>" maxlength=2 size=2 value="<%=sState%>" readOnly> &nbsp;
+               Zip Code &nbsp; <input class='Small4' name="Zip<%=i%>" maxlength=10 size=10 value="<%=sZip%>" readOnly> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable1">
+         <td class="DataTable">
+           E-Mail &nbsp; <input class='Small4' name="EMail<%=i%>" maxlength=50 size=50 value="<%=sEMail%>" readOnly> &nbsp;
+           Home Phone &nbsp; <input class='Small4' name="HPhone<%=i%>" maxlength=20 size=20 value="<%=sHPhone%>" readOnly> &nbsp;
+           Mobile Phone &nbsp; <input class='Small4' name="CPhone<%=i%>" maxlength=20 size=20 value="<%=sCPhone%>" readOnly> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable1">
+         <td class="DataTable">
+           Age &nbsp; <input class='Small4' name="BirthDt<%=i%>" maxlength=2 size=2 value="<%=sBDate%>" readOnly> &nbsp;
+           Group Name &nbsp; <input class='Small4' name="Group<%=i%>" maxlength=20 size=20 value="<%=sGroup%>" readOnly> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable1">
+         <td class="DataTable" colspan=2>
+           <table border=1 cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+            <tr class="DataTable1">
+             <td class="DataTable">
+               Weight (lbs.) &nbsp; <input class='Small4' name="Weight<%=i%>" maxlength=3 size=3 value="<%=sWeight%>" readOnly> &nbsp;
+               Height (ft) &nbsp; <input class='Small4' name="HeightFt<%=i%>" maxlength=1 size=1 value="<%=sHeightFt%>" readOnly> &nbsp;
+                      (in) &nbsp; <input class='Small4' name="HeightIn<%=i%>" maxlength=2 size=2 value="<%=sHeightIn%>" readOnly> &nbsp;
+               Shoe Size &nbsp; <input class='Small4' name="ShoeSiz<%=i%>" maxlength=4 size=4 value="<%=sShoeSiz%>" readOnly> &nbsp;
+               Mondo Size &nbsp; <input class='Small4' name="MondoSiz<%=i%>" maxlength=5 size=5 value="<%=sMondoSiz%>" readOnly> &nbsp;
+             </td>
+             <td class="DataTable">
+               Skier Type &nbsp; <input class='radio' type="radio" name="SkiType<%=i%>" value="-1" <%if(sSkierType.equals("-1")){%>checked<%}%> readOnly> -I &nbsp;
+                             <input class='radio' type="radio" name="SkiType<%=i%>" value="1" <%if(sSkierType.equals("1")){%>checked<%}%> readOnly> I &nbsp;
+                             <input class='radio' type="radio" name="SkiType<%=i%>" value="2" <%if(sSkierType.trim().equals("2")){%>checked<%}%> readOnly> II &nbsp;
+                             <input class='radio' type="radio" name="SkiType<%=i%>" value="3" <%if(sSkierType.equals("3")){%>checked<%}%> readOnly> III &nbsp;
+                             <input class='radio' type="radio" name="SkiType<%=i%>" value="3+" <%if(sSkierType.equals("3+")){%>checked<%}%> readOnly> III+ &nbsp;
+             </td>
+             <td class="DataTable">
+               SB Stance &nbsp; <input class='radio' type="radio" name="SkiType<%=i%>" value="R" <%if(sStance.equals("R")){%>checked<%}%> readOnly> Regular &nbsp;
+                         <input class='radio' type="radio" name="SkiType<%=i%>" value="G" <%if(sStance.equals("G")){%>checked<%}%> readOnly> Goofy &nbsp;
+               <br>Angle: &nbsp; Left <input class='Small4' name="AngleLeft<%=i%>" maxlength=2 size=2 value="<%=sAngleLeft%>" readOnly> &nbsp;
+                                Right <input class='Small4' name="AngleRight<%=i%>" maxlength=2 size=2 value="<%=sAngleRight%>" readOnly> &nbsp;
+
+               </td>
+             </tr>
+           </table>
+           <%if(i==0){%><script>DftAddr1 = "<%=sAddr1%>"; DftAddr2 = "<%=sAddr2%>"; DftCity = "<%=sCity%>"; DftState = "<%=sState%>"; DftZip = "<%=sZip%>"; DftHPhone = "<%=sHPhone%>"; DftEMail = "<%=sEMail%>"; DftGroup = "<%=sGroup%>"</script><%}%>
+         </td>
+       </tr>
+
+       <!--========= Skier's Checkout Inventories ===========================-->
+       <tr class="DataTable1">
+         <td class="DataTable" colspan=2>
+            <table border=1 cellPadding="0" cellSpacing="0" id="tb<%=sCust%>Inv" width="100%">
+               <tr class="DataTable7">
+                 <th>Description</th>
+                 <th>Size</th>
+                 <th>Serial<br>Number</th>
+                 <th>Setting</th>
+                 <th>Upd</th>
+                 <th>Dlt</th>
+               </tr>
+               <%for(int j=0; j < iNumOfInv; j++){%>
+                    <tr class="DataTable7">
+                      <td class="DataTable"><%=sDesc[j]%></td>
+                      <%if(!sInvId[j].equals("9999999999")){%>
+                          <td class="DataTable"><%=sSizNm[j]%></td>
+                          <td class="DataTable2"><%=sSrlNum[j]%></td>
+                          <td class="DataTable">
+                             Boot Length: <%=sBootLen[j]%> &nbsp;
+                             Left Toe: <%=sLeftToe[j]%> &nbsp; Right Toe: <%=sRightToe[j]%> &nbsp;
+                             Left Heel: <%=sLeftHeal[j]%> &nbsp; Right Heel: <%=sRightHeal[j]%> &nbsp;
+                             Test Date: <%=sTestDt[j]%> &nbsp; Grade: <%=sGrade[j]%> &nbsp;
+                          </td>
+                          <td class="DataTable2"><a href="javascript: updInv('<%=sInvId[j]%>', '<%=sCust%>', '<%=sDesc[j]%>'
+                            ,'<%=sBootLen[j]%>','<%=sLeftToe[j]%>', '<%=sRightToe[j]%>', '<%=sLeftHeal[j]%>'
+                            , '<%=sRightHeal[j]%>')">Upd</a></td>
+                      <%}
+                      else {%><td class="DataTable2" colspan=4>&nbsp;</td><%}%>
+                      <td class="DataTable2"><a href="javascript: dltInv('<%=sInvId[j]%>', '<%=sCust%>', '<%=sDesc[j]%>')">Dlt</a></td>
+                    </tr>
+               <%}%>
+
+            </table>
+         </td>
+       </tr>
+    </table>
+
+    <%if(sSts.equals("OPEN") || sSts.equals("PICKEDUP")){%>
+       <button class="Small" onClick="chgEquip('<%=sCust%>', '<%=sFName%>', '<%=sMInit%>', '<%=sLName%>');">Equipment</button>
+
+       <%if(sHist.equals("1")){%>
+          &nbsp; &nbsp;
+          <button class="Small" onClick="getUsedEquip('<%=sCust%>', '<%=sFName%>', '<%=sMInit%>', '<%=sLName%>');">Previously Rented</button>
+       <%}%>
+
+       &nbsp; &nbsp;
+       <button class="Small" onClick="chgSkier('<%=sCust%>', '<%=sFName%>', '<%=sMInit%>', '<%=sLName%>'
+         , '<%=sAddr1%>', '<%=sAddr2%>', '<%=sCity%>', '<%=sState%>', '<%=sZip%>', '<%=sEMail%>', '<%=sHPhone%>'
+         , '<%=sCPhone%>', '<%=sGroup%>', '<%=sBDate%>', '<%=sHeightFt%>', '<%=sHeightIn%>', '<%=sWeight%>'
+         , '<%=sShoeSiz%>', '<%=sSkierType%>', '<%=sStance%>', '<%=sPayee%>', '<%=sMondoSiz%>'
+         , '<%=sAngleLeft%>', '<%=sAngleRight%>');">Change</button>
+    <%}%>
+    <%if(i > 0 ){%>
+      &nbsp; &nbsp;
+      <button class="Small" onClick="dltSkier('<%=sCust%>');">Delete</button>
+    <%}%>
+
+
+    </div>
+     <br>
+    <%}%>
+    <!-- ================== Comments ================================= -->
+    <%if(!sSelContId.equals("0000000000")){%>
+        <a class="Small" href="javascript: filterCommt('USER')">User comments only</a> &nbsp;  &nbsp;
+        <a class="Small" href="javascript: filterCommt('AUTO')">Auto comments only</a> &nbsp;  &nbsp;
+        <a class="Small" href="javascript: filterCommt('All')">All</a> &nbsp;  &nbsp;
+
+
+        <div id="dvComment" style="border-width:3px; border-style:ridge; border-color:lightgray;
+           width:100%;height: 200px;overflow: auto;"><div>
+
+        </td>
+      <%}%>
+   </tr>
+
+  </table>
+ </body>
+</html>
+
+
+<%
+  }%>
+
+
+
+
+
+
+
+
+
+

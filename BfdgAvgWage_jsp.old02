@@ -1,0 +1,548 @@
+<%@ page import="payrollreports.BfdgAvgWage, java.util.*, java.sql.*"%>
+<%
+   java.util.Date dStart = new java.util.Date();
+
+   String sYear = request.getParameter("Year");
+   String sMonth = request.getParameter("Month");
+   String sSelBdgGrp = request.getParameter("BdgGrp");
+   String [] sSelStr = request.getParameterValues("Str");
+
+   if(sSelBdgGrp == null){ sSelBdgGrp = "ALL"; }
+
+if (session.getAttribute("USER")==null)
+{
+   response.sendRedirect("SignOn1.jsp?TARGET=BfdgAvgWage.jsp");
+}
+else
+{
+    String sUser = session.getAttribute("USER").toString();
+
+    //System.out.println(sYear + "|" + sMonth + "|" + sSelStr + "|" + sSelBdgGrp + "|" + sUser);
+    BfdgAvgWage bgavgwage = new BfdgAvgWage(sYear, sMonth, sSelStr, sSelBdgGrp, sUser);
+
+    int iNumOfStr = bgavgwage.getNumOfStr();
+    String [] sStr = bgavgwage.getStr();
+
+    int iNumOfWk = bgavgwage.getNumOfWk();
+    String [] sWeek = bgavgwage.getWeek();
+
+    int iNumOfBdg = bgavgwage.getNumOfBdg();
+    String [] sBdgGrp = bgavgwage.getBdgGrp();
+    String [] sBdgGrpName = bgavgwage.getBdgGrpName();
+    String [] sBdgGrpType = bgavgwage.getBdgGrpType();
+    String [] sBdgGrpSecTy = bgavgwage.getBdgGrpSecTy();
+
+    int iNumOfSub = bgavgwage.getNumOfSub();
+    String [] sSubGrp = bgavgwage.getSubGrp();
+    String [] sSubGrpNm = bgavgwage.getSubGrpNm();
+    String sSubGrpNmJsa = bgavgwage.getSubGrpNmJsa();
+
+    String sStrJsa = bgavgwage.getStrJsa();
+    String sWeekJsa = bgavgwage.getWeekJsa();
+    String sBdgGrpJsa = bgavgwage.getBdgGrpJsa();
+    String sSubGrpJsa = bgavgwage.getSubGrpJsa();
+%>
+
+<style>body {background:ivory;font-family: Verdanda}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}
+                 a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}
+                       a:hover.small { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+
+        tr.DataTable { background: #E7E7E7; font-size:12px }
+        tr.DataTable1 { background: #EfEf9f; font-size:10px }
+        tr.DataTable2 { background: cornsilk; font-size:12px }
+        tr.DataTable3 { background: #cccfff; font-size:10px }
+        tr.DataTable4 { background: #E7E7E7; font-size:10px }
+        tr.DataTable5 { background: cornsilk; font-size:10px }
+
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        input.Small1 {border:none; background: #EfEf9f; font-size:10px }
+
+        div.dvConfirm { position:absolute; top: expression(this.offsetParent.scrollTop + 10); background-attachment: scroll;
+              border: MidnightBlue solid 2px; width:150; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px; visibility:hidden;}
+
+        div.dvTools { background-attachment: scroll; border: MidnightBlue solid 2px; width:150;
+                      background-color:LemonChiffon; z-index:10; text-align:center; font-size:10px}
+
+        tr.TblHdr { background:#FFCC99; padding-left:3px; padding-right:3px;
+              text-align:center; vertical-align:middle; font-size:11px;
+              position: relative; }
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+</style>
+<html>
+<head><Meta http-equiv="refresh"></head>
+
+<script language="javascript">
+var StartDate = new Date(<%=dStart.getTime()%>);
+
+NumOfStr = <%=iNumOfStr%>;
+NumOfBdg = <%=iNumOfBdg%>;
+NumOfWk = <%=iNumOfWk%>;
+NumOfSub = <%=iNumOfSub-1%>;
+
+SubGrpNm = [<%=sSubGrpNmJsa%>];
+
+var StrArr = [<%=sStrJsa%>];
+var WeekArr = [<%=sWeekJsa%>];
+var BdgGrpArr = [<%=sBdgGrpJsa%>];
+var SubGrpArr = [<%=sSubGrpJsa%>];
+
+var AvgArr = new Array(NumOfStr);
+var StrTotArr = new Array(NumOfStr);
+var StrSubMaxArr = new Array(NumOfWk);
+
+var SbmNext = -1;
+var iUrl = 0;
+var urlarr = new Array();
+var DisabledLink = false;
+//==============================================================================
+// iniitalize at loading
+//==============================================================================
+function bodyLoad()
+{
+   setToolBox();
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvConfirm"]);
+
+   var elapse = (new Date()).getTime() - StartDate
+   document.all.dvElapse.innerHTML = (elapse / 1000) + " sec."
+}
+//==============================================================================
+// set tool and link box
+//==============================================================================
+function setToolBox()
+{
+   var hdr = "Tools/Links";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt'>"
+        + popToolsPanel()
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvTools.innerHTML = html;
+   hideBar();
+}
+//==============================================================================
+// populate Entry Panel
+//==============================================================================
+function popToolsPanel()
+{
+  var panel = "<table border=0 width='100%' cellPadding='1' cellSpacing='0'>"
+  panel += "<tr><td class='Prompt' nowrap>"
+             + "<a class='Small' id='lnkTool' href='javascript: if(!DisabledLink) { copyLY(&#34;ALL&#34;) }'>Copy LY Processed Payroll Averages</a></td>"
+         + "</tr>"
+
+         + "<tr><td class='Prompt' nowrap>"
+             + "Apply Percent: <input class='Small' name='inpApplyPrc' size=3 maxlength=3>%&nbsp;"
+             + "<a class='Small' id='lnkTool' href='javascript: if(!DisabledLink) { applyAvg(true); }'>Calculate</a></td>"
+         + "</tr>"
+
+         + "<tr><td class='Prompt' nowrap>"
+             + "Apply Amount: $<input class='Small' name='inpApplyAmt' size=3 maxlength=3>&nbsp;"
+             + "<a class='Small' id='lnkTool' href='javascript: if(!DisabledLink) { applyAvg(false); }'>Calculate</a></td>"
+         + "</tr>"
+
+         + "<tr><td class='Prompt' nowrap>"
+             + "<a class='Small' id='lnkTool' href='javascript: if(!DisabledLink) { zeroOut(&#34;ALL&#34;); }'>Apply 0 to ALL</a></td>"
+         + "</tr>"
+
+         + "<tr><td class='Prompt' nowrap>"
+             + "<a class='Small' id='lnkTool' href='javascript: if(!DisabledLink) { saveChg(); }'>Save</a></td>"
+         + "</tr>"
+
+  panel += "</table>";
+
+  return panel;
+}
+
+//==============================================================================
+// copy LY processed payroll averages to selected month
+//==============================================================================
+function copyLY(grp)
+{
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>"
+       + "Are you sure you want to apply LY averages?"
+       + "<br><button class='Small' onClick='sbmCalc();'>Submit</button> &nbsp; "
+       + "<br><button class='Small' onClick='hidePanel();'>Cancel</button>"
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvConfirm.innerHTML = html;
+   document.all.dvConfirm.style.pixelLeft= document.documentElement.scrollLeft + 200;
+   document.all.dvConfirm.style.pixelTop= document.documentElement.scrollTop + 10;
+   document.all.dvConfirm.style.visibility = "visible";
+
+   document.all.Action.value= "COPY_LY_PROCESSED_AVG";
+   document.all.Apply.value= "0";
+}
+
+//==============================================================================
+// reset averages
+//==============================================================================
+function zeroOut(type)
+{
+   document.all.Action.value= "ZEROOUT";
+   document.all.Apply.value= "0";
+   sbmCalc();
+}
+//==============================================================================
+// submit calculation
+//==============================================================================
+function sbmCalc()
+{
+   html = document.forms[0].outerHTML;
+   var nwelem = window.frame1.document.createElement("div");
+   nwelem.id = "dvSbmCommt"
+   nwelem.innerHTML = html;
+   window.frame1.document.appendChild(nwelem);
+
+   //alert(html)
+   window.frame1.document.frmCalc.submit();
+}
+
+//==============================================================================
+// apply percent of changing of averages wages
+//==============================================================================
+function hidePanel()
+//==============================================================================
+// apply percent of changing of averages wages
+//==============================================================================
+function applyAvg(bPrc)
+{
+   var apply = 1;
+
+   if(bPrc)
+   {
+
+      apply = eval(document.all.inpApplyPrc.value.trim());
+      apply = (1 + apply / 100).toFixed(2);
+   }
+   else
+   {
+      apply = eval(document.all.inpApplyAmt.value.trim());
+   }
+
+   for(var i=0; i < NumOfStr; i++)
+   {
+      for(var j=0; j < NumOfBdg; j++)
+      {
+         for(var k=0; k < NumOfWk; k++)
+         {
+            for(var l=0; l < NumOfSub; l++)
+            {
+               var inpfld = "AvgS" + i + "B" + j + "W" + k + "G" + l
+               var curavg = eval(document.all[inpfld].value).toFixed(2);
+               try
+               {
+                  if(bPrc){ document.all[inpfld].value = (curavg * apply).toFixed(2); }
+                  else { document.all[inpfld].value = (curavg - apply * (-1) ).toFixed(2); }
+               }
+               catch(err)
+               {
+                  alert(err); return;
+               }
+            }
+         }
+      }
+   }
+
+   document.all.inpApplyPrc.value = "";
+   document.all.inpApplyAmt.value = "";
+}
+
+//==============================================================================
+// save made changes to AS/400 database
+//==============================================================================
+function saveChg()
+{
+   urlarr = new Array();
+   iUrl = 0;
+
+   for(var i=0; i < NumOfStr; i++)
+   {
+      for(var j=0; j < NumOfBdg; j++)
+      {
+         for(var k=0; k < NumOfWk; k++)
+         {
+            var bSave = false;
+            var url = "BfdgAvgWageSave.jsp?Str=" + StrArr[i] + "&BdgGrp=" + BdgGrpArr[j]
+               + "&Week=" +  WeekArr[k]
+
+
+            for(var l=0; l < NumOfSub; l++)
+            {
+               var inpfld = "AvgS" + i + "B" + j + "W" + k + "G" + l
+               var avg = eval(document.all[inpfld].value.trim());
+
+               if(eval(AvgArr[i][j][k][l])!=avg) { bSave = true;}
+               url += "&SubGrp=" + SubGrpArr[l] + "&Avg=" + avg;
+            }
+
+            // save if at least one value was changed for this week and budget group
+            if(bSave) {  urlarr[iUrl++] = url; };
+         }
+      }
+   }
+
+   // clear before submittion
+   SbmNext = -1;
+   document.all.tblProgress.style.display = "block";
+   DisabledLink = true;
+   disableTootls(true);
+   sbmBdgAvg(1);
+}
+//==============================================================================
+// disable / enable tools
+//==============================================================================
+function disableTootls(bActivity)
+{
+   for(var i=0; i < document.all.lnkTool.length ;i++)
+   {
+      document.all.lnkTool[i].disabled = bActivity;
+   }
+}
+//==============================================================================
+// submit budget averages for savings
+//==============================================================================
+function sbmBdgAvg()
+{
+   SbmNext++
+   if(SbmNext < iUrl)
+   {
+      setBarProgress();
+      window.frame1.location.href=urlarr[SbmNext];
+   }
+   else
+   {
+      hideBar();
+      disableTootls(false);
+      DisabledLink = false;
+      window.location.reload();
+   }
+}
+//==============================================================================
+// set processing bar
+//==============================================================================
+function setBarProgress()
+{
+   var iMax = document.all.tdProgBar.length;
+   var iBar = (iUrl / 20).toFixed(0);
+
+   if(SbmNext % iBar == 0)
+   {
+      var iProgress = (SbmNext / iBar).toFixed(0);
+      if(iProgress > iMax - 1){ iProgress = iMax - 1; }
+
+      try {
+        document.all.tdProgBar[0].innerHTML = SbmNext;
+        document.all.tdProgBar[iProgress].style.background = "green";
+      }
+      catch(err)
+      {
+         //document.all.tdProgBar[0].innerHTML = iProgress;
+      }
+   }
+}
+//==============================================================================
+// set store totals
+//==============================================================================
+function setStrAvgTot()
+{
+   var hdr = "Store Totals";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0 id='tblStrTot'>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt'>"
+        + popStrTotPanel()
+     + "</td></tr>"
+   + "</table>"
+
+
+   var pos = getObjPosition(document.all.tblBdgGrp[0])
+   pos[0] += document.all.tblBdgGrp[0].offsetWidth
+
+   document.all.dvConfirm.innerHTML = html;
+   document.all.dvConfirm.style.pixelLeft= document.documentElement.scrollLeft + pos[0] + 10;
+   document.all.dvConfirm.style.pixelTop= document.documentElement.scrollTop + 10;
+   document.all.dvConfirm.style.visibility = "visible";
+}
+//==============================================================================
+// Hide bar
+//==============================================================================
+function hideBar()
+{
+   document.all.tblProgress.style.display = "none";
+}
+</script>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Get_Object_Position.js"></script>
+
+<body onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvConfirm" class="dvConfirm"></div>
+<!-------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------->
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr bgColor="ivory">
+       <td ALIGN="left" VALIGN="TOP" width="10%">
+         <b>Retail Concepts Inc.
+         <br>Payroll: Budget group average wages break-up by subcategories
+         <br>Year/Month: <%=sYear%>/<%=sMonth%></b>
+         <br><a href="../" class="small"><font color="red">Home</font></a>&#62;
+           <a href="BfdgAvgWageSel.jsp" class="small"><font color="red">Selection</font></a>&#62;
+         <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+       </td>
+       <td ALIGN="left" VALIGN="TOP" colspan=3>
+         <div id="dvTools" class="dvTools"></div>
+       </td>
+     </tr>
+
+     <tr bgColor="ivory">
+       <td ALIGN="left" VALIGN="TOP" colspan=2>
+<!-------------------------------------------------------------------->
+      <div style="height: 400px; overflow: auto; " >
+      <form method="post" action="BfdgAvgWageCalc.jsp" name="frmCalc">
+       <input type="hidden" name="Year" value="<%=sYear%>">
+       <input type="hidden" name="Month" value="<%=sMonth%>">
+       <input type="hidden" name="BdgGrp" value="<%=sSelBdgGrp%>">
+
+       <%for(int i=0; i < iNumOfStr; i++){%><input type="hidden" name="Str" value="<%=sStr[i]%>"> <%}%>
+       <%for(int i=0; i < iNumOfBdg; i++){%><input type="hidden" name="Bdg" value="<%=sBdgGrp[i]%>"> <%}%>
+       <%for(int i=0; i < iNumOfSub; i++){%><input type="hidden" name="Sub" value="<%=sSubGrp[i]%>"> <%}%>
+       <%for(int i=0; i < iNumOfWk; i++){%><input type="hidden" name="Week" value="<%=sWeek[i]%>"> <%}%>
+
+       <input type="hidden" name="Action">
+       <input type="hidden" name="Apply">
+
+      <!----------------- beginning of table ------------------------>
+      <table border=0 cellPadding="0" cellSpacing="0">
+     <!------------------------------- Data Detail --------------------------------->
+      <%for(int i=0; i < iNumOfStr; i++){%>
+        <tr>
+          <th align="left">&nbsp; <br>Store: <%=sStr[i]%></th>
+        </tr>
+
+        <tr>
+          <td>
+           <table border=0 cellPadding="0" cellSpacing="0" width=100% id="tblBdgGrp">
+            <tr>
+
+             <%for(int j=0; j < iNumOfBdg; j++){%>
+                 <th>Budget Group: <%=sBdgGrpName[j]%>
+                        <table border=1 cellPadding="0" cellSpacing="0" width=100%>
+                           <tr>
+                             <th class="DataTable">Week</th>
+                             <%for(int l=0; l < iNumOfSub; l++){%>
+                                <th class="DataTable"><%=sSubGrpNm[l]%></th>
+                             <%}%>
+                           </tr>
+                           <!-- ============= Detail ======================= -->
+                           <%for(int k=0; k < iNumOfWk; k++){%>
+                           <%
+                               bgavgwage.setAvgWage(i, k, j);
+                               String [] sSubAvg = bgavgwage.getSubAvg();
+                               String [] sSubLyPrcAvg = bgavgwage.getSubLyPrcAvg();
+                           %>
+                             <tr class="DataTable">
+                                <td class="DataTable"><%=sWeek[k]%></td>
+                                <%for(int l=0; l < iNumOfSub; l++){%>
+                                   <td class="DataTable">
+                                     <%if(!sSubGrp[l].equals("TOTAL")){%>
+                                       <input name="AvgS<%=i%>B<%=j%>W<%=k%>G<%=l%>" size=5 maxlength=6 value="<%=sSubAvg[l]%>" class="Small">
+                                     <%} else {%><%=sSubAvg[l]%><%}%>
+                                   </td>
+                                <%}%>
+                             </tr>
+                             <tr class="DataTable1">
+                                <td class="DataTable">LY</td>
+                                <%for(int l=0; l < iNumOfSub; l++){%>
+                                   <td class="DataTable"><input name="PPLyS<%=i%>B<%=j%>W<%=k%>G<%=l%>" value="<%=sSubLyPrcAvg[l]%>" size=5 maxlength=6 class="Small1" readonly></td>
+                                <%}%>
+                             </tr>
+                           <%}%>
+
+                           <!-- ============= Monthly Total  =============== -->
+                           <tr style="background:darkred; font-size:1px;"><td colspan=<%=iNumOfSub+1%>>&nbsp;</td></tr>
+                           <tr class="DataTable2">
+                             <%
+                                bgavgwage.setMonAvgWage();
+                                String [] sSubAvg = bgavgwage.getSubAvg();
+                             %>
+                                <td class="DataTable">Monthly Total</td>
+                                <%for(int l=0; l < iNumOfSub; l++){%>
+                                   <td class="DataTable" id="AvgS<%=i%>B<%=j%>MonTotG<%=l%>"><%=sSubAvg[l]%></td>
+                                <%}%>
+                             </tr>
+                           <!-- ====== End Detail ====== -->
+                        </table>
+                      </th>
+                      <th nowrap> &nbsp; &nbsp; <th>
+             <%}%>
+            </tr>
+           </table>
+           <!-- -->
+          </td>
+        </tr>
+      <%}%>
+      <!------------------------ End Details ---------------------------------->
+   </table>
+   </form>
+   </div>
+   </td>
+   </tr>
+    <!----------------------- end of table ---------------------------------->
+
+  </table>
+  <div id="dvElapse" style="font-size:8px"></div>
+ </body>
+
+</html>
+
+<%
+  bgavgwage.disconnect();
+  bgavgwage = null;
+  }
+%>

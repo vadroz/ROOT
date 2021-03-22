@@ -1,0 +1,1006 @@
+<%@ page import="salesvelocity.HCDlyLst, rciutility.StoreSelect, rciutility.RtvStrGrp, java.util.*, java.text.*"%>
+<%
+   String [] sSelStr = request.getParameterValues("Str");
+   String sFrom = request.getParameter("From");
+   String sTo = request.getParameter("To");
+   String sStrOpt = request.getParameter("StrOpt");
+   String sDatOpt = request.getParameter("DatOpt");
+   String sMissOpt = request.getParameter("MissOpt");
+   String sSort = request.getParameter("Sort");
+
+   SimpleDateFormat smp = new SimpleDateFormat("MM/dd/yyyy");
+
+   if(sFrom == null)
+   {
+      Date dtPrior  = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+      sFrom = smp.format(dtPrior);
+   }
+   if(sTo == null)
+   {
+      Date dtPrior  = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+      sTo = smp.format(dtPrior);
+   }
+   if(sStrOpt == null){ sStrOpt = "STR"; }
+   if(sDatOpt == null){ sDatOpt = "NONE"; }
+   if(sMissOpt == null){ sMissOpt = "Y"; }
+   if(sSort == null){ sSort = "STR"; }
+
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+     response.sendRedirect("SignOn1.jsp?TARGET=HCDlyLst.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{
+   StoreSelect strsel = new StoreSelect();
+   String sStrJsa = strsel.getStrNum();
+   String sStrNameJsa = strsel.getStrName();
+   int iNumOfStr = strsel.getNumOfStr();
+   String [] sStrLst = strsel.getStrLst();
+   String [] sStrRegLst = strsel.getStrRegLst();
+   String sStrRegJsa = strsel.getStrReg();
+
+   String [] sStrDistLst = strsel.getStrDistLst();
+   String sStrDistJsa = strsel.getStrDist();
+   String [] sStrDistNmLst = strsel.getStrDistNmLst();
+   String sStrDistNmJsa = strsel.getStrDistNm();
+
+   String [] sStrMallLst = strsel.getStrMallLst();
+   String sStrMallJsa = strsel.getStrMall();
+
+   int iSpace = 6;
+
+   if(sSelStr ==null)
+   {
+      Vector vStr = new Vector();
+      for(int i=0; i < iNumOfStr; i++)
+      {
+         if(!sStrLst[i].equals("55") && !sStrLst[i].equals("89") && !sStrLst[i].equals("70"))
+         {
+           vStr.add(sStrLst[i]);
+         }
+      }
+
+      sSelStr = (String [])vStr.toArray(new String[vStr.size()]);;
+   }
+
+   String sUser = session.getAttribute("USER").toString();
+   boolean bUpdStrGrp = session.getAttribute("ITMAINT") != null;
+
+   //System.out.println(sFrom + "|" + sTo + "|" + sStrOpt + "|" + sDatOpt + "|" + sSort + "|" + sUser);
+   HCDlyLst hcdly = new HCDlyLst(sSelStr, sFrom, sTo, sStrOpt, sDatOpt, sMissOpt, sSort, sUser);
+   int iNumOfGrp = hcdly.getNumOfGrp();
+   int iNumOfReg = hcdly.getNumOfReg();
+   
+   RtvStrGrp rtvstr = new RtvStrGrp();
+   String sGrpNmJsa = rtvstr.getGrpJsa();
+   String sGrpStrJsa = rtvstr.getStrJsa();   
+%>
+<html>
+<head>
+<title>Conversion</title>
+
+<style>body {background:ivory;text-align:center; }
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { background:#FFE4C4;text-align:center;}
+
+        th.DataTable  { background:#FFCC99;padding-top:3px; padding-bottom:3px; text-align:center; font-family:Verdanda; font-size:12px }
+        th.DataTable1  { background:#FFCC99;padding-top:3px; padding-bottom:3px; text-align:center; font-family:Verdanda; font-size:14px }
+
+
+        tr.DataTable  { background:#e7e7e7; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:CornSilk; font-family:Arial; font-size:10px }        
+        tr.DataTable2  { background:gray; color:white; font-family:Arial; font-size:10px }
+        tr.DataTable3 { background:#F6CEF5; font-family:Arial; font-size:10px }
+        tr.DataTable4 { background:#FFCC99; font-family:Arial; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px;  text-align:right;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px;  text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px;  text-align:left;}
+
+        td.DataTable3 { background:#FFCC99;padding-top:3px; padding-bottom:3px; text-align:center; font-family:Verdanda; font-size:10px }
+        td.DataTable4 { background:red; padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+
+        .Small {font-size:10px }
+        select.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        input.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        button.Small {margin-top:3px; font-family:Arial; font-size:10px }
+
+        div.dvStyle { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:900; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px; overflow:none;}
+
+       div.dvSelect { position:absolute; background-attachment: scroll;
+              border: black solid 2px; width:250px; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:12px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec; vertical-align:bottom;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+</style>
+<SCRIPT>
+
+//--------------- Global variables -----------------------
+var From = "<%=sFrom%>";
+var To = "<%=sTo%>";
+var StrOpt = "<%=sStrOpt%>";
+var DatOpt = "<%=sDatOpt%>";
+var MissOpt = "<%=sMissOpt%>";
+var ArrStr = [<%=sStrJsa%>];
+var ArrStrReg = [<%=sStrRegJsa%>];
+var ArrStrDist = [<%=sStrDistJsa%>];
+var ArrStrDistNm = [<%=sStrDistNmJsa%>];
+var ArrStrMall = [<%=sStrMallJsa%>];
+var ArrGrpNm = [<%=sGrpNmJsa%>];
+var ArrGrpStr = [<%=sGrpStrJsa%>];
+
+var ArrSelStr = new Array();
+<%for(int i=0; i < sSelStr.length; i++){%>
+   ArrSelStr[<%=i%>] = "<%=sSelStr[i]%>";
+<%}%>
+
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initial process
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvStyle"]);
+   setSelectPanelShort();   
+}
+//==============================================================================
+// set Short form of select parameters
+//==============================================================================
+function setSelectPanelShort()
+{
+   var hdr = "Select Report Parameters";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='RestoreButton.bmp' onclick='javascript:setSelectPanel();' alt='Restore'>"
+       + "</td></tr>"
+   html += "<tr><td class='Prompt' colspan=2>"
+   html += "</td></tr></table>"
+
+   document.all.dvSelect.innerHTML=html;
+   document.all.dvSelect.style.pixelLeft= document.documentElement.scrollLeft + 10;
+   document.all.dvSelect.style.pixelTop= document.documentElement.scrollTop + 20;
+   document.all.dvSelect.style.width=200;
+}
+//==============================================================================
+// set Weekly Selection Panel
+//==============================================================================
+function setSelectPanel()
+{
+  var hdr = "Select Report Parameters";
+
+  var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='MinimizeButton.bmp' onclick='javascript:setSelectPanelShort();' alt='Minimize'>"
+       + "</td></tr>"
+   html += "<tr><td class='Prompt' colspan=2>"
+   
+   html += popSelWk();
+
+   html += "</td></tr></table>"
+   document.all.dvSelect.innerHTML=html;
+
+   // populate from week with to week if litteral range selected
+   if(From == "WTD" || From == "MTD" || From == "YTD" || From == "PMN")
+   {
+      document.all.From.value = To;
+      document.all.To.value = To;
+   }
+   else
+   {
+     document.all.From.value = From;
+     document.all.To.value = To;
+   }
+   // setup date range
+   var grp = document.all.DtGrp;
+   for(var i=0; i < grp.length; i++)
+   {
+      if(From == grp[i].value){ grp[i].checked = true; break; }
+   }
+   setDtRange();
+
+   var str = document.all.Str;
+   for(var i=0; i < str.length; i++)
+   {
+      for(var j=0; j < ArrStr.length; j++)
+      {
+         if(str[i].value == ArrSelStr[j]){ str[i].checked = true;}
+         else{ str[i].checked == false; }
+      }
+   }
+
+   if(StrOpt == "STR"){ document.all.StrOpt[0].checked = true };
+   else{ document.all.StrOpt[1].checked = true };
+
+   if(DatOpt == "DATE"){ document.all.DatOpt[0].checked = true };
+   else{ document.all.DatOpt[1].checked = true };
+
+   if(MissOpt == "Y"){ document.all.MissOpt[0].checked = true };
+   else{ document.all.MissOpt[1].checked = true };
+
+}
+//==============================================================================
+// populate Column Panel
+//==============================================================================
+function popSelWk()
+{
+  var panel = "<table border=0 cellPadding=0 cellSpacing=0>"
+    + "<tr>"
+       + "<td class='Prompt1' colspan=3><u>Stores</u></td>"
+     + "</tr>"
+     + "<tr>"
+       + "<td class='Prompt1' colspan=3>"
+          + "<table border=0>"
+              + "<tr>"
+
+  for(var i=1, j=0; i < ArrStr.length; i++, j++)
+  {
+     if(j > 0 && j % 11 == 0){ panel += "<tr>"}
+     panel += "<td class='Small' nowrap>"
+          + "<input type='checkbox' class='Small' name='Str' value='" + ArrStr[i] + "'>" + ArrStr[i]
+        + "</td>"
+  }
+
+  panel += "</table>"
+          + "<button onclick='checkAll(true)' class='Small'>Check All</button> &nbsp; &nbsp;"
+          + "<button onclick='checkReg(&#34;1&#34;)' class='Small'>Dist 1</button> &nbsp; &nbsp;"
+          + "<button onclick='checkReg(&#34;2&#34;)' class='Small'>Dist 2</button> &nbsp; &nbsp;"
+          + "<button onclick='checkReg(&#34;3&#34;)' class='Small'>Dist 3</button> &nbsp; &nbsp;"
+          + "<button onclick='checkReg(&#34;99&#34;)' class='Small'>Dist 99</button> &nbsp; &nbsp;"
+          + "<button onclick='checkReg(&#34;PATIO&#34;)' class='Small'>Patio</button> &nbsp; &nbsp;"
+          + "<button onclick='checkAll(false)' class='Small'>Reset</button>"
+          + "<br>"
+          + "<button onclick='checkDist(&#34;9&#34;)' class='Small'>Houston</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;20&#34;)' class='Small'>Dallas/FtW</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;35&#34;)' class='Small'>Ski Chalet</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;38&#34;)' class='Small'>Boston</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;41&#34;)' class='Small'>OKC</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;52&#34;)' class='Small'>Charl</button> &nbsp; &nbsp;"
+          + "<button onclick='checkDist(&#34;53&#34;)' class='Small'>Nash</button> &nbsp; &nbsp;"
+          + "<br>"
+          + "<button onclick='checkMall(&#34;&#34;)' class='Small'>Mall</button> &nbsp; &nbsp;"
+          + "<button onclick='checkMall(&#34;NOT&#34;)' class='Small'>Non-Mall</button> &nbsp; &nbsp;"
+       + "</td>"
+     + "</tr>"
+
+     + "<tr id='trDt1'  style='background:azure'>"
+        + "<td class='Prompt' colspan=3><u>Date Selection:</u>&nbsp</td>"
+     + "</tr>"
+     + "<tr id='trDt1'  style='background:azure'>"
+        + "<td class='Prompt' colspan=3>"
+           + "<input type='radio' name='DtGrp' value='WTD' onclick='setDtRange()'>W-T-D &nbsp; &nbsp;"
+           + "<input type='radio' name='DtGrp' value='MTD' onclick='setDtRange()'>M-T-D &nbsp; &nbsp;"
+           + "<input type='radio' name='DtGrp' value='YTD' onclick='setDtRange()'>Y-T-D &nbsp; &nbsp;"
+           + "<input type='radio' name='DtGrp' value='PMN' onclick='setDtRange()'>Prior Month &nbsp; &nbsp;"
+           + "<input type='radio' name='DtGrp' value='RANGE' onclick='setDtRange()' checked>Date Range"
+        + "</td>"
+      + "</tr>"
+
+    + "<tr id='trDt2' style='background:azure'>"
+       + "<td class='Prompt' id='td2Dates' width='30px'>From:</td>"
+       + "<td class='Prompt' id='td2Dates'>"
+          + "<button class='Small' name='Down' onClick='setDate(&#34;DOWN&#34;, &#34;From&#34;)'>&#60;</button>"
+          + "<input name='From' class='Small' size='10' readonly>"
+          + "<button class='Small' name='Down' onClick='setDate(&#34;UP&#34;, &#34;From&#34;)'>&#62;</button>"
+       + "</td>"
+       + "<td class='Prompt' id='td2Dates'><a href='javascript:showCalendar(1, null, null, 420, 170, document.all.From)'>"
+         + "<img src='calendar.gif' alt='Calendar Prompt' width='34' height='21'></a></td>"
+    + "</tr>"
+    + "<tr id='trDt2' style='background:azure'>"
+       + "<td class='Prompt' id='td2Dates' width='30px'>To:</td>"
+       + "<td class='Prompt' id='td2Dates'>"
+          + "<button class='Small' name='Down' onClick='setDate(&#34;DOWN&#34;, &#34;To&#34;)'>&#60;</button>"
+          + "<input name='To' class='Small' size='10' readonly>"
+          + "<button class='Small' name='Down' onClick='setDate(&#34;UP&#34;, &#34;To&#34;)'>&#62;</button>"
+       + "</td>"
+       + "<td class='Prompt' id='td2Dates'><a href='javascript:showCalendar(1, null, null, 420, 250, document.all.To)'>"
+         + "<img src='calendar.gif' alt='Calendar Prompt' width='34' height='21'></a></td>"
+     + "</tr>"
+
+     + "<tr style='background:#ccffcc'>"
+       + "<td class='Prompt1' colspan=3><u>Report Options:</u></td>"
+     + "</tr>"
+     + "<tr style='background:#ccffcc'>"
+       + "<td class='Prompt1' colspan=3>"
+          + "<table border=0>"
+              + "<tr>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='StrOpt' value='STR'>Store</td>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='StrOpt' value='NONE'>None</td>"
+              + "</tr>"
+              + "<tr>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='DatOpt' value='DATE'>Date</td>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='DatOpt' value='NONE'>None</td>"
+              + "</tr>"
+              + "<tr>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='MissOpt' value='Y'>Exclude Incomplete Date</td>"
+                  + "<td class='Small' nowrap><input type='radio' class='Small' name='MissOpt' value='N' checked>Show All Data</td>"
+              + "</tr>"
+              + "<tr>"
+                + "<td style='color:red; font-weight:bold; font-size:12px;' id='tdError' nowrap></td>"
+              + "</tr>"
+            + "</table>"
+       + "</td>"
+     + "</tr>"
+
+  panel += "<tr><td class='Prompt1' colspan=3>"
+        + "<button onClick='Validate()' class='Small'>Submit</button> &nbsp;"
+        + "<button onClick='setSelectPanelShort();' class='Small'>Close</button>&nbsp;</td></tr>"
+
+  panel += "</table>";
+
+  return panel;
+}
+
+//==============================================================================
+// check all stores
+//==============================================================================
+function checkAll(chk)
+{
+  var str = document.all.Str
+
+  for(var i=0; i < str.length; i++)
+  {
+     str[i].checked = chk;
+  }
+}
+//==============================================================================
+// check by regions
+//==============================================================================
+function checkReg(dist)
+{
+  var str = document.all.Str
+  var chk1 = false;
+  var chk2 = false;
+
+  // check 1st selected group check status and save it
+  var find = false;
+  for(var i=0; i < str.length; i++)
+  {
+     for(var j=0; j < ArrStr.length; j++)
+     {
+        if(dist != "PATIO" && str[i].value == ArrStr[j] && ArrStrReg[j] == dist
+          || (dist == "PATIO" && (str[i].value == "35" || str[i].value == "46"
+          || str[i].value == "50" || str[i].value == "63" || str[i].value == "64"
+          || str[i].value == "68" || str[i].value == "86")))
+        {
+          chk1 = !str[i].checked;
+          find = true;
+          break;
+        };
+     }
+     if (find){ break;}
+  }
+  chk2 = !chk1;
+
+  for(var i=0; i < str.length; i++)
+  {
+     str[i].checked = chk2;
+     for(var j=0; j < ArrStr.length; j++)
+     {
+        if(dist != "PATIO" && str[i].value == ArrStr[j] && ArrStrReg[j] == dist
+          || (dist == "PATIO" && (str[i].value == "35" || str[i].value == "46"
+          || str[i].value == "50" || str[i].value == "63" || str[i].value == "64"
+          || str[i].value == "68" || str[i].value == "86")))
+        {
+           str[i].checked = chk1;
+        };
+     }
+  }
+}
+
+//==============================================================================
+// check by districts
+//==============================================================================
+function checkDist(dist)
+{
+  var str = document.all.Str
+  var chk1 = false;
+  var chk2 = false;
+
+  // check 1st selected group check status and save it
+  var find = false;
+  for(var i=0; i < str.length; i++)
+  {
+     for(var j=0; j < ArrStr.length; j++)
+     {
+        if(str[i].value == ArrStr[j] && ArrStrDist[j] == dist)
+        {
+          chk1 = !str[i].checked;
+          find = true;
+          break;
+        };
+     }
+     if (find){ break;}
+  }
+  chk2 = !chk1;
+
+  for(var i=0; i < str.length; i++)
+  {
+     str[i].checked = chk2;
+     for(var j=0; j < ArrStr.length; j++)
+     {
+        if(str[i].value == ArrStr[j] && ArrStrDist[j] == dist)
+        {
+           str[i].checked = chk1;
+        };
+     }
+  }
+}
+
+//==============================================================================
+// check mall
+//==============================================================================
+function checkMall(type)
+{
+  var str = document.all.Str
+  var chk1 = true;
+  var chk2 = false;
+
+  for(var i=0; i < str.length; i++)
+  {
+     str[i].checked = chk2;
+     for(var j=0; j < ArrStr.length; j++)
+     {
+        if(str[i].value == ArrStr[j] && ArrStrMall[j] == type)
+        {
+           str[i].checked = chk1;
+        };
+     }
+  }
+}
+//==============================================================================
+// populate date with yesterdate
+//==============================================================================
+function  setDate(direction, id)
+{
+  var button = document.all[id];
+  var date = new Date(button.value);
+
+  if(direction == "DOWN") date = new Date(new Date(date) - 86400000);
+  else if(direction == "UP") date = new Date(new Date(date) - -86400000);
+  button.value = (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear()
+}
+
+//==============================================================================
+// set date ranges
+//==============================================================================
+function setDtRange()
+{
+   var grp = document.all.DtGrp;
+   for(var i=0; i < grp.length; i++)
+   {
+      if(grp[i].checked && i < grp.length-1)
+      {
+         document.all.trDt2[0].style.display="none";
+         document.all.trDt2[1].style.display="none";
+         break;
+      }
+      else if(grp[i].checked)
+      {
+         document.all.trDt2[0].style.display="block";
+         document.all.trDt2[1].style.display="block";
+         break;
+      }
+   }
+}
+
+//==============================================================================
+// Validate entry
+//==============================================================================
+function Validate()
+{
+   var error = false;
+   var msg = "";
+   var br = "";
+
+   // get selected stores
+   var str = document.all.Str;
+   var selstr = new Array();
+   var numstr = 0
+   for(var i=0; i < str.length; i++)
+   {
+     if(str[i].checked){ selstr[numstr] = str[i].value; numstr++;}
+   }
+   if (numstr == 0){ error=true; msg+="At least 1 store must be selected."; br = "<br>";}
+
+   var selFrom = document.all.From.value.trim();
+   var selTo = document.all.To.value.trim();
+
+   var grp = document.all.DtGrp;
+   var grpnum = 0;
+   for(var i=0; i < grp.length; i++)
+   {
+      if(grp[i].checked && i < grp.length-1)
+      {
+         grpnum=i;
+         selFrom = grp[i].value;
+         break;
+      }
+   }
+
+   // get store options
+   var stropt = null;
+   var stroptobj = document.all.StrOpt;
+   for(var i=0; i < stroptobj.length; i++)
+   {
+      if(stroptobj[i].checked){  stropt = stroptobj[i].value; break; }
+   }
+
+   // get date options
+   var datopt = null;
+   var datoptobj = document.all.DatOpt;
+   for(var i=0; i < datoptobj.length; i++)
+   {
+      if(datoptobj[i].checked){  datopt = datoptobj[i].value; break; }
+   }
+
+   // used incomplete date in total or not
+   var missopt = null;
+   var missoptobj = document.all.MissOpt;
+   for(var i=0; i < missoptobj.length; i++)
+   {
+      if(missoptobj[i].checked){  missopt = missoptobj[i].value; break; }
+   }
+
+   if(error){alert(msg)}
+   else{ submitForm(selstr, selFrom, selTo, stropt, datopt, missopt) }
+}
+//==============================================================================
+// change action on submit
+//==============================================================================
+function submitForm(selstr, selFrom, selTo, stropt, datopt, missopt)
+{
+   var url;
+   url = "HCDlyLst.jsp?From=" + selFrom + "&To=" + selTo;
+   for(var i=0; i < selstr.length; i++)
+   {
+     url += "&Str=" + selstr[i];
+   }
+
+   url += "&StrOpt=" + stropt;
+   url += "&DatOpt=" + datopt;
+   url += "&MissOpt=" + missopt;
+   url += "&Sort=<%=sSort%>";
+
+   //alert(url);
+   window.location.href=url;
+}
+//==============================================================================
+// select new report parameters
+//==============================================================================
+function selRep(str, date)
+{
+   var url;
+   url = "HCDlyLst.jsp?";
+
+   if(str != null) { url += "&Str=" + str; }
+   else
+   {
+     for(var i=0; i < ArrSelStr.length; i++)
+     {
+        url += "&Str=" + ArrSelStr[i];
+     }
+   }
+
+   if(date != null) { url += "&From=" + date + "&To=" + date; }
+   else { url += "&From=" + From + "&To=" + To; }
+
+   url += "&DatOpt=DATE";
+   url += "&StrOpt=STR";
+   url += "&MissOpt=<%=sMissOpt%>";
+   url += "&Sort=<%=sSort%>";
+
+   //alert(url);
+   window.location.href=url;
+}
+//==============================================================================
+// Hide selection screen
+//==============================================================================
+function hidePanel()
+{
+   document.all.dvStyle.innerHTML = " ";
+   document.all.dvStyle.style.visibility = "hidden";
+}
+//==============================================================================
+// Hide selection screen
+//==============================================================================
+function resort(sort)
+{
+   var url;
+   url = "HCDlyLst.jsp?From=<%=sFrom%>&To=<%=sTo%>";
+   for(var i=0; i < ArrSelStr.length; i++)
+   {
+     url += "&Str=" + ArrSelStr[i];
+   }
+
+   url += "&StrOpt=<%=sStrOpt%>";
+   url += "&DatOpt=<%=sDatOpt%>";
+   url += "&MissOpt=<%=sMissOpt%>";
+   url += "&Sort=" + sort;
+
+   //alert(url);
+   window.location.href=url;
+}
+</SCRIPT>
+<script src="StrSelBox.js"></script>
+<script src="MoveBox.js"></script>
+<script src="String_Trim_function.js"></script>
+<script src="Get_Object_Position.js"></script>
+<script src="Calendar.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<div id="dvSelect" class="dvSelect"></div>
+<div id="dvStyle" class="dvStyle"></div>
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<iframe  id="frame100"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------->
+ <div style="clear: both; overflow: AUTO; width: 100%; height: 94%; POSITION: relative; color:black;" >
+
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table border=1 class="DataTable" cellPadding="0" cellSpacing="0">
+        <thead>
+        <tr style="z-index: 60; position: relative; left: -1; top: expression(this.offsetParent.scrollTop-2);">
+          <th class="DataTable1" style="border-right:none" colspan=31>
+            <b>Retail Concepts, Inc
+            <br>Conversion
+            <br>Stores:
+               <%String sComa = "";%>
+               <%for(int i=0; i < sSelStr.length;i++){%>
+                  <%if(i > 0 && i%20 == 0){%><br><%}%>
+                  <%=sComa%><%=sSelStr[i]%>
+                  <%sComa = ", ";%>
+               <%}%>
+
+              <br><%if(sFrom.equals("WTD")){%>Week-To-Date<%}
+                    else if(sFrom.equals("MTD")){%>Month-To-Date<%}
+                    else if(sFrom.equals("YTD")){%>Year-To-Date<%}
+                    else if(sFrom.equals("PMN")){%>Prior Month<%}
+                    else {%>
+                       From: <%=sFrom%> &nbsp;&nbsp;&nbsp;&nbsp;
+                       To: <%=sTo%> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <%}%>
+            </b>
+            <br>
+              <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+              <font size="-1">This Page.</font> &nbsp; &nbsp; &nbsp; &nbsp;
+              <%if(bUpdStrGrp){%><a href="InetStrGrpLst.jsp" target="_blank">Maint Str Groups</a><%}%>
+          </th>
+        </tr>
+
+
+        <tr style="z-index: 60; position: relative; left: -1; top: expression(this.offsetParent.scrollTop-2);">
+          <%if(sStrOpt.equals("STR")){%><th class="DataTable"><a href="javascript: resort('STR')">Str</a></th><%}%>
+          <%if(sDatOpt.equals("DATE")){%><th class="DataTable">Date</th><%}%>
+
+          <th class="DataTable" colspan=3>Traffic</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Transactions</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Conversion<br>Rate</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Average<br>Sales<br>Price</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Total<br>Sales</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Returns</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable" colspan=3>Net<br>Sales</th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('PVSO')">Performance<br>vs.<br>Opportunity</a></th>
+        </tr>
+
+        <tr style="z-index: 60; position: relative; left: -1; top: expression(this.offsetParent.scrollTop-2);">
+          <%if(sStrOpt.equals("STR")){%><th class="DataTable">&nbsp;</th><%}%>
+          <%if(sDatOpt.equals("DATE")){%><th class="DataTable">&nbsp;</th><%}%>
+          <th class="DataTable"><a href="javascript: resort('TRAFTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TRAFLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TRAFVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('TRANTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TRANLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TRANVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('CRATTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('CRATLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('CRATVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('ASPTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('ASPLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('ASPVAR')">Var</a></th>
+
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('TOTSTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TOTSLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('TOTSVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('RETTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('RETLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('RETVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable"><a href="javascript: resort('NETTY')">TY</a></th>
+          <th class="DataTable"><a href="javascript: resort('NETLY')">LY</a></th>
+          <th class="DataTable"><a href="javascript: resort('NETVAR')">Var</a></th>
+          <th class="DataTable">&nbsp;</th>
+          <th class="DataTable">Var</th>
+        </tr>
+
+        </thead>
+<!------------------------------- Data Detail --------------------------------->
+           <%for(int i=0; i < iNumOfGrp; i++) {
+              hcdly.setHeadCounts();
+              String sStr = hcdly.getStr();
+              String sDate = hcdly.getDate();
+              String sTyTraf = hcdly.getTyTraf();
+              String sTyTrans = hcdly.getTyTrans();
+              String sTyConv = hcdly.getTyConv();
+              String sTyAsp = hcdly.getTyAsp();
+              String sTyTotSls = hcdly.getTyTotSls();
+              String sTyTotRet = hcdly.getTyTotRet();
+              String sTyTotNet = hcdly.getTyTotNet();
+
+              String sLyTraf = hcdly.getLyTraf();
+              String sLyTrans = hcdly.getLyTrans();
+              String sLyConv = hcdly.getLyConv();
+              String sLyAsp = hcdly.getLyAsp();
+              String sLyTotSls = hcdly.getLyTotSls();
+              String sLyTotRet = hcdly.getLyTotRet();
+              String sLyTotNet = hcdly.getLyTotNet();
+
+              String sVaTraf = hcdly.getVaTraf();
+              String sVaTrans = hcdly.getVaTrans();
+              String sVaConv = hcdly.getVaConv();
+              String sVaAsp = hcdly.getVaAsp();
+              String sVaTotSls = hcdly.getVaTotSls();
+              String sVaTotRet = hcdly.getVaTotRet();
+              String sVaTotNet = hcdly.getVaTotNet();
+              String sPerfVsOpt = hcdly.getPerfVsOpt();
+              String sMissed = hcdly.getMissed();
+           %>
+              <tr class="DataTable<%if(sTyTraf.equals("0") || sLyTraf.equals("0")){%>2<%} else if(sMissed.equals("Y")){%>3<%}%>">
+                <%if(sStrOpt.equals("STR")){%>
+                  <td class="DataTable">
+                     <%if(!sDatOpt.equals("DATE")){%>
+                     <a href="javascript: selRep('<%=sStr%>', null)"><%=sStr%></a>
+                     <%} else{%><%=sStr%><%}%>
+                  </td>
+                <%}%>
+                <%if(sDatOpt.equals("DATE")){%>
+                   <td class="DataTable">
+                     <%if(!sStrOpt.equals("STR")){%>
+                      <a href="javascript: selRep(null, '<%=sDate%>')"><%=sDate%></a>
+                     <%} else {%><%=sDate%><%}%>
+                   </td>
+                <%}%>
+                <td class="DataTable"><%=sTyTraf%></td>
+                <td class="DataTable"><%=sLyTraf%></td>
+                <td class="DataTable" nowrap><%=sVaTraf%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable"><%=sTyTrans%></td>
+                <td class="DataTable"><%=sLyTrans%></td>
+                <td class="DataTable" nowrap><%=sVaTrans%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable" nowrap><%=sTyConv%>%</td>
+                <td class="DataTable" nowrap><%=sLyConv%>%</td>
+                <td class="DataTable" nowrap><%=sVaConv%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyAsp%></td>
+                <td class="DataTable">$<%=sLyAsp%></td>
+                <td class="DataTable" nowrap><%=sVaAsp%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotSls%></td>
+                <td class="DataTable">$<%=sLyTotSls%></td>
+                <td class="DataTable" nowrap><%=sVaTotSls%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotRet%></td>
+                <td class="DataTable">$<%=sLyTotRet%></td>
+                <td class="DataTable" nowrap><%=sVaTotRet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotNet%></td>
+                <td class="DataTable">$<%=sLyTotNet%></td>
+                <td class="DataTable" nowrap><%=sVaTotNet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable" nowrap><%=sPerfVsOpt%>%</td>
+           <%}%>
+           <!-- ============== Region Totals ====================================-->
+           <%for(int i=0; i < iNumOfReg; i++) {               
+              hcdly.setRegTot();
+              String sStr = hcdly.getStr();
+              String sDate = hcdly.getDate();
+              String sTyTraf = hcdly.getTyTraf();
+              String sTyTrans = hcdly.getTyTrans();
+              String sTyConv = hcdly.getTyConv();
+              String sTyAsp = hcdly.getTyAsp();
+              String sTyTotSls = hcdly.getTyTotSls();
+              String sTyTotRet = hcdly.getTyTotRet();
+              String sTyTotNet = hcdly.getTyTotNet();
+
+              String sLyTraf = hcdly.getLyTraf();
+              String sLyTrans = hcdly.getLyTrans();
+              String sLyConv = hcdly.getLyConv();
+              String sLyAsp = hcdly.getLyAsp();
+              String sLyTotSls = hcdly.getLyTotSls();
+              String sLyTotRet = hcdly.getLyTotRet();
+              String sLyTotNet = hcdly.getLyTotNet();
+
+              String sVaTraf = hcdly.getVaTraf();
+              String sVaTrans = hcdly.getVaTrans();
+              String sVaConv = hcdly.getVaConv();
+              String sVaAsp = hcdly.getVaAsp();
+              String sVaTotSls = hcdly.getVaTotSls();
+              String sVaTotRet = hcdly.getVaTotRet();
+              String sVaTotNet = hcdly.getVaTotNet();
+              String sPerfVsOpt = hcdly.getPerfVsOpt();
+           %>
+              <tr class="DataTable4">
+                <%if(sStrOpt.equals("STR")){%>
+                  <td class="DataTable1">
+                     <%if(!sDatOpt.equals("DATE")){%>
+                     <a href="javascript: selRep('<%=sStr%>', null)">Dist <%=sStr%></a>
+                     <%} else{%><%=sStr%><%}%>
+                  </td>
+                <%}%>
+                <%if(sDatOpt.equals("DATE")){%>
+                   <td class="DataTable">
+                     <%if(!sStrOpt.equals("STR")){%>
+                      <a href="javascript: selRep(null, '<%=sDate%>')"><%=sDate%></a>
+                     <%} else {%><%=sDate%><%}%>
+                   </td>
+                <%}%>
+                <td class="DataTable"><%=sTyTraf%></td>
+                <td class="DataTable"><%=sLyTraf%></td>
+                <td class="DataTable" nowrap><%=sVaTraf%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable"><%=sTyTrans%></td>
+                <td class="DataTable"><%=sLyTrans%></td>
+                <td class="DataTable" nowrap><%=sVaTrans%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable"><%=sTyConv%>%</td>
+                <td class="DataTable"><%=sLyConv%>%</td>
+                <td class="DataTable" nowrap><%=sVaConv%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyAsp%></td>
+                <td class="DataTable">$<%=sLyAsp%></td>
+                <td class="DataTable" nowrap><%=sVaAsp%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotSls%></td>
+                <td class="DataTable">$<%=sLyTotSls%></td>
+                <td class="DataTable" nowrap><%=sVaTotSls%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotRet%></td>
+                <td class="DataTable">$<%=sLyTotRet%></td>
+                <td class="DataTable" nowrap><%=sVaTotRet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotNet%></td>
+                <td class="DataTable">$<%=sLyTotNet%></td>
+                <td class="DataTable" nowrap><%=sVaTotNet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable" nowrap><%=sPerfVsOpt%>%</td>
+             <%}%>   
+           <!-- ============== Totals =======================================-->
+           <%
+              hcdly.setTotal();
+              String sStr = hcdly.getStr();
+              String sDate = hcdly.getDate();
+              String sTyTraf = hcdly.getTyTraf();
+              String sTyTrans = hcdly.getTyTrans();
+              String sTyConv = hcdly.getTyConv();
+              String sTyAsp = hcdly.getTyAsp();
+              String sTyTotSls = hcdly.getTyTotSls();
+              String sTyTotRet = hcdly.getTyTotRet();
+              String sTyTotNet = hcdly.getTyTotNet();
+
+              String sLyTraf = hcdly.getLyTraf();
+              String sLyTrans = hcdly.getLyTrans();
+              String sLyConv = hcdly.getLyConv();
+              String sLyAsp = hcdly.getLyAsp();
+              String sLyTotSls = hcdly.getLyTotSls();
+              String sLyTotRet = hcdly.getLyTotRet();
+              String sLyTotNet = hcdly.getLyTotNet();
+
+              String sVaTraf = hcdly.getVaTraf();
+              String sVaTrans = hcdly.getVaTrans();
+              String sVaConv = hcdly.getVaConv();
+              String sVaAsp = hcdly.getVaAsp();
+              String sVaTotSls = hcdly.getVaTotSls();
+              String sVaTotRet = hcdly.getVaTotRet();
+              String sVaTotNet = hcdly.getVaTotNet();
+              String sPerfVsOpt = hcdly.getPerfVsOpt();
+           %>
+              <tr class="DataTable1">
+                <%if(sStrOpt.equals("STR")){%>
+                  <td class="DataTable">
+                     <%if(!sDatOpt.equals("DATE")){%>
+                     <a href="javascript: selRep('<%=sStr%>', null)"><%=sStr%></a>
+                     <%} else{%><%=sStr%><%}%>
+                  </td>
+                <%}%>
+                <%if(sDatOpt.equals("DATE")){%>
+                   <td class="DataTable">
+                     <%if(!sStrOpt.equals("STR")){%>
+                      <a href="javascript: selRep(null, '<%=sDate%>')"><%=sDate%></a>
+                     <%} else {%><%=sDate%><%}%>
+                   </td>
+                <%}%>
+                <td class="DataTable"><%=sTyTraf%></td>
+                <td class="DataTable"><%=sLyTraf%></td>
+                <td class="DataTable" nowrap><%=sVaTraf%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable"><%=sTyTrans%></td>
+                <td class="DataTable"><%=sLyTrans%></td>
+                <td class="DataTable" nowrap><%=sVaTrans%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable"><%=sTyConv%>%</td>
+                <td class="DataTable"><%=sLyConv%>%</td>
+                <td class="DataTable" nowrap><%=sVaConv%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyAsp%></td>
+                <td class="DataTable">$<%=sLyAsp%></td>
+                <td class="DataTable" nowrap><%=sVaAsp%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotSls%></td>
+                <td class="DataTable">$<%=sLyTotSls%></td>
+                <td class="DataTable" nowrap><%=sVaTotSls%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotRet%></td>
+                <td class="DataTable">$<%=sLyTotRet%></td>
+                <td class="DataTable" nowrap><%=sVaTotRet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable">$<%=sTyTotNet%></td>
+                <td class="DataTable">$<%=sLyTotNet%></td>
+                <td class="DataTable" nowrap><%=sVaTotNet%>%</td>
+                <th class="DataTable">&nbsp;</th>
+                <td class="DataTable" nowrap><%=sPerfVsOpt%>%</td>
+      </table>
+      <!----------------------- end of table ------------------------>
+ </div>
+ <span style="text-align:left;font-size:14px">
+      Conversion statistics are updated daily at approximately 9:45 am.
+ </span>
+ <br><br>
+ <span style="text-align:left;font-size:14px">
+      <span style="background:gray; color:white;font-weight:bold">Stores</span> shaded in gray are not included in totals.
+ </span>
+ <br>
+ <span style="text-align:left;font-size:14px">
+      <span style="background:#F6CEF5; font-weight:bold">Stores</span> shaded in pink are not completely included in totals.
+ </span>
+ <br>
+ <span style="text-align:left;font-size:14px">
+ PvO is calculated on the traffic variance column vs. the net sales variance column.
+ </span>
+
+ </body>
+</html>
+<%
+  hcdly.disconnect();
+  hcdly = null;
+}
+%>

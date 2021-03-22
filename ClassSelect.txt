@@ -1,0 +1,217 @@
+package rciutility;
+import java.util.*;
+import rciutility.GetDataBySQL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class ClassSelect {
+  // read files:
+  private GetDataBySQL DivMaster;
+  private GetDataBySQL DptMaster;
+  private GetDataBySQL ClsMaster;
+  private GetDataBySQL RepDates;
+
+  private StringBuffer sbDiv = new StringBuffer();
+  private StringBuffer sbDivName = new StringBuffer();
+  private StringBuffer sbDpt = new StringBuffer();
+  private StringBuffer sbDptName = new StringBuffer();
+  private StringBuffer sbDptGroup = new StringBuffer();
+  private StringBuffer sbCls = new StringBuffer();
+  private StringBuffer sbClsName = new StringBuffer();
+  private StringBuffer sbWkDate = new StringBuffer();
+  private StringBuffer sbWkDateDsc = new StringBuffer();
+  private StringBuffer sbMnDate = new StringBuffer();
+  private StringBuffer sbMnDateDsc = new StringBuffer();
+  private StringBuffer sbYrDate = new StringBuffer();
+  private StringBuffer sbYrDateDsc = new StringBuffer();
+
+
+  int iDept = 1;
+  int iDate = 0;
+
+
+
+  public ClassSelect() {
+   DivMaster = new GetDataBySQL();
+   DivMaster.setPrepStmt("select ddiv, dnam from iptsfil.ipdivsn order by ddiv");
+   DptMaster = new GetDataBySQL();
+   DptMaster.setPrepStmt("select ddiv, ddpt, dnam from iptsfil.ipdepts where ddiv=? order by ddiv, ddpt");
+   RepDates = new GetDataBySQL();
+   RepDates.setPrepStmt("select * from rci.clsreps order by cswkmo, csdate desc");
+
+   DivMaster.runQuery();
+   String sDiv;
+   sbDiv.append("'ALL'");
+   sbDivName.append("'All Divisions'");
+   sbDpt.append("'ALL'");
+   sbDptName.append("'All Departments'");
+   sbDptGroup.append("'all'");
+
+   while(DivMaster.readNextRecord()) {
+      sDiv = DivMaster.getData("DDIV", 1);
+      sbDiv.append(",'" + sDiv + "'");
+      sbDivName.append(",'" + sDiv + " - " +
+                        rmvQuetes(DivMaster.getData("DNAM", 0)) + "'");
+      setDepartment(sDiv);
+
+   }
+
+   // Setup Report date
+   setRepDate();
+
+   // Close
+   DivMaster.disconnect();
+   DptMaster.disconnect();
+   RepDates.disconnect();
+  }
+
+public ClassSelect(String sDiv, String sDpt) {
+  ClsMaster = new GetDataBySQL();
+  if (!sDpt.equals("ALL"))
+       ClsMaster.setPrepStmt("select cdiv , cdpt, ccls, clnm  from iptsfil.ipclass where cdpt=? order by cdiv, cdpt, ccls");
+  else if  (!sDiv.equals("ALL"))
+       ClsMaster.setPrepStmt("select cdiv , cdpt, ccls, clnm  from iptsfil.ipclass where cdiv=? order by cdiv, cdpt, ccls");
+  else ClsMaster.setPrepStmt("select cdiv , cdpt, ccls, clnm  from iptsfil.ipclass order by cdiv, cdpt, ccls");
+
+  sbCls.append("'ALL'");
+  sbClsName.append("'All Classes'");
+  setClasses(sDiv, sDpt);
+
+  ClsMaster.disconnect();
+}
+
+
+public ClassSelect(String sSortBy) {
+  setDivDpt();
+  ClsMaster = new GetDataBySQL();
+  ClsMaster.setPrepStmt("select cdiv , cdpt, ccls, clnm  from iptsfil.ipclass " + sSortBy);
+  sbCls.append("'ALL'");
+  sbClsName.append("'All Classes'");
+  setClasses("ALL", "ALL");
+
+  ClsMaster.disconnect();
+}
+
+
+ private void setDivDpt() {  
+  DptMaster = new GetDataBySQL();
+  DptMaster.setPrepStmt("select ddpt, dnam from iptsfil.ipdepts order by ddpt");
+  sbDpt.append("'ALL'");
+  sbDptName.append("'All Classes'");
+  
+  DptMaster.disconnect();
+}
+
+
+  // set Department
+  private void setDepartment(String sDiv){
+   DptMaster.runQuery(new String[]{sDiv});
+   String sDpt;
+   sbDptGroup.append(",'0");
+
+   while(DptMaster.readNextRecord()) {
+      sbDptGroup.append(":");  // separate departments
+      sDpt = DptMaster.getData("DDPT", 1);
+      sbDpt.append(",'" + sDpt + "'");
+      sbDptName.append(",'" + sDpt + " - " +
+                       rmvQuetes(DptMaster.getData("DNAM", 0)) + "'");
+      sbDptGroup.append(iDept++);
+   }
+   sbDptGroup.append("'"); // close group
+  }
+
+    // set Classes
+  private void setClasses(String sDiv, String sDpt){
+   if (!sDpt.equals("ALL"))
+        ClsMaster.runQuery(new String[]{sDpt}); // select department
+   else if (!sDiv.equals("ALL"))
+        ClsMaster.runQuery(new String[]{sDiv}); // select division
+   else ClsMaster.runQuery(); // select all
+
+   String sCls;
+
+   while(ClsMaster.readNextRecord()) {
+      sCls = ClsMaster.getData("CCLS", 1);
+      sbCls.append(",'" + sCls + "'");
+      sbClsName.append(",'" + sCls + " - " +
+                       rmvQuetes(ClsMaster.getData("CLNM", 0)) + "'");
+   }
+
+  }
+
+    // Setup Report date
+    public void setRepDate(){
+      RepDates.runQuery(); // select weeks
+      String sDate;
+      String sRepType;
+
+      while(RepDates.readNextRecord()) {
+        sDate = RepDates.getData("CSDATE", 2);
+        sRepType = RepDates.getData("CSWKMO", 0);
+
+        if (sRepType.equals("W")) {
+           sbWkDate.append(setRepDate(sbWkDate.length(),sDate,sRepType));
+           sbWkDateDsc.append(setRepDateDsc(sbWkDateDsc.length(),
+                              cvtDate("yyyy-mm-dd","mm/dd/yyyy",sDate), sRepType));
+        }
+        else if(sRepType.equals("M")){
+           sbMnDate.append(setRepDate(sbMnDate.length(),sDate,sRepType));
+           sbMnDateDsc.append(setRepDateDsc(sbMnDateDsc.length(),sDate,sRepType));
+        }
+        else if(sRepType.equals("Y")){
+           sbYrDate.append(setRepDate(sbYrDate.length(),sDate,sRepType));
+           sbYrDateDsc.append(setRepDateDsc(sbYrDateDsc.length(),sDate,sRepType));
+        }
+   }
+  }
+  // Date Conversion
+  private String cvtDate(String sFromfmt, String sTofmt, String sFromDate){
+     SimpleDateFormat sdfFrom = new SimpleDateFormat(sFromfmt);
+     SimpleDateFormat sdfCvt = new SimpleDateFormat(sTofmt);
+     Date date = null;
+     try{
+        date = sdfFrom.parse(sFromDate);
+     }
+     catch(Exception e){
+        System.out.println("Incorrect Date:\n" + e.getMessage());
+     }
+     return sdfCvt.format(date);
+  }
+
+  //populate Report Date
+  private String setRepDate(int iGrpLng, String sDate, String sRepType){
+     StringBuffer sbGrp = new StringBuffer();
+     if (iGrpLng == 0) sbGrp.append("'" + sDate + sRepType + "'");  // open group
+     else sbGrp.append(",'" + sDate + sRepType + "'");  // separate
+     return sbGrp.toString();
+  }
+  //populate Report Date Description
+  private String setRepDateDsc(int iGrpLng, String sDate, String sRepType){
+     StringBuffer sbGrp = new StringBuffer();
+     if (iGrpLng == 0) sbGrp.append("'- - Most Recent - -'");  // open array
+     else sbGrp.append(",'" + sDate + "'");  // separate elements
+     return sbGrp.toString();
+  }
+
+  // remove qoutes sign from string
+  private String rmvQuetes(String sName){
+    char old = 39;
+    return sName.replace(old, ' ');
+  }
+
+  // return Div, Department and Class List
+  public String getDivNum(){return sbDiv.toString();}
+  public String getDivName(){return sbDivName.toString();}
+  public String getDptNum(){return sbDpt.toString();}
+  public String getDptName(){return sbDptName.toString();}
+  public String getDptGroup(){return sbDptGroup.toString();}
+  public String getClsNum(){return sbCls.toString();}
+  public String getClsName(){return sbClsName.toString();}
+  public String getWkDate(){return sbWkDate.toString();}
+  public String getWkDateDsc(){return sbWkDateDsc.toString();}
+  public String getMnDate(){return sbMnDate.toString();}
+  public String getMnDateDsc(){return sbMnDateDsc.toString();}
+  public String getYrDate(){return sbYrDate.toString();}
+  public String getYrDateDsc(){return sbYrDateDsc.toString();}
+
+}

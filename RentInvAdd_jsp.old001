@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<%@ page import="rciutility.RunSQLStmt, java.text.SimpleDateFormat, java.sql.*, java.util.*"%>
+<%
+   String sSrchCls = request.getParameter("Cls");
+   String sSrchStr = request.getParameter("Str");
+   String sSrchSiz = request.getParameter("Siz");
+   String sSrchSizNm = request.getParameter("SizNm");
+   String sSrchSn = request.getParameter("SrlNum");
+   String sAction = request.getParameter("Action");
+   
+   if(sSrchCls == null){sSrchCls = "";}
+   if(sSrchStr == null){sSrchStr = "";}
+   if(sSrchSiz == null){sSrchSiz = "";}
+   if(sSrchSizNm == null){sSrchSizNm = "";}
+   if(sAction == null){sAction = "Standalone";}
+   
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=RentInvList.jsp&APPL=ALL&" + request.getQueryString());
+   }
+   else
+   {
+
+   	String sUser = session.getAttribute("USER").toString();
+   	String sStrAllowed = session.getAttribute("STORE").toString();
+   	
+   	String sPrepStmt = "select rvtype, rvven, vnam"
+	 + " from Rci.ReVend"
+	 + " inner join IPTSFIL.IpMrVen on rvven=vven"   		    
+	 + " order by rvtype, vnam";
+	   	
+   	System.out.println(sPrepStmt);
+	   	
+	ResultSet rslset = null;
+	RunSQLStmt runsql = new RunSQLStmt();
+	runsql.setPrepStmt(sPrepStmt);		   
+	runsql.runQuery();
+	   		   
+	Vector<String> vVenTy = new Vector<String>();
+	Vector<String> vVen = new Vector<String>();
+	Vector<String> vVenNm = new Vector<String>();
+	   		   
+	while(runsql.readNextRecord())
+	{
+		vVenTy.add(runsql.getData("rvtype").trim());
+		vVen.add(runsql.getData("rvven").trim());
+		vVenNm.add(runsql.getData("vnam").trim());
+	}
+	runsql.disconnect();
+	runsql = null;
+	
+	
+	sPrepStmt = "select rmtype, rmModel, rmbrand"
+		 + " from Rci.ReModel"   		    
+		 + " order by rmtype, rmbrand, rmModel";			   	
+	//System.out.println(sPrepStmt);
+			   	
+	rslset = null;
+	runsql = new RunSQLStmt();
+	runsql.setPrepStmt(sPrepStmt);		   
+	runsql.runQuery();
+			   		   
+	Vector<String> vModTy = new Vector<String>();
+	Vector<String> vMod = new Vector<String>();
+	Vector<String> vModVen = new Vector<String>();
+			   		   
+	while(runsql.readNextRecord())
+	{
+		vModTy.add(runsql.getData("rmtype").trim());
+		vMod.add(runsql.getData("rmmodel").trim());
+		vModVen.add(runsql.getData("rmbrand").trim());
+	}
+	runsql.disconnect();
+	runsql = null;
+	
+	
+	sPrepStmt = "select RSTYPE, RSGENAGE, RSSIZE, snam"
+			 + " from Rci.ReSize"
+			 + " inner join iptsfil.IpSizes on rssize=ssiz"
+			 + " order by rstype, rsgenage, snam";			   	
+	//System.out.println(sPrepStmt);
+				   	
+	rslset = null;
+	runsql = new RunSQLStmt();
+	runsql.setPrepStmt(sPrepStmt);		   
+	runsql.runQuery();
+				   		   
+	Vector<String> vSizTy = new Vector<String>();
+	Vector<String> vSizGen = new Vector<String>();
+	Vector<String> vSiz = new Vector<String>();
+	Vector<String> vSizNm = new Vector<String>();
+				   		   
+	while(runsql.readNextRecord())
+	{
+		vSizTy.add(runsql.getData("rstype").trim());
+		vSizGen.add(runsql.getData("RSGENAGE").trim());
+		vSiz.add(runsql.getData("rssize").trim());
+		String sSizNm = runsql.getData("snam").trim();
+		sSizNm = sSizNm.replace("'", "`");
+		sSizNm = sSizNm.replace("\"", " ");
+		vSizNm.add(sSizNm);
+		
+	}
+	runsql.disconnect();
+	runsql = null;
+		
+	// get current year
+	int iYear = Calendar.getInstance().get(Calendar.YEAR);
+		
+	// current date
+	SimpleDateFormat dtf = new SimpleDateFormat("MM/dd/yyyy");
+	java.util.Date date = new java.util.Date();		
+	String sCurDate = dtf.format(date);
+	
+	
+	sPrepStmt = "select EIINVID,EISTR,EICLS,EISRLN,EIPRCHYR,EIBRAND,EIMODEL,EIADDDT,EIMFGSN,EILIFE"
+		+ ",clnm, vnam, snam"	
+		+ " from Rci.ReInv"			 
+		+ " inner join iptsfil.IpClass on eicls=ccls"
+		+ " inner join iptsfil.IpMrVen on eibrand=vven"
+		+ " inner join iptsfil.IpSizes on eisiz=ssiz"
+		+ " where EIRECDT = current date and EIRECUS='" + sUser + "'"
+		+ " order by EIRECTM desc";			   	
+	//System.out.println(sPrepStmt);
+				   	
+	rslset = null;
+	runsql = new RunSQLStmt();
+	runsql.setPrepStmt(sPrepStmt);		   
+	runsql.runQuery();
+				   		   
+	Vector<String> vNwInvD = new Vector<String>();
+	Vector<String> vNwStr = new Vector<String>();
+	Vector<String> vNwCls = new Vector<String>();
+	Vector<String> vNwSn = new Vector<String>();
+	Vector<String> vNwPerchYr = new Vector<String>();
+	Vector<String> vNwBrand = new Vector<String>();
+	Vector<String> vNwModel = new Vector<String>();
+	Vector<String> vNwAddDt = new Vector<String>();
+	Vector<String> vNwMfgSn = new Vector<String>();
+	Vector<String> vNwLife = new Vector<String>();
+	Vector<String> vNwClsNm = new Vector<String>();
+	Vector<String> vNwVenNm = new Vector<String>();	
+	Vector<String> vNwSizNm = new Vector<String>();
+				   		   
+	while(runsql.readNextRecord())
+	{
+		vNwInvD.add(runsql.getData("EIINVID").trim());
+		vNwStr.add(runsql.getData("eiStr").trim());
+		vNwCls.add(runsql.getData("eiCls").trim());
+		vNwSn.add(runsql.getData("EISRLN").trim());
+		vNwPerchYr.add(runsql.getData("EIPRCHYR").trim());
+		vNwBrand.add(runsql.getData("eiBrand").trim());
+		vNwModel.add(runsql.getData("eiModel").trim());
+		vNwAddDt.add(runsql.getData("eiAddDt").trim());
+		vNwMfgSn.add(runsql.getData("eiMfgSn").trim());
+		vNwLife.add(runsql.getData("eiLife").trim());
+		vNwClsNm.add(runsql.getData("clnm").trim());
+		vNwVenNm.add(runsql.getData("vnam").trim());
+		vNwSizNm.add(runsql.getData("snam").trim());
+	}
+	runsql.disconnect();
+	runsql = null;
+	
+	// get current FY year
+	sPrepStmt = "select pyr#"
+			 + " from Rci.FsyPer"
+			 + " where pida = current date";			   	
+	//System.out.println(sPrepStmt);
+	rslset = null;
+	runsql = new RunSQLStmt();
+	runsql.setPrepStmt(sPrepStmt);		   
+	runsql.runQuery();				   		   
+	String sYear = "";
+	runsql.readNextRecord();
+	sYear = runsql.getData("pyr#"); 
+	iYear = Integer.parseInt(sYear);
+	runsql.disconnect();
+	runsql = null;
+	
+	String sSrchClsNm = "";
+	if(sAction.equals("CrtNewForStrCls"))
+	{
+		// get current FY year
+		sPrepStmt = "select clnm"
+	 	+ " from iptsfil.IpClass"
+	 	+ " where ccls =" + sSrchCls;	
+	//System.out.println(sPrepStmt);
+		rslset = null;
+		runsql = new RunSQLStmt();
+		runsql.setPrepStmt(sPrepStmt);		   
+		runsql.runQuery();				   		   
+	
+		runsql.readNextRecord();
+		sSrchClsNm = runsql.getData("clnm"); 
+		runsql.disconnect();
+		runsql = null;
+	}
+   %>
+<html>
+
+<head>
+
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE11" />
+
+<title>Rent-Add Inv</title>
+
+<LINK href="style/Page_0001.css" rel="stylesheet" type="text/css">
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+<script LANGUAGE="JavaScript1.2" src="XX_Set_Browser.js"></script>
+<script LANGUAGE="JavaScript1.2" src="XX_Get_Visible_Position.js"></script>
+<script LANGUAGE="JavaScript1.2" src="XXsetFixedTblHdr.js"></script>
+
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+var SrchCls = "<%=sSrchCls%>";
+var SrchClsNm = "<%=sSrchClsNm%>";
+var SrchStr = "<%=sSrchStr%>";
+var SrchSiz = "<%=sSrchSiz%>";
+var SrchSizNm = "<%=sSrchSizNm%>";
+var SrchSn = "<%=sSrchSn%>";
+var Action = "<%=sAction%>";
+
+var LastAction = "";
+
+var NwStr = "";
+var NwSizNm = "";
+var NwSn = "";
+var NwVenNm = "";
+var NwModel = "";
+var NwMfgSn = "";
+var NwPurchYr = "";
+var NwLife = "";
+var NwAddDt = "";
+var InvSts = null;
+
+var ExInvId = "";
+var ExStr = "";
+var ExCls = "";
+var ExSiz = "";
+var ExSrlNum = "";
+var ExPerchYr = "";
+var ExBrand = "";
+var ExModel = "";
+var ExMfgSn = "";
+var ExLife = "";
+var ExClsNm = "";
+var ExVenNm = "";
+var ExSizNm = "";
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad()
+{
+	if (ua.match(/iPad/i) || ua.match(/iPhone/i)){ isSafari = true; }
+	
+	setBoxclasses(["BoxName",  "BoxClose"], ["dvChkItm", "dvCont", "dvItem", "dvComment"]);
+	 	
+	document.getElementById("tblVen01").style.display = "none";
+	document.getElementById("tblVen02").style.display = "none";
+	document.getElementById("tblVen03").style.display = "none";
+	document.getElementById("tblVen04").style.display = "none";
+	document.getElementById("tblVen05").style.display = "none";	
+	
+	document.getElementById("tblMod01").style.display = "none";
+	document.getElementById("tblMod02").style.display = "none";
+	document.getElementById("tblMod03").style.display = "none";
+	document.getElementById("tblMod04").style.display = "none";
+	document.getElementById("tblMod05").style.display = "none";
+	
+	document.getElementById("tblSize01").style.display = "none";
+	document.getElementById("tblSize02").style.display = "none";
+	document.getElementById("tblSize03").style.display = "none";
+	document.getElementById("tblSize04").style.display = "none";
+	document.getElementById("tblSize05").style.display = "none";
+	document.getElementById("tblSize06").style.display = "none";
+	document.getElementById("tblSize07").style.display = "none";
+	document.getElementById("tblSize08").style.display = "none";
+	
+	document.getElementById("tbody1").style.visibility = "hidden";
+	
+	if(Action == "UpdInvBySrlNum")
+	{
+		var sn = document.all.SrlNum;
+		sn.value = SrchSn;
+		chkSrlNum(sn);
+	}
+}
+//==============================================================================
+//validate new serial number
+//==============================================================================
+function vldSrlNum()
+{
+	var error = false;
+	var msg="";
+	var errfld = document.all.tdError;
+	errfld.innerHTML = ""; 
+	var br = "";
+	
+	var str = null;
+	var strobj = document.all.Str;
+	for(var i=0; i < strobj.length  ;i++)
+	{
+		if(strobj[i].checked){ str = strobj[i].value; break; }
+	}
+	if(!str){ error=true; msg += br + "Please select Store"; br = "<br>"; } 
+	
+	var srlnum = document.all.SrlNum.value.trim();
+	
+	var rety = null;
+	var retyobj = document.all.RentTy;
+	for(var i=0; i < retyobj.length  ;i++)
+	{
+		if(retyobj[i].checked){ rety = retyobj[i].value; break; }
+	}
+	if(!rety){ error=true; msg += br + "Please select Rent Type"; br = "<br>"; }
+	
+	var grp = null;
+	var grpobj = document.all.Group;
+	for(var i=0; i < grpobj.length  ;i++)
+	{
+		if(grpobj[i].checked){ grp = grpobj[i].value; break; }
+	}
+	if(!grp){ error=true; msg += br + "Please select Group"; br = "<br>"; } 
+	
+	var eqty = null;
+	var eqtyobj = document.all.EquipTy;
+	for(var i=0; i < eqtyobj.length  ;i++)
+	{
+		if(eqtyobj[i].checked){ eqty = eqtyobj[i].value; break; }
+	}
+	if(!eqty && grp != "WATER"){ error=true; msg += br + "Please select Equipment Type"; br = "<br>"; } 
+	
+	
+	var brand = document.all.Brand.value.trim();
+	if(brand == ""){ error=true; msg += br + "Please select Barnd"; br = "<br>";}
+	
+	var model = document.all.Model.value.trim();
+	if(model == ""){ error=true; msg += br + "Please select Model"; br = "<br>";}
+	
+	var mfgsn = document.all.MfgSn.value.trim();
+	
+	var size = document.all.Size.value.trim();
+	if(size == ""){ error=true; msg += br + "Please select Size"; br = "<br>";}
+	
+	var year = null;
+	var yearobj = document.all.Year;
+	for(var i=0; i < yearobj.length  ;i++)
+	{
+		if(yearobj[i].checked){ year = yearobj[i].value; break; }
+	}
+	if(!year){ year = "0";} 
+	
+	var life = null;
+	var lifeobj = document.all.Life;
+	for(var i=0; i < lifeobj.length  ;i++)
+	{
+		if(lifeobj[i].checked){ life = lifeobj[i].value; break; }
+	}
+	if(!life){ error=true; msg += br + "Please select Left of Life Years"; br = "<br>"; } 
+		
+	var adddt = document.all.AddDt.value.trim();
+	
+	var action = "ADDNEWINV";
+	if(ExInvId != "") { action = "UPDNEWINV"; }
+		
+	if(error){ errfld.innerHTML = msg; }
+	else
+	{
+		NwStr = str;
+		NwSizNm = document.all.SizeNm.value;
+		NwSn = srlnum;
+		NwVenNm = document.all.BrandNm.value.trim();;
+		NwModel = model;
+		NwMfgSn = mfgsn;
+		NwPurchYr = year;
+		NwLife = life;
+		NwAddDt = adddt;
+		
+		LastAction = action;
+		
+		sbmNewSrlNum( str, rety, grp, eqty, srlnum, brand, model, mfgsn, size, year,life,adddt,action ); 
+	}
+}
+
+//==============================================================================
+// submit new serial number
+//==============================================================================
+function sbmNewSrlNum( str, rety, grp, eqty, srlnum, brand, model, mfgsn, size, year,life,adddt,action )
+{   
+   clearIframeContent("frame1");
+
+   if(isIE){ nwelem = window.frame1.document.createElement("div"); }
+	 else if(isSafari){ nwelem = window.frame1.document.createElement("div"); }
+	 else{ nwelem = window.frame1.contentDocument.createElement("div");}
+   
+   nwelem.id = "dvSbmAddInv"
+
+   var html = "<form name='frmAddInv'"
+      + " METHOD=Post ACTION='RentContractSave.jsp'>"
+      + "<input name='Str'>"
+      + "<input name='RentTy'>"
+      + "<input name='Grp'>"
+      + "<input name='EquipTy'>"
+      + "<input name='SrlNm'>"
+      + "<input name='Brand'>"      
+      + "<input name='Model'>"
+      + "<input name='MfgSn'>"
+      + "<input name='Siz'>"
+      + "<input name='PurchYr'>"
+      + "<input name='Life'>"
+      + "<input name='AddDt'>"
+      + "<input name='Action'>"
+    html += "</form>"
+
+   nwelem.innerHTML = html;
+   
+   if(isIE && ua.indexOf("MSIE 7.0") >= 0){ window.frame1.document.appendChild(nwelem); }
+   else if(isIE){ window.frame1.document.body.appendChild(nwelem); }
+   else if(isSafari){ window.frame1.document.body.appendChild(nwelem); }
+   else{ window.frame1.contentDocument.body.appendChild(nwelem); }
+
+   if(isIE || isSafari)
+	 {
+	    window.frame1.document.all.Str.value = str;
+	    window.frame1.document.all.RentTy.value = rety;
+  	 	window.frame1.document.all.Grp.value = grp;
+  	 	window.frame1.document.all.EquipTy.value = eqty;
+  	 	window.frame1.document.all.SrlNm.value = srlnum;
+  	 	window.frame1.document.all.Brand.value = brand;
+  	 	window.frame1.document.all.Model.value = model;
+  	 	window.frame1.document.all.MfgSn.value = mfgsn;
+  	 	window.frame1.document.all.Siz.value = size;
+  	 	window.frame1.document.all.PurchYr.value = year;
+  	 	window.frame1.document.all.Life.value = life;
+  	 	window.frame1.document.all.AddDt.value = adddt;  	 	
+ 	 	window.frame1.document.all.Action.value= action;
+ 	
+ 	 	window.frame1.document.frmAddInv.submit();
+	 }
+   else
+   {
+	   	window.frame1.contentDocument.forms[0].Str.value = str; 
+	   	window.frame1.contentDocument.forms[0].RentTy.value = rety;
+  	   	window.frame1.contentDocument.forms[0].Grp.value = grp;
+  	   	window.frame1.contentDocument.forms[0].EquipTy.value = eqty;
+  	 	window.frame1.contentDocument.forms[0].SrlNm.value = srlnum;
+  	 	window.frame1.contentDocument.forms[0].Brand.value = brand;
+  	 	window.frame1.contentDocument.forms[0].Model.value = model;
+  	 	window.frame1.contentDocument.forms[0].MfgSn.value = mfgsn;
+  	 	window.frame1.contentDocument.forms[0].Siz.value = size;
+  	 	window.frame1.contentDocument.forms[0].PurchYr.value = year;
+  	 	window.frame1.contentDocument.forms[0].Life.value = life;
+  	 	window.frame1.contentDocument.forms[0].AddDt.value = adddt;
+  	   
+  	   	window.frame1.contentDocument.forms[0].Action.value=action;
+  	 	window.frame1.contentDocument.forms[0].submit();
+   }   
+}
+//==============================================================================
+//clear  iframe content
+//==============================================================================
+function clearIframeContent(id) 
+{    
+  try 
+  {    	
+  	if(isSafari)
+  	{    		
+  		try 
+    	    {   
+  			if(window.frame1.document.body == null)
+  			{
+  				var iframe = document.getElementById(id);
+  				document.body.removeChild(iframe)
+  				var frame = $("#frame0").clone();    			
+  				document.appenChild(frame);
+  			}
+    		}
+    		catch(e)
+    		{
+    			alert(e.message)
+    		}
+  	}
+  	else
+  	{
+  		var iframe = document.getElementById(id);
+  		var doc = (iframe.contentDocument)? iframe.contentDocument: iframe.contentWindow.document;
+	    	doc.body.innerHTML = "";
+  	}
+	}
+	catch(e) 
+	{
+	    //alert(e.message);
+  }
+  return false;
+}               
+//==============================================================================
+//check employee number
+//==============================================================================
+function isEmpNumValid(emp)
+{
+	var valid = true;
+	var url = "EComItmAsgValidEmp.jsp?Emp=" + emp;
+	var xmlhttp;
+	// code for IE7+, Firefox, Chrome, Opera, Safari
+	if (window.XMLHttpRequest){ xmlhttp=new XMLHttpRequest(); }
+	// code for IE6, IE5
+	else { xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");}
+
+	xmlhttp.onreadystatechange=function()
+	{
+   		if (xmlhttp.readyState==4 && xmlhttp.status==200)
+   		{
+      		valid = xmlhttp.responseText.indexOf("true") >= 0;
+   		}
+	}
+	xmlhttp.open("GET",url,false); // synchronize with this apps
+	xmlhttp.send();
+
+	return valid;
+}          
+//==============================================================================
+// Hide selection screen
+//==============================================================================
+function hidePanel(obj)
+{   
+	if(document.all.CalendarMenu != null){ hidetip2(); }
+	document.all[obj].innerHTML = " ";
+   	document.all[obj].style.visibility = "hidden";   
+}  
+//==============================================================================
+//show selected Vendor
+//==============================================================================
+function setBrand(ven, vennm)
+{
+	document.all.Brand.value = ven
+	document.all.BrandNm.value = vennm 
+} 
+//==============================================================================
+//show selected Model
+//==============================================================================
+function setModel(mod)
+{
+	document.all.Model.value = mod;	
+}
+
+//==============================================================================
+//show selected Length/Size
+//==============================================================================
+function setSize(size, sizenm)
+{
+	document.all.Size.value = size;
+	document.all.SizeNm.value = sizenm;
+}
+//==============================================================================
+//populate date with yesterdate
+//==============================================================================
+function  setDate(direction, id)
+{
+	var button = document.all[id];
+	var date = new Date(button.value);
+
+
+	if(direction == "DOWN") date = new Date(new Date(date) - 86400000);
+	else if(direction == "UP") date = new Date(new Date(date) - -86400000);
+	button.value = (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear()
+}
+
+
+//==============================================================================
+// refresh table
+//==============================================================================
+function refreshTbl(invid, cls, clsnm)
+{	
+	var tbody = document.getElementById("tbody2");
+	var row = tbody.insertRow(0);
+	row.className = "trDtl04";
+
+	var td = new Array(11);
+	td[0] = addElem("td", "td11", NwStr);
+	td[1] = addElem("td", "td11", clsnm);
+	td[2] = addElem("td", "td11", NwSizNm);
+	td[3] = addElem("td", "td11", NwSn);
+	td[4] = addElem("td", "td11", NwVenNm);
+	td[5] = addElem("td", "td11", NwModel);
+	td[6] = addElem("td", "td11", NwMfgSn);
+	td[7] = addElem("td", "td11", NwPurchYr);
+    td[8] = addElem("td", "td11", NwLife);
+    td[9] = addElem("td", "td11", NwAddDt);
+    
+    td[10] = addElem("td", "td18", "");
+    var newlink = document.createElement("a");
+	var func = "javascript: dltInvId('" + invid + "', '" + NwSn[i] + "')";
+	newlink.setAttribute("href", func);
+	newlink.innerHTML = "D";
+	td[10].appendChild(newlink);  
+    
+    
+    for(var i=0; i < td.length; i++)
+	{
+    	row.appendChild(td[i]);
+	}	
+    
+    clearEntryPanel();
+}
+//==============================================================================
+//refresh table
+//==============================================================================
+function addElem(elem, cls, value)
+{
+	var td = document.createElement(elem);
+    td.className = cls;
+    td.appendChild (document.createTextNode(value));
+    
+    return td;
+}
+//==============================================================================
+// clear entry Panel
+//==============================================================================
+function clearEntryPanel()
+{
+	for(var i=0; i < document.all.Group.length; i++)
+	{
+		document.all.Group[i].checked = false;
+	}
+	
+	for(var i=0; i < document.all.EquipTy.length; i++)
+	{
+		document.all.EquipTy[i].checked = false;
+	}
+	
+	for(var i=0; i < document.all.RentTy.length; i++)
+	{
+		document.all.RentTy[i].checked = false;
+	}
+	
+	document.all.SrlNum.value = "";
+	document.all.SrlNum.readOnly = false;
+	document.all.Brand.value = "";
+	document.all.BrandNm.value = "";
+	document.all.Model.value = "";
+	document.all.MfgSn.value = "";
+	document.all.Size.value = "";
+	document.all.SizeNm.value = "";
+	for(var i=0; i < document.all.Year.length; i++)
+	{
+		document.all.Year[i].checked = false;
+	}
+	for(var i=0; i < document.all.Year.length; i++)
+	{
+		document.all.Life[i].checked = false;
+	}
+	
+	document.getElementById("tblVen01").style.display = "none";
+	document.getElementById("tblVen02").style.display = "none";
+	document.getElementById("tblVen03").style.display = "none";
+	document.getElementById("tblVen04").style.display = "none";
+	document.getElementById("tblVen05").style.display = "none";
+	
+	document.getElementById("tblMod01").style.display = "none";
+	document.getElementById("tblMod02").style.display = "none";
+	document.getElementById("tblMod03").style.display = "none";
+	document.getElementById("tblMod04").style.display = "none";
+	document.getElementById("tblMod05").style.display = "none";
+	
+	document.getElementById("tblSize01").style.display = "none";
+	document.getElementById("tblSize02").style.display = "none";
+	document.getElementById("tblSize03").style.display = "none";
+	document.getElementById("tblSize04").style.display = "none";
+	document.getElementById("tblSize05").style.display = "none";
+	document.getElementById("tblSize06").style.display = "none";
+	document.getElementById("tblSize07").style.display = "none";
+	document.getElementById("tblSize08").style.display = "none";
+	
+	document.getElementById("tbody1").style.visibility = "hidden";
+}
+//==============================================================================
+//refresh table
+//==============================================================================
+function dltInvId(id,sn)
+{
+	var msg = "Do you realy want to delete this serial number " + sn + "?";
+	if(confirm(msg))
+	{
+		url="RentContractSave.jsp?InvId=" + id
+		   + "&Action=DLT_SRL_NUM";
+	    window.frame1.location.href=url;
+	}
+}
+//==============================================================================
+//reload
+//==============================================================================
+function refreshSrl()
+{
+	window.location.reload();
+}
+//==============================================================================
+//check serial number
+//==============================================================================
+function chkSrlNum(obj)
+{
+	e = window.event; 
+    var keyCode = e.keyCode || e.which;
+    if (keyCode == '13' || Action == "UpdInvBySrlNum")
+    {
+    	ExInvId = "";
+		ExStr = "";
+		ExCls = "";
+		ExSiz = "";
+		ExSrlNum = "";
+		ExPerchYr = "";
+		ExBrand = "";
+		ExModel = "";
+		ExMfgSn = "";
+		ExLife = "";
+		ExClsNm = "";
+		ExVenNm = "";
+		ExSizNm = "";
+		
+    	var sts = document.getElementById("spnSts");
+    	if(obj.value.trim() == ""){ alert("Please enter S/N") }
+    	else if(getScannedItem(obj.value))
+    	{
+    		InvSts = "UPDATE";
+    		sts.innerHTML = "*** UPDATE ***";  
+    		sts.style.color = "blue"; 
+    		popUpdInv();
+    	}
+    	else
+    	{
+    		InvSts = "NEW";
+    		sts.innerHTML = "*** New ***";
+    		sts.style.color = "green"; 
+    		
+    		// if this page called from RentInvList.jsp - Add New Serial#
+    		if(Action == "CrtNewForStrCls")
+    		{
+    			setStrCls();
+    		}
+
+    	}
+    	sts.style.fontSize = "18px";
+    	
+    	document.getElementById("tbody1").style.visibility = "visible";
+    	obj.readOnly = true;
+    }
+}
+//=====================================================================================
+// if this page called from RentInvList.jsp - Add New Serial# withselected store color
+//=====================================================================================
+function setStrCls()
+{
+	var strobj = document.all.Str;
+	for(var i=0; i < strobj.length  ;i++)
+	{
+		if(strobj[i].value == SrchStr ){ strobj[i].checked = true; break; }
+	}
+	
+	var retyobj = document.all.RentTy;
+	for(var i=0; i < retyobj.length  ;i++)
+	{
+		if(retyobj[i].value == SrchClsNm.substring(0,1)){ retyobj[i].checked=true; break; }
+	}	
+	
+	// check groups - ski, snow board boots 
+	var a = SrchClsNm.indexOf("SKIS");
+	var b = SrchClsNm.indexOf("SKI BOOTS");	
+	var c = SrchClsNm.indexOf("SNOWBOARDS");
+	var d = SrchClsNm.indexOf("SB BOOTS");
+	var e = SrchClsNm.indexOf("WATER");
+	
+	var grpobj = document.all.Group;
+	var selgrp = null;
+	if(a > 0){ grpobj[0].checked=true; selgrp = grpobj[0]; }
+	else if(b > 0){ grpobj[1].checked=true; selgrp = grpobj[1]; }
+	else if(c > 0){ grpobj[2].checked=true; selgrp = grpobj[2]; }
+	else if(d > 0){ grpobj[3].checked=true; selgrp = grpobj[3]; }
+	else if(e > 0){ grpobj[4].checked=true; selgrp = grpobj[4]; }
+	
+	// equipment type: men, women, jr	
+	var aa = (a > 0 || c > 0) && SrchClsNm.indexOf("ADULT") > 0;
+	var bb = (b > 0 || d > 0) && SrchClsNm.indexOf(" MENS") > 0;
+	var cc = (b > 0 || d > 0) && SrchClsNm.indexOf(" WOMENS") > 0;
+	var dd = SrchClsNm.indexOf("JR") > 0;
+	
+	var eqtyobj = document.all.EquipTy;
+	
+	if(aa){ eqty = eqtyobj[0].checked=true; }
+	else if(bb){ eqty = eqtyobj[0].checked=true; }
+	else if(cc){ eqty = eqtyobj[1].checked=true; }
+	else if(dd){ eqty = eqtyobj[2].checked=true; }
+	
+	// length/size
+	document.all.Size.value = SrchSiz;
+	document.all.SizeNm.value = SrchSizNm;
+	
+	setBrandList(grpobj);
+}
+//==============================================================================
+//populate updating inventory
+//==============================================================================
+function popUpdInv()
+{
+	var strobj = document.all.Str;
+	for(var i=0; i < strobj.length  ;i++)
+	{
+		if(strobj[i].value == ExStr ){ strobj[i].checked = true; break; }
+	}
+	
+	var retyobj = document.all.RentTy;
+	for(var i=0; i < retyobj.length  ;i++)
+	{
+		if(retyobj[i].value == ExClsNm.substring(0,1)){ retyobj[i].checked=true; break; }
+	}
+	
+	// check groups - ski, snow board boots 
+	var a = ExClsNm.indexOf("SKIS");
+	var b = ExClsNm.indexOf("SKI BOOTS");	
+	var c = ExClsNm.indexOf("SNOWBOARDS");
+	var d = ExClsNm.indexOf("SB BOOTS");	
+	
+	var grpobj = document.all.Group;
+	var selgrp = null;
+	if(a > 0){ grpobj[0].checked=true; selgrp = grpobj[0]; }
+	else if(b > 0){ grpobj[1].checked=true; selgrp = grpobj[1]; }
+	else if(c > 0){ grpobj[2].checked=true; selgrp = grpobj[2]; }
+	else if(d > 0){ grpobj[3].checked=true; selgrp = grpobj[3]; }
+	
+	// equipment type: men, women, jr	
+	var aa = (a > 0 || c > 0) && ExClsNm.indexOf("ADULT") > 0;
+	var bb = (b > 0 || d > 0) && ExClsNm.indexOf(" MENS") > 0;
+	var cc = (b > 0 || d > 0) && ExClsNm.indexOf(" WOMENS") > 0;
+	var dd = ExClsNm.indexOf("JR") > 0;
+	
+	var eqtyobj = document.all.EquipTy;
+	
+	if(aa){ eqty = eqtyobj[0].checked=true; }
+	else if(bb){ eqty = eqtyobj[0].checked=true; }
+	else if(cc){ eqty = eqtyobj[1].checked=true; }
+	else if(dd){ eqty = eqtyobj[2].checked=true;  }
+	
+	// brand
+	document.all.Brand.value = ExBrand;
+	document.all.BrandNm.value = ExVenNm;	
+	// model	
+	document.all.Model.value = ExModel;
+	// manufacturer serial number	
+	document.all.MfgSn.value = ExMfgSn;
+	// length/size
+	document.all.Size.value = ExSiz;
+	document.all.SizeNm.value = ExSizNm;
+	// Purchase Year
+	var yearobj = document.all.Year;
+	for(var i=0; i < yearobj.length  ;i++)
+	{
+		if(yearobj[i].value == ExPerchYr){ yearobj[i].checked = true; break; }
+	}
+	// remaining life
+	var lifeobj = document.all.Life;
+	for(var i=0; i < lifeobj.length  ;i++)
+	{
+		if(lifeobj[i].value == ExLife){ lifeobj[i].checked = true; break; }
+	}
+	
+	setBrandList(grpobj);	
+}
+//==============================================================================
+//set brand list visible for selected equipment group
+//==============================================================================
+function setBrandList()
+{
+ var grpobj = document.all.Group;   
+ var grp = "";
+ for(var i=0; i < grpobj.length; i++)
+ {
+	   if(grpobj[i].checked){ grp = grpobj[i].value; break; }
+ }
+ 
+ if(grp == "SKI")
+ { 
+	   document.getElementById("tblVen01").style.display = "block";
+	   document.getElementById("tblVen02").style.display = "none";
+	   document.getElementById("tblVen03").style.display = "none";
+	   document.getElementById("tblVen04").style.display = "none";
+	   document.getElementById("tblVen05").style.display = "none";
+	   
+	   document.getElementById("tblMod01").style.display = "block";
+	   document.getElementById("tblMod02").style.display = "none";
+	   document.getElementById("tblMod03").style.display = "none";
+	   document.getElementById("tblMod04").style.display = "none";
+	   document.getElementById("tblMod05").style.display = "none";
+ }
+ else if(grp == "SKIBOOT")
+ { 
+	   document.getElementById("tblVen01").style.display = "none";
+	   document.getElementById("tblVen02").style.display = "block";
+	   document.getElementById("tblVen03").style.display = "none";
+	   document.getElementById("tblVen04").style.display = "none";
+	   document.getElementById("tblVen05").style.display = "none";
+	   
+	   document.getElementById("tblMod01").style.display = "none";
+	   document.getElementById("tblMod02").style.display = "block";
+	   document.getElementById("tblMod03").style.display = "none";
+	   document.getElementById("tblMod04").style.display = "none";
+	   document.getElementById("tblMod05").style.display = "none";
+ }
+ else if(grp == "SNOWBOARD")
+ { 
+	   document.getElementById("tblVen01").style.display = "none";
+	   document.getElementById("tblVen02").style.display = "none";
+	   document.getElementById("tblVen03").style.display = "block";
+	   document.getElementById("tblVen04").style.display = "none";
+	   document.getElementById("tblVen05").style.display = "none";
+	   
+	   document.getElementById("tblMod01").style.display = "none";
+	   document.getElementById("tblMod02").style.display = "none";
+	   document.getElementById("tblMod03").style.display = "block";
+	   document.getElementById("tblMod04").style.display = "none";
+	   document.getElementById("tblMod05").style.display = "none";
+ }
+ else if(grp == "SBRBOOT")
+ { 
+	   document.getElementById("tblVen01").style.display = "none";
+	   document.getElementById("tblVen02").style.display = "none";
+	   document.getElementById("tblVen03").style.display = "none";
+	   document.getElementById("tblVen04").style.display = "block";
+	   document.getElementById("tblVen05").style.display = "none";	   
+	   
+	   document.getElementById("tblMod01").style.display = "none";
+	   document.getElementById("tblMod02").style.display = "none";
+	   document.getElementById("tblMod03").style.display = "none";
+	   document.getElementById("tblMod04").style.display = "block";
+	   document.getElementById("tblMod05").style.display = "none";
+ }
+ else if(grp == "WATER")
+ { 
+	   document.getElementById("tblVen01").style.display = "none";
+	   document.getElementById("tblVen02").style.display = "none";
+	   document.getElementById("tblVen03").style.display = "none";
+	   document.getElementById("tblVen04").style.display = "none";
+	   document.getElementById("tblVen05").style.display = "block";
+	   
+	   document.getElementById("tblMod01").style.display = "none";
+	   document.getElementById("tblMod02").style.display = "none";
+	   document.getElementById("tblMod03").style.display = "none";
+	   document.getElementById("tblMod04").style.display = "none";
+	   document.getElementById("tblMod05").style.display = "block";
+ }
+ setGenList();
+}
+//==============================================================================
+//set Model and Size group
+//==============================================================================
+function setGenList()
+{
+	var grp = "";
+	for(var i=00; i < document.all.Group.length; i++)
+	{
+		if(document.all.Group[i].checked){ grp = document.all.Group[i].value; break;}
+	}
+	
+	var eqty = "";
+	for(var i=00; i < document.all.EquipTy.length; i++)
+	{
+		if(document.all.EquipTy[i].checked){ eqty = document.all.EquipTy[i].value; break;}
+	}
+	
+	if(eqty == "Male" || eqty == "Female"){ eqty = "ADULT"; }
+	else if(eqty == "Jr"){ eqty = "JR"; }
+	
+	document.getElementById("tblSize01").style.display = "none";
+	document.getElementById("tblSize02").style.display = "none";
+	document.getElementById("tblSize03").style.display = "none";
+	document.getElementById("tblSize04").style.display = "none";
+	document.getElementById("tblSize05").style.display = "none";
+	document.getElementById("tblSize06").style.display = "none";
+	document.getElementById("tblSize07").style.display = "none";
+	document.getElementById("tblSize08").style.display = "none";
+		
+	if(grp == "SKI" && eqty == "ADULT"){ document.getElementById("tblSize01").style.display = "block"; }
+	if(grp == "SKI" && eqty == "JR"){ document.getElementById("tblSize02").style.display = "block"; }
+	if(grp == "SKIBOOT" && eqty == "ADULT"){ document.getElementById("tblSize03").style.display = "block"; }
+	if(grp == "SKIBOOT" && eqty == "JR"){ document.getElementById("tblSize04").style.display = "block"; }
+	if(grp == "SNOWBOARD" && eqty == "ADULT"){ document.getElementById("tblSize05").style.display = "block"; }
+	if(grp == "SNOWBOARD" && eqty == "JR"){ document.getElementById("tblSize06").style.display = "block"; }
+	if(grp == "SBRBOOT" && eqty == "ADULT"){ document.getElementById("tblSize07").style.display = "block"; }
+	if(grp == "SBRBOOT" && eqty == "JR"){ document.getElementById("tblSize08").style.display = "block"; }		
+}
+//==============================================================================
+//check scanned item against order
+//==============================================================================
+function getScannedItem(sn)
+{
+	var valid = true;
+	var url = "RentChkSrlNum.jsp?Sn=" + sn;
+
+	var xmlhttp;
+	// code for IE7+, Firefox, Chrome, Opera, Safari
+	if (window.XMLHttpRequest){ xmlhttp=new XMLHttpRequest(); }
+	// code for IE6, IE5
+	else { xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");}
+
+	xmlhttp.onreadystatechange=function()
+	{
+		if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{			
+			var  resp = xmlhttp.responseText;
+			
+			valid = getXmlValue("SN_Valid", resp) == "true";
+			if(valid)
+			{
+				ExInvId = getXmlValue("InvId", resp);
+				ExStr = getXmlValue("Str", resp);
+				ExCls = getXmlValue("Cls", resp);
+				ExSiz = getXmlValue("Siz", resp);
+				ExSrlNum = getXmlValue("SrlNum", resp);
+				ExPerchYr = getXmlValue("PerchYr", resp);
+				ExBrand = getXmlValue("Brand", resp);
+				ExModel = getXmlValue("Model", resp);
+				ExMfgSn = getXmlValue("MfgSn", resp);
+				ExLife = getXmlValue("Life", resp);
+				ExClsNm = getXmlValue("ClsNm", resp);
+				ExVenNm = getXmlValue("VenNm", resp);
+				ExSizNm = getXmlValue("SizNm", resp);
+			}
+		}
+	}
+	xmlhttp.open("GET",url,false); // synchronize with this apps
+	xmlhttp.send();
+
+	//alert(sku.trim());
+	return valid;
+}
+//==============================================================================
+// get XML value 
+//==============================================================================
+function getXmlValue(tag, resp)
+{
+	var opntag = "<" + tag + ">";
+	var beg = resp.indexOf(opntag) + opntag.length;
+	var clstag = "</" + tag + ">";
+	var end = resp.indexOf(clstag);
+	xmlval = resp.substring(beg, end);
+	return xmlval;
+}
+
+
+</SCRIPT>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Get_Object_Position.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvHelp" class="dvHelp"></div>
+<div id="dvChkItm" class="dvItem"></div>
+<div id="dvCont" class="dvItem"></div>
+<div id="dvItem" class="dvItem"></div>
+<div id="dvComment" class="dvItem"></div>
+ 
+<!-------------------------------------------------------------------->
+
+    <table class="tbl01">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP"nowrap>
+        <b>Retail Concepts, Inc
+        <br>Rental Inventory Entry
+      </td>
+    </tr>
+
+    <tr>
+      <td ALIGN="center" VALIGN="TOP">
+      <a href="index.jsp"><font color="red" size="-1">Home</font></a>&#62;
+       This Page. &nbsp; &nbsp;
+       
+       <a href="RentInvAttr.jsp" target="_blank">New Attributes</a>
+            
+   <!----------------------- Order List ------------------------------>
+     <table class="tbl02" id="tbEntry" width = "1000">
+       <!-- ========= S/N Barcode ID -->
+       <tr class="trHdr01" height="25">
+          <th align=right>SS Barcode ID:&nbsp;</th>
+          <td colspan=2 align=left><input name="SrlNum" size=17 maxlength=15 onkeypress="chkSrlNum(this)">
+          &nbsp; <span id="spnSts"></span>
+          </td>
+       </tr>
+       
+       
+       <tbody id="tbody1">
+       
+       <!-- ======== Store ============ -->
+       <tr class="trHdr01" height="20">
+          <th align=right width="180">Str:&nbsp;</th>
+          <td colspan=2 align=left>
+          	  <input name="Str" type="radio" value="28" <%if(sStrAllowed.equals("28")){%>checked<%}%>>28 &nbsp;
+              <input name="Str" type="radio" value="35" <%if(sStrAllowed.equals("35")){%>checked<%}%>>35 &nbsp;
+              <input name="Str" type="radio" value="46" <%if(sStrAllowed.equals("46")){%>checked<%}%>>46 &nbsp;
+              <input name="Str" type="radio" value="50" <%if(sStrAllowed.equals("50")){%>checked<%}%>>50 &nbsp;
+              <input name="Str" type="radio" value="63" <%if(sStrAllowed.equals("63")){%>checked<%}%>>63 &nbsp;
+              <input name="Str" type="radio" value="64" <%if(sStrAllowed.equals("64")){%>checked<%}%>>64 &nbsp;
+              <input name="Str" type="radio" value="68" <%if(sStrAllowed.equals("68")){%>checked<%}%>>68 &nbsp;
+              <input name="Str" type="radio" value="86" <%if(sStrAllowed.equals("86")){%>checked<%}%>>86 &nbsp;
+              <input name="Str" type="radio" value="87" <%if(sStrAllowed.equals("87")){%>checked<%}%>>87 &nbsp;
+              <input name="Str" type="radio" value="88" <%if(sStrAllowed.equals("88")){%>checked<%}%>>88 &nbsp;
+          </td>
+       </tr>
+       
+       
+       <!-- =========== Rent type daily/lease =========== -->
+       <tr class="trHdr01" height="20">
+          <th align=right>Rent Type:&nbsp;</th>
+          <td colspan=2 align=left>
+              <input name="RentTy" type="radio" value="D">Daily &nbsp;
+              <input name="RentTy" type="radio" value="L">Lease &nbsp;              
+       	  </td>
+       </tr>
+       
+              
+       <tr class="trHdr01" height="20">
+          <th align=right>Group:&nbsp;</th>
+          <td colspan=2 align=left>
+              <input name="Group" type="radio" value="SKI" onclick="setBrandList();">Ski &nbsp;              
+              <input name="Group" type="radio" value="SKIBOOT" onclick="setBrandList();">Ski Boots &nbsp;
+              <input name="Group" type="radio" value="SNOWBOARD" onclick="setBrandList();">Snowboard &nbsp;
+              <input name="Group" type="radio" value="SBRBOOT" onclick="setBrandList();">Snowboard Boots &nbsp;
+              <input name="Group" type="radio" value="WATER" onclick="setBrandList();">Water &nbsp;           
+          </td>
+       </tr>
+       
+       <tr class="trHdr01" height="20" id="trEqTy">
+          <th align=right nowrap>Equipment Type:&nbsp;</th>
+          <td colspan=2 align=left>
+              <input name="EquipTy" type="radio" value="Male" onclick="setGenList();">Male &nbsp;
+              <input name="EquipTy" type="radio" value="Female" onclick="setGenList();">Female &nbsp;
+              <input name="EquipTy" type="radio" value="Jr" onclick="setGenList();">Junior &nbsp;              
+          </td>
+       </tr>
+       
+       
+       
+       <tr class="trHdr02" style="vertical-align: top;" height="100">
+          <th style="vertical-align: top;"  align=right>Brand:&nbsp;</th>
+          <td style="vertical-align: top;" align=left>
+          	<input name="Brand" size=5 maxlength=5 readOnly>
+          	<input name="BrandNm" size=35 maxlength=25 readOnly>
+          	<br><span style="font-size:10px;">(Select Group to get a list of brands)</span>
+          </td>	
+          <td style="vertical-align: top;" align=left nowrap>&nbsp;
+            <table id="tblVen01">
+              <tr>
+          	<%for(int i=0, j=0; i < vVen.size(); i++){%>
+          	    <%if(vVenTy.get(i).equals("SKI")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setBrand('<%=vVen.get(i)%>', '<%=vVenNm.get(i)%>')"><%=vVenNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblVen02">
+              <tr>
+          	<%for(int i=0, j=0; i < vVen.size(); i++){%>
+          	    <%if(vVenTy.get(i).equals("SKIBOOT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setBrand('<%=vVen.get(i)%>', '<%=vVenNm.get(i)%>')"><%=vVenNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblVen03">
+              <tr>
+          	<%for(int i=0, j=0; i < vVen.size(); i++){%>
+          	    <%if(vVenTy.get(i).equals("SNOWBOARD")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setBrand('<%=vVen.get(i)%>', '<%=vVenNm.get(i)%>')"><%=vVenNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblVen04">
+              <tr>
+          	<%for(int i=0, j=0; i < vVen.size(); i++){%>
+          	    <%if(vVenTy.get(i).equals("SBRBOOT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setBrand('<%=vVen.get(i)%>', '<%=vVenNm.get(i)%>')"><%=vVenNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblVen05">
+              <tr>
+          	<%for(int i=0, j=0; i < vVen.size(); i++){%>
+          	    <%if(vVenTy.get(i).equals("WATER")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setBrand('<%=vVen.get(i)%>', '<%=vVenNm.get(i)%>')"><%=vVenNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	
+          </td>
+       </tr>
+       <!-- ============= Model ======================= -->
+       <tr class="trHdr03">
+          <th style="vertical-align: top" align=right>Model:&nbsp;</th>
+          <td align=left style="vertical-align: top">
+              <input name="Model" size=35 maxlength=30 readOnly>
+              <br><span style="font-size:10px;">(Select Group to get a list of models)</span>
+          </td>
+          <td align=left style="vertical-align: top">
+            <table id="tblMod01">
+              <tr>
+          	<%for(int i=0, j=0; i < vMod.size(); i++){%>
+          	    <%if(vModTy.get(i).equals("SKI")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setModel('<%=vMod.get(i)%>')"><%=vMod.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblMod02">
+              <tr>
+          	<%for(int i=0, j=0; i < vMod.size(); i++){%>
+          	    <%if(vModTy.get(i).equals("SKIBOOT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setModel('<%=vMod.get(i)%>')"><%=vMod.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblMod03">
+              <tr>
+          	<%for(int i=0, j=0; i < vMod.size(); i++){%>
+          	    <%if(vModTy.get(i).equals("SNOWBOARD")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setModel('<%=vMod.get(i)%>')"><%=vMod.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblMod04">
+              <tr>
+          	<%for(int i=0, j=0; i < vMod.size(); i++){%>
+          	    <%if(vModTy.get(i).equals("SBRBOOT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setModel('<%=vMod.get(i)%>')"><%=vMod.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblMod05">
+              <tr>
+          	<%for(int i=0, j=0; i < vMod.size(); i++){%>
+          	    <%if(vModTy.get(i).equals("WATER")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setModel('<%=vMod.get(i)%>')"><%=vMod.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+       </tr>
+       
+       <tr class="trHdr01">
+          <th align=right>Mfg SN:&nbsp;</th>
+          <td colspan=2 align=left><input name="MfgSn" size=31 maxlength=30></td>
+       </tr>
+       
+       <!-- ============= Size Ranges ======================= -->
+       <tr class="trHdr02" style="vertical-align: top">
+          <th align=right>Length/Size:&nbsp;</th>
+          <td align=left><input name="Size" size=8 maxlength=5 readOnly>&nbsp;<input name="SizeNm" size=25 maxlength=25 readOnly> 
+               <br><span style="font-size:10px;">(Select Group and Equipment type to get a list of length/sizes)</span>
+          </td>
+          <td align=left>
+          	<table id="tblSize01">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SKI") && vSizGen.get(i).equals("ADULT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a> &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize02">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SKI") && vSizGen.get(i).equals("JR")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize03">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SKIBOOT") && vSizGen.get(i).equals("ADULT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize04">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SKIBOOT") && vSizGen.get(i).equals("JR")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize05">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SNOWBOARD") && vSizGen.get(i).equals("ADULT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize06">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SNOWBOARD") && vSizGen.get(i).equals("JR")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize07">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SBRBOOT") && vSizGen.get(i).equals("ADULT")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          	<table id="tblSize08">
+              <tr>
+          	   <%for(int i=0, j=0; i < vSiz.size(); i++){%>
+          	    <%if(vSizTy.get(i).equals("SBRBOOT") && vSizGen.get(i).equals("JR")){%>          	    
+          	    <%if(j > 0 && j % 3 == 0){%></tr><tr><%}%>   
+          	    	<td>
+          	       		<a href="javascript: setSize('<%=vSiz.get(i)%>','<%=vSizNm.get(i)%>')"><%=vSizNm.get(i)%></a>  &nbsp;
+          	    	</td>
+          	      <%j++;%>        	    
+          	    <%}%>
+          	   <%}%>  
+          	  </tr>    
+          	</table>
+          	
+          </td>          
+       </tr>
+       
+       <!-- =============== Remaining Life (years) =================== -->
+       <tr class="trHdr01">
+          <th align=right>Remaining Life (years):&nbsp;</th>
+          <td colspan=2 align=left>
+             <%for(int i=0; i < 7; i++){%>
+             	<input type="radio" name="Life" value="<%=7-i%>"><%=7-i%> &nbsp;  
+             <%}%>
+          </td>          
+       </tr>
+       
+       
+       <!-- =============== Purchase Year =================== -->
+       <tr class="trHdr01">
+          <th align=right>Purchase Year:&nbsp;</th>
+          <td colspan=2 align=left>
+             <%for(int i=0; i < 5; i++){%>
+             	<input type="radio" name="Year" value="<%=iYear - i%>"><%=iYear - i%>  &nbsp;
+             <%}%>
+          </td>          
+       </tr>
+       
+       <!-- =============== Added to Fleet Date =================== -->
+       <tr style="display:none;">
+          <!-- th align=right>Added to Fleet Date:&nbsp;</th>
+          <td colspan=2 align=left>
+          <button class='Small' name='Down' onClick='setDate(&#34;DOWN&#34;, &#34;AddDt&#34;)'>&#60;</button>
+          <input class='Small' name='AddDt' type='text' value="" size=10 maxlength=10>&nbsp;
+          <button class='Small' name='Up' onClick='setDate(&#34;UP&#34;, &#34;AddDt&#34;)'>&#62;</button>
+          &nbsp;&nbsp;
+          <a href='javascript: showCalendar(1, null, null, 500, 500, document.all.AddDt)' >
+          <img src='calendar.gif' alt='Calendar Prompt' width='34' height='21'></a>
+          
+          </td -->
+          <td><input type="hidden" class='Small' name='AddDt' type='text' value="<%=sCurDate%>" size=10 maxlength=10>&nbsp;</td>          
+       </tr>
+       
+       <tr class="trHdr01">
+          <th align=center colspan=3>
+          	<button class="Small" onclick="vldSrlNum();">Submit</button> &nbsp;
+          	<button class="Small" onclick="clearEntryPanel();">Reset</button>
+          </th>        
+       </tr>
+       
+       <!-- ======== errors ======== -->
+       <tr class="trHdr01">
+          <td class="tdError" colspan=3 id="tdError"></td>          
+       </tr>
+       
+       </tbody>
+     </table>   
+      <br><br>
+  <!----------------------- Order List ------------------------------>
+     <table  class="tbl04" id="tbDetail">
+      <thead id="thead1">
+       <tr class="trHdr01">
+          <th class="th13">Str</th>
+          <th class="th13">Class</th>
+          <th class="th13">Length/Size</th> 
+          <th class="th13">SS<br>Barcode<br>Id</th>
+          <th class="th13">Brand</th>
+          <th class="th13">Model</th>
+          <th class="th13">Manufacturer<br>S/N</th>
+          <th class="th13">Purchase<br>Year</th>
+          <th class="th13">Remaining<br>Life<br>(years)</th>
+          <th class="th13">Added<br>Date</th>  
+          <th class="th13">Dlt</th>                     
+       </tr>
+     </thead> 
+     <tbody id="tbody2">
+  <!-------------------------- Order List ------------------------------->
+      <%for(int i=0; i < vNwInvD.size(); i++){%>
+        <tr class="trDtl06">
+	    	<td class="td11"><%=vNwStr.get(i)%></td>
+			<td class="td11"><%=vNwClsNm.get(i)%></td>
+			<td class="td11"><%=vNwSizNm.get(i)%></td>
+			<td class="td11"><%=vNwSn.get(i)%></td>			
+			<td class="td11"><%=vNwVenNm.get(i)%></td>
+			<td class="td11"><%=vNwModel.get(i)%></td>
+			<td class="td11"><%=vNwMfgSn.get(i)%></td>
+			<td class="td11"><%=vNwPerchYr.get(i)%></td>
+			<td class="td11"><%=vNwLife.get(i)%></td>
+			<td class="td11"><%=vNwAddDt.get(i)%></td>
+			<td class="td18"><a href="javascript: dltInvId('<%=vNwInvD.get(i)%>', '<%=vNwSn.get(i)%>')">D</a></td>
+		</tr>	   
+      <%}%> 
+      </tbody>
+    </table>
+    
+  <!----------------------- end of table ------------------------>
+     </td>
+   </tr>
+
+  </table>
+ </body>
+</html>
+
+
+<%  
+  }%>

@@ -1,0 +1,88 @@
+<HTML>
+<TITLE>RCI Intranet Home Page</TITLE>
+<HEAD>
+     <style type="text/css">
+       body {background:ivory;}
+       a.blue:visited {  font-weight: bold; color: #663399}
+       a.blue:link {  font-weight: bold; color: #0000FF}
+       th.sep1 { background: lightsalmon; border-bottom: black solid 1px; text-align:center; font-family:Verdanda; font-size:18px }
+       td.sep1 { border-bottom: black solid 1px;border-right: black solid 1px; padding-bottom:5px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep2 { border-bottom: black solid 1px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep3 { border-right: black solid 1px;text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep4 { border-bottom: black solid 1px;text-align:center;}
+       td.sep5 { text-align:left; font-family:Verdanda; font-size:12px }
+     </style>
+</HEAD>
+<BODY>
+<Table Border=0 CELLSPACING="5" CELLPADDING="0" width="100%"
+height="100%">
+<tr>
+    <td height="20%" COLSPAN=2>
+        <img src="sun_ski_logo.jpg"></td>
+<tr>
+    <td WIDTH="15%"  bgColor="A7B5E8">
+    <font color=#445193 size=1 face=Arial>
+    <h5>&nbsp;&nbsp;Miscellaneous</h5>
+    &nbsp;&nbsp; <a class="blue" href="MAILTO:">Send e-mail</a>
+    <br>&nbsp;&nbsp;&nbsp;<a class="blue" href="http://sunandski.com/">Our Internet</a>
+    <br>&nbsp;&nbsp;&nbsp;<a class="blue" href="JobList.jsp">Operator Panel</a>
+
+
+    </font></td>
+    <td WIDTH="85%" nowrap valign="top"
+        bgColor="moccasin">
+        <Table Border=0 width="100%" CELLSPACING="0" CELLPADDING="0">
+        <tr>
+         <td class="sep4" colspan="2"><h1>Retail Concepts, Inc. Intranet Page</h1>
+         <h2>Table of Contents </h2></td>
+        </tr>
+        <tr><th class="sep1" colspan="2">Store</th></tr>
+        <tr>
+          <td class="sep1" WIDTH="60%" ><font size=3><b>Reports:</b></font><br/>
+                <a class="blue" href="BSLevel.html">Basic Stock Listing</a><br/>
+                <a class="blue" href="DcFrtBill.jsp">Daily Freight Bill Report</a><br>
+                <a class="blue" href="ClsSlsRepSel.jsp">Data by Fiscal Week/Month - EXCEL</a><br>
+                <a class="blue" href="DcReceiptSel.jsp">DC Receipts</a><br>
+                <a class="blue" href="ClassSelect.jsp?action=servlet/classreports.ClsSlsRep&mode=1&STORE=ALL">Division/Class Sales Report</a><br>
+                <a class="blue" href="OnHandReps.html">On-Hand Listings...</a><br/>
+                <a class="blue" href="servlet/salesreport3.Salesreport03?ReportId=8" >Permanent Markdown Recap Report</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                <a class="blue" href="servlet/formgenerator.FormGenerator?FormGrp=ARCHIVE&Form=RC106C"><font size=-1>Archive</font></a><br/>
+                <a class="blue" href="PIWIRepSel.jsp">PI Report</a><br/>
+                <a class="blue" href="StrEmpRepSel.jsp"><b>Salesperson by Date Report</b></a><br/>
+                <a class="blue" href="SlsDivContest.jsp"><b>Salesperson by Division Report</b></a><br/>
+                <a class="blue" href="UnautMDRepSel.jsp">Unauthorized Markdown Report</a>
+
+            </td>
+            <td class="sep2" valign="top"><font size=3><b>Inquiries</b></font><br/>
+               <a class="blue" href="servlet/salesigns01.SignSelector">Signs</a><br/><br/>
+               <a class="blue" href="NegReturn.jsp">CC Returns w/Negative Balance</a><br/>
+               <a class="blue" href="SearchCust.jsp">Customer Purchase Inquiry</a><br/>
+               <a class="blue" href="EmpPurchInq.jsp">Employee Purchase Inquiry</a><br/>
+               <a class="blue" href="StrScheduling.html"><b>Store Scheduling...</b></a>
+            </td>
+        </tr>
+        <tr><th class="sep1" colspan="2">Company</th></tr>
+        <tr>
+        <tr>
+            <td class="sep3" colspan="1" valign="top">
+               <font size=3><b>Weekly Sales</b></font><br/>
+                <a class="blue" href="rciWeeklyReports.html">Weekly Reports</a><br/>
+                <!--a class="blue" href="rciClassReports.html">Weekly Class Sales Reports</a><br/-->
+
+                <br/>
+            </td>
+            <td class="sep5" ><font size=3><b>Inquiries</b></font><br/>
+                <a class="blue" href="servlet/policy.GetList?Table=Form&Form=GENERAL">Forms</a><br/>
+                <a class="blue" href="servlet/formgenerator.FormGenerator?FormGrp=MEMOS&Form=MEMO01">Memos</a><br/>
+                <a class="blue" href="servlet/policy.GetList?Table=Form&Form=SPAPP">Performance Appraisal</a><br/>
+                <a class="blue" href="servlet/policy.GetList?Table=Policy&Section=*ALL">Policy</a><br/>
+            </td>
+        </tr>
+        </Table>
+    </td>
+</tr>
+</TABLE>
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,615 @@
+<%@ page import=" rciutility.ClassSelect, rciutility.StoreSelect, inventoryreports.PiCalendar"%>
+<% ClassSelect select = null;
+   String sLevel = request.getParameter("LEVEL");
+   String sIncl900 = request.getParameter("Incl900");
+
+   if(sMode==null) sMode="1";
+   if(sLevel==null) sLevel="000";
+   if (sIncl900 == null) sIncl900=" ";
+
+   String sDiv = null;
+   String sDivName = null;
+   String sDpt = null;
+   String sDptName = null;
+   String sDptGroup = null;
+   String sCls = null;
+   String sClsName = null;
+
+
+   if (sMode.equals("1")) {
+     select = new ClassSelect();
+     sDiv = select.getDivNum();
+     sDivName = select.getDivName();
+     sDpt = select.getDptNum();
+     sDptName = select.getDptName();
+     sDptGroup = select.getDptGroup();
+   }
+
+   // select class
+   if (sMode.equals("2")) {
+     select = new ClassSelect(request.getParameter("DIVISION"),
+                            request.getParameter("DEPARTMENT"));
+     sCls = select.getClsNum();
+     sClsName = select.getClsName();
+
+
+     if (sIncl900 == null) sIncl900=" ";
+   }
+
+   StoreSelect StrSelect = new StoreSelect(3);
+   int iNumOfStr = StrSelect.getNumOfStr();
+   String [] sStr = StrSelect.getStrLst();
+   String [] sStrName = StrSelect.getStrNameLst();
+
+   // get PI Calendar
+   PiCalendar setcal = new PiCalendar();
+   String sYear = setcal.getFullYear();
+   String sMonth = setcal.getMonth();
+   String sDesc = setcal.getDesc();
+   setcal.disconnect();
+%>
+
+<style>body {background:ivory;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        .Small {font-family:Arial; font-size:10px }
+</style>
+
+
+<script LANGUAGE="JavaScript1.2" src="Calendar.js">
+</script>
+
+
+<script name="javascript">
+var Incl900 = "<%=sIncl900%>"
+
+var PiYear = [<%=sYear%>];
+var PiMonth = [<%=sMonth%>];
+var PiDesc =  [<%=sDesc%>];
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad(){
+  var df = document.forms[0];
+  var mode= <%=sMode%>;
+  var sel_Str= "<%=request.getParameter("STORE")%>";
+  var str_opt;
+
+
+
+  // populate date with yesterdate
+  if (mode =='1') {
+      doDivSelect(null);
+  }
+  if (mode =='2') {
+      var sel_Div= "<%=request.getParameter("DIVISION")%>"
+      var sel_Dpt= "<%=request.getParameter("DEPARTMENT")%>"
+      var sel_Div_Name = "<%=request.getParameter("DIVNAME")%>"
+      var sel_Dpt_Name= "<%=request.getParameter("DPTNAME")%>"
+
+
+      for (idx = df.DIVISION.length; idx >= 0; idx--) df.DIVISION.options[idx] = null;
+      for (idx = df.DEPARTMENT.length; idx >= 0; idx--) df.DEPARTMENT.options[idx] = null;
+      df.DIVISION.options[0] = new Option(sel_Div_Name, sel_Div);
+      df.DIVISION.selectedIndex = 0;
+
+      df.DEPARTMENT.options[0] = new Option(sel_Dpt_Name, sel_Dpt);
+      df.DEPARTMENT.selectedIndex = 0;
+
+      df.CLASS.disabled = false;
+      doClsSelect();
+
+      document.all.spIncl900.style.visibility = "hidden";
+      if(Incl900=="Y" || sel_Dpt==900) df.Incl900.checked=true;
+  }
+
+  popPICal();
+}
+//==============================================================================
+// change Store selection
+//==============================================================================
+function popPICal()
+{
+   document.all.PICal1yrBk.options[0] = new Option("None", "NONE");
+   document.all.PICal2yrBk.options[0] = new Option("None", "NONE");
+
+   for(var i=0, j=1; i < PiYear.length; i++, j++)
+   {
+      document.all.PICal.options[i] = new Option(PiDesc[i], PiYear[i] + PiMonth[i]);
+      document.all.PICal1yrBk.options[j] = new Option(PiDesc[i], PiYear[i] + PiMonth[i]);
+      document.all.PICal2yrBk.options[j] = new Option(PiDesc[i], PiYear[i] + PiMonth[i]);
+   }
+
+}
+//==============================================================================
+// change Store selection
+//==============================================================================
+function chgStrSel(str)
+{
+  var stores = document.all.STORE;
+  var allstr = document.all.STRALL;
+  var sasstr = document.all.STRSAS;
+  var schstr = document.all.STRSCH;
+  var whsstr = document.all.STRWHS;
+  var mall = document.all.STRMALL;
+  var nmall = document.all.STRNMALL;
+  var group = str.value;
+  var mark = str.checked;
+
+  // unselect other store if ALL selected
+  if (group == "ALL")
+  {
+     for(var i=0; i < stores.length; i++ ) { stores[i].checked = mark; }
+     sasstr.checked = false;
+     schstr.checked = false;
+     whsstr.checked = false;
+     mall.checked = false;
+     nmall.checked = false;
+  }
+  else if (group == "SAS")
+  {
+    for(var i=0; i < stores.length; i++ )
+    {
+       if  (eval(stores[i].value) >= 3 && eval(stores[i].value) <= 98 && stores[i].value != "35" && stores[i].value != "46"
+         && stores[i].value != "50"  && stores[i].value != "55")
+       {
+          stores[i].checked = mark;
+       }
+       else { stores[i].checked = false; }
+    }
+    allstr.checked = false;
+    schstr.checked = false;
+    whsstr.checked = false;
+    mall.checked = false;
+    nmall.checked = false;
+  }
+  else if (group == "SCH")
+  {
+    for(var i=0; i < stores.length; i++ )
+    {
+       if  (stores[i].value == "35" || stores[i].value == "46"  || stores[i].value == "50"
+         || stores[i].value == "55" || stores[i].value == "56" ) { stores[i].checked = mark; }
+       else { stores[i].checked = false; }
+    }
+    allstr.checked = false;
+    sasstr.checked = false;
+    whsstr.checked = false;
+    mall.checked = false;
+    nmall.checked = false;
+  }
+  else if (group == "WHS")
+  {
+    for(var i=0; i < stores.length; i++ )
+    {
+       if  (stores[i].value == "1" || stores[i].value == "55") { stores[i].checked = mark; }
+       else { stores[i].checked = false; }
+    }
+    allstr.checked = false;
+    sasstr.checked = false;
+    schstr.checked = false;
+    mall.checked = false;
+    nmall.checked = false;
+  }
+  else if (group == "MALL")
+  {
+    for(var i=0; i < stores.length; i++ )
+    {
+       if  (stores[i].value == "4" || stores[i].value == "40" || stores[i].value == "45"
+         || stores[i].value == "55" || stores[i].value == "63" || stores[i].value == "82"
+         || stores[i].value == "88" || stores[i].value == "98")
+       {
+          stores[i].checked = mark;
+       }
+       else { stores[i].checked = false; }
+    }
+    allstr.checked = false;
+    sasstr.checked = false;
+    schstr.checked = false;
+    nmall.checked = false;
+  }
+  else if (group == "NMALL")
+  {
+    for(var i=0; i < stores.length; i++ )
+    {
+       if  (stores[i].value == "3" || stores[i].value == "5" || stores[i].value == "8"
+         || stores[i].value == "10" || stores[i].value == "11" || stores[i].value == "20"
+         || stores[i].value == "28" || stores[i].value == "30" || stores[i].value == "35"
+         || stores[i].value == "46" || stores[i].value == "50" || stores[i].value == "61"
+         || stores[i].value == "66" || stores[i].value == "86" || stores[i].value == "92"
+         || stores[i].value == "93" || stores[i].value == "96")
+       {
+          stores[i].checked = mark;
+       }
+       else { stores[i].checked = false; }
+    }
+    allstr.checked = false;
+    sasstr.checked = false;
+    schstr.checked = false;
+    mall.checked = false;
+  }
+}
+//==============================================================================
+// clear store selection
+//==============================================================================
+function clrStrSel()
+{
+   var stores = document.all.STORE;
+   var allstr = document.all.STRALL;
+   var sasstr = document.all.STRSAS;
+   var schstr = document.all.STRSCH;
+   var whsstr = document.all.STRWHS;
+   var mall = document.all.STRMALL;
+   var nmall = document.all.STRNMALL;
+
+   for(var i=0; i < stores.length; i++ ) { stores[i].checked = false; }
+   allstr.checked = false;
+   sasstr.checked = false;
+   schstr.checked = false;
+   whsstr.checked = false;
+   mall.checked = false;
+   nmall.checked = false;
+}
+//==============================================================================
+// Load class dropdown menu
+//==============================================================================
+function doClsSelect() {
+    var df = document.forms[0];
+    var classes = [<%=sCls%>];
+    var clsNames = [<%=sClsName%>];
+
+    //  clear current classes
+        for (idx = df.CLASS.length; idx >= 0; idx--)
+            df.CLASS.options[idx] = null;
+   //  populate the class list
+        for (idx = 0; idx < classes.length; idx++){
+                df.CLASS.options[idx] = new Option(clsNames[idx], classes[idx]);
+        }
+}
+
+//==============================================================================
+// populate division list
+//==============================================================================
+function doDivSelect(id) {
+    var df = document.forms[0];
+    var divisions = [<%=sDiv%>];
+    var divisionNames = [<%=sDivName%>];
+    var depts = [<%=sDpt%>];
+    var deptNames = [<%=sDptName%>];
+    var dep_div = [<%=sDptGroup%>];
+
+    var allowed;
+
+    if (id == null || id == 0) {
+        //  populate the division list
+        for (idx = 0; idx < divisions.length; idx++)
+            df.DIVISION.options[idx] = new Option(divisionNames[idx],divisions[idx]);
+        id = 0;
+
+    }
+        allowed = dep_div[id].split(":");
+
+        //  clear current depts
+        for (idx = df.DEPARTMENT.length; idx >= 0; idx--)
+            df.DEPARTMENT.options[idx] = null;
+
+        // make chekbox visible only for all division
+        if (df.DIVISION.options[df.DIVISION.selectedIndex].value !="95"
+         && df.DIVISION.options[df.DIVISION.selectedIndex].value !="96"
+         && df.DIVISION.options[df.DIVISION.selectedIndex].value !="97"
+         && df.DIVISION.options[df.DIVISION.selectedIndex].value !="99"
+         && df.DIVISION.options[df.DIVISION.selectedIndex].value !="ALL")
+        {
+           document.all.spIncl900.style.visibility = "hidden";
+        }
+        else
+        {
+           document.all.spIncl900.style.visibility = "visible";
+        }
+
+        //  if all are to be displayed
+        if (allowed[0] == "all")
+            for (idx = 0; idx < depts.length; idx++)
+                df.DEPARTMENT.options[idx] = new Option(deptNames[idx],depts[idx]);
+
+        //  else display the desired depts
+        else
+            for (idx = 0; idx < allowed.length; idx++)
+            {
+                df.DEPARTMENT.options[idx] = new Option(deptNames[allowed[idx]],
+                                                        depts[allowed[idx]]);
+            }
+    }
+
+//==============================================================================
+// Set Action
+//==============================================================================
+function setAction(target){
+  var form = document.forms[0];
+  var action = null;
+  form.action = action;
+
+   // go to select class
+  if(target==0) action = "PISumAdjSel.jsp";
+  else if(target==1) { action = "PISumAdj.jsp"; form.BYCHAIN.value = "N"; }
+  else if(target==2) { action = "PISumAdj.jsp"; form.BYCHAIN.value = "Y"; }
+  form.action = action;
+}
+//==============================================================================
+// Validate form
+//==============================================================================
+  function Validate(){
+  var form = document.forms[0];
+  var error = false;
+  var msg;
+  var id_div = form.DIVISION.selectedIndex;
+  var id_dpt = form.DEPARTMENT.selectedIndex;
+  var id_str = form.STORE.selectedIndex;
+
+  var sel_Cls = "ALL";
+  var sel_Div = form.DIVISION.options[id_div].value;
+  var sel_Dpt = form.DEPARTMENT.options[id_dpt].value;
+  var sel_Div_Name = form.DIVISION.options[id_div].text;
+  var sel_Dpt_Name = form.DEPARTMENT.options[id_dpt].text;
+  var action;
+  var mode = "<%=sMode%>";
+
+  var stores = document.all.STORE;
+  var str = new Array();
+  var action;
+
+  // at least 1 store must be selected
+  var strsel = false;
+  for(var i=0, j=0; i < stores.length; i++ )
+  {
+     if(stores[i].checked)
+     {
+        strsel=true;
+        str[j] = stores[i].value;
+        j++;
+     }
+  }
+
+  if(!strsel)
+  {
+    msg += "\n Please, check at least 1 store";
+    error = true;
+  }
+
+
+  // set form action depend of mode
+  if (mode == 1)
+  {
+     form.DIVNAME.value = sel_Div_Name;
+     form.DPTNAME.value = sel_Dpt_Name;
+     if(sel_Dpt==900) form.Incl900.checked=true;
+  }
+  else
+  {
+    id_cls = form.CLASS.selectedIndex;
+    sel_Cls = form.CLASS.options[id_cls].value;
+  }
+  if (error) alert(msg);
+  else  {
+      form.mode.value = ++mode;
+      form.LEVEL.value = getLevel(sel_Div, sel_Dpt, sel_Cls);
+  }
+
+  var picalnm = form.PICal.options[form.PICal.selectedIndex].text;
+  form.PICalNm.value = picalnm;
+  var picalnm1 = form.PICal1yrBk.options[form.PICal1yrBk.selectedIndex].text;
+  form.PICalNm1yb.value = picalnm1;
+  var picalnm2 = form.PICal2yrBk.options[form.PICal2yrBk.selectedIndex].text;
+  form.PICalNm2yb.value = picalnm2;
+
+  return error == false;
+}
+//==============================================================================
+// check if valid number
+//==============================================================================
+function isNum(str) {
+  if(!str) return false;
+  for(var i=0; i < str.length; i++){
+    var ch=str.charAt(i);
+    if ("0123456789".indexOf(ch) ==-1) return false;
+  }
+  return true;
+}
+//==============================================================================
+// return selected level
+//==============================================================================
+function  getLevel(selDiv, selDpt, selCls)
+{
+  var Level = null;
+    if(selDiv=="ALL" && selDpt=="ALL" && selCls=="ALL") Level = "000";
+    else if(selDiv !="ALL" && selDpt=="ALL" && selCls=="ALL") Level = "100";
+    else if(selDpt!="ALL") Level = "010";
+    else if(selCls!="ALL") Level = "010";
+  return Level;
+}
+//-----------------------------------------------------------
+// show all departments
+//-----------------------------------------------------------
+function ShowAllDpt()
+{
+  var incl = " ";
+  if(document.forms[0].Incl900.checked) incl="Y";
+
+  var url = "PISumAdj.jsp?DIVISION=ALL&DEPARTMENT=ALL&CLASS=ALL"
+          + "&LEVEL=100"
+          + "&Incl900=" + incl
+          + "&BYCHAIN=Y"
+  for(var i=0; i < document.forms[0].STORE.length; i++)
+  {
+     if(document.forms[0].STORE[i].checked)
+     {
+       url += "&STORE=" + document.forms[0].STORE[i].value
+     }
+  }
+
+  //alert(url);
+  window.location.href=url
+}
+//-----------------------------------------------------------
+// show all classes
+//-----------------------------------------------------------
+function ShowAllCls()
+{
+  var incl = " ";
+  if(document.forms[0].Incl900.checked) incl="Y";
+
+  var url = "PISumAdj.jsp?DIVISION=ALL&DEPARTMENT=ALL&CLASS=ALL"
+          + "&LEVEL=010"
+          + "&Incl900=" + incl
+          + "&BYCHAIN=Y"
+  for(var i=0; i < document.forms[0].STORE.length; i++)
+  {
+     if(document.forms[0].STORE[i].checked)
+     {
+       url += "&STORE=" + document.forms[0].STORE[i].value
+     }
+  }
+  //alert(url);
+  window.location.href=url
+}
+</script>
+
+
+<HTML><HEAD>
+
+<META content="Microsoft FrontPage 4.0" name=GENERATOR></HEAD>
+<BODY onload="bodyLoad();">
+
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD colSpan=2 height="20%"><IMG
+    src="Sun_ski_logo4.png"></TD></TR>
+  <TR bgColor=moccasin>
+    <TD vAlign=top width="15%" bgColor=#a7b5e8><FONT face=Arial color=#445193
+      size=2>&nbsp;&nbsp;<A class=blue
+      href="/">Home</A></FONT><FONT
+      face=Arial color=#445193 size=1>
+      <H5>&nbsp;&nbsp;Miscellaneous</H5>&nbsp;&nbsp;<A class=blue
+      href="mailto:">Send e-mail</A> <BR>&nbsp;&nbsp;<A
+      class=blue href="http://sunandski.com/">Our Internet</A> <BR></FONT></TD>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>Physical Inventory Adjustment Report - Selection</B>
+
+      <FORM  method="GET" onSubmit="return Validate(this)">
+      <TABLE border=0>
+        <TBODY>
+        <!-- --------------------------------------- -->
+        <TR>
+          <TD align=right>Division:</TD>
+          <TD style="vertical-align:top; text-align:left; width:40%;">
+             <SELECT name="DIVISION" onchange="doDivSelect(this.selectedIndex);">
+               <OPTION value="ALL">All Division</OPTION>
+             </SELECT>
+             <INPUT type=hidden  name=DIVNAME>
+          </TD>
+        </TR>
+        <!-- --------------------------------------- -->
+        <TR>
+          <TD style="vertical-align:top; text-align:right;">Department:</TD>
+          <TD style="vertical-align:top; text-align:left; width:40%;">
+             <SELECT name=DEPARTMENT >
+                <OPTION value="ALL">All Department</OPTION>
+             </SELECT>
+             <INPUT type=hidden  name=DPTNAME>
+          </TD>
+          <TD align=left>
+            <span style="color:red">*Stores - Do not check mark this!</span><br>
+            <span id="spIncl900"><input type="checkbox" name="Incl900" value="Y">
+                 Include Div: 94 - 98, Dpt: 900-Demos,<br> 986-Liquidation and <br> 988-Lift Tickets</span>
+          </TD>
+        </TR>
+        <!-- --------------------------------------- -->
+        <TR>
+         <% if (sMode.equals("2")) {%>
+            <TD align=right >Class:</TD>
+            <TD align=left>
+               <SELECT name=CLASS>
+                  <OPTION value="ALL">All Classes</OPTION>
+                </SELECT>
+            </TD>
+             <%} else {%>
+             <TD><INPUT type="hidden" value="ALL" name="CLASS"></TD>
+             <%}%>
+        </TR>
+        <TR>
+          <TD align=left ></td>
+          <TD align=left colspan=2>
+               <button name="DPTLVL" onclick="ShowAllDpt()">All Department</button>&nbsp;&nbsp;&nbsp;&nbsp;
+               <button name="CLSLVL" onclick="ShowAllCls()">All Classes</button>&nbsp;&nbsp;&nbsp;&nbsp;
+
+               <% if (sMode.equals("1")) {%>
+                  <INPUT type=submit value="Select Class" name=SUBMIT onClick="setAction(0)">
+               <%} else{%>
+                   <INPUT type="BUTTON" name="Back" value="Select Div/Dept" onClick="javascript:history.back()">
+               <%}%>
+          </TD>
+        </TR>
+        <!-- --------------------------------------- -->
+        <!-- =============================================================== -->
+        <TR><TD style="border-bottom:darkred solid 1px" colspan="4" >&nbsp;</TD></TR>
+        <TR>
+          <TD class="Cell">Store:</TD>
+          <TD class="Cell1" colspan=2>
+             <input name="STRALL" type="checkbox" value="ALL" onclick="chgStrSel(this)" checked>All Stores &nbsp;&nbsp;
+             <input name="STRSAS" type="checkbox" value="SAS" onclick="chgStrSel(this)">Sun and Ski &nbsp;&nbsp;
+             <input name="STRSCH" type="checkbox" value="SCH" onclick="chgStrSel(this)">Ski Chalet &nbsp;&nbsp;
+             <input name="STRWHS" type="checkbox" value="WHS" onclick="chgStrSel(this)">Warehouses &nbsp;&nbsp;
+             <input name="STRMALL" type="checkbox" value="MALL" onclick="chgStrSel(this)">Malls &nbsp;&nbsp;
+             <input name="STRNMALL" type="checkbox" value="NMALL" onclick="chgStrSel(this)">Non-Malls &nbsp;&nbsp;
+             <button class="Small" onclick="clrStrSel()">Reset</button>
+             <br><br>
+             <%for(int i=0; i<iNumOfStr; i++) {%>
+               <input name="STORE" type="checkbox" value="<%=sStr[i]%>" checked><%=sStr[i]%>&nbsp;&nbsp;
+               <%if(i == 15 || i == 30) {%><br><%}%>
+             <%}%>
+          </TD>
+        </TR>
+
+        <!-- =============================================================== -->
+        <TR><TD style="border-bottom:darkred solid 1px" colspan="4" >&nbsp;</TD></TR>
+        <TR>
+          <TD colspan=5>
+            <table cellPadding="0" cellSpacing="0">
+              <tr>
+                 <th class="Cell" nowrap colspan=3>&nbsp;</th>
+                 <th class="Cell" nowrap colspan=5>Also Show Result From:</th>
+              </tr>
+              <tr>
+                 <TD class="Cell" nowrap>PI Calendar:</TD>
+                 <TD class="Cell1"><select class="Small" name="PICal"></select><input name="PICalNm" type=hidden></td>
+                 <TD class="Cell" nowrap>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+                 <TD class="Cell" nowrap>PI Calendar:</TD>
+                 <TD class="Cell1"><select class="Small" name="PICal1yrBk"></select><input name="PICalNm1yb" type=hidden></td>
+                 <TD class="Cell" nowrap>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+                 <TD class="Cell" nowrap>PI Calendar:</TD>
+                 <TD class="Cell1"><select class="Small" name="PICal2yrBk"></select><input name="PICalNm2yb" type=hidden></td>
+              </tr>
+            </table>
+          </td>
+          </tr>
+        <!-- --------------------------------------- -->
+        <TR><TD style="border-bottom:darkred solid 1px" colspan="4" >&nbsp;</TD></TR>
+        <TR>
+            <TD></TD>
+            <TD align=left colSpan=5>
+               <INPUT type=submit value="Display by Store" name=SBMSTR onClick="setAction(1)">
+               &nbsp;&nbsp;&nbsp;&nbsp;
+               <INPUT type=submit value="Display by Merchandise Category" name=SBMCHAIN onClick="setAction(2)">
+               <INPUT name="LEVEL" type="hidden" value="<%=sLevel%>" >
+               <INPUT name="BYCHAIN" type="hidden">
+               <INPUT name="mode" type="hidden">
+           </TD>
+          </TR>
+          <!-- --------------------------------------- -->
+         </TBODY>
+        </TABLE>
+       </FORM>
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>

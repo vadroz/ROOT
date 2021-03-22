@@ -1,0 +1,868 @@
+<%@ page import="flashreps.SalesTyLy, java.util.*, java.text.SimpleDateFormat"%>
+<%
+   long lStartTime = (new Date()).getTime();
+
+   String sStore = request.getParameter("Store");
+   String sDivision = request.getParameter("Division");
+   String sDepartment = request.getParameter("Department");
+   String sClass = request.getParameter("Class");
+   String sLevel = request.getParameter("Level");
+   String sDate = request.getParameter("Date");
+   String sPeriod = request.getParameter("Period");
+   String sSort = request.getParameter("Sort");
+
+   if(sStore == null) sStore = "ALL";
+   if(sDivision == null) sDivision = "ALL";
+   if(sDepartment == null) sDepartment = "ALL";
+   if(sClass == null) sClass = "ALL";
+   if(sLevel == null) sLevel = "S";
+   if(sSort == null) sSort = "GRP";
+
+   // Set yesturday as default date
+    SimpleDateFormat sdfNow = new SimpleDateFormat("MM/dd/yyyy");
+    Date curdt = new Date((new Date()).getTime() - 86400000);
+    String sYesturday = sdfNow.format(curdt);
+   if(sDate == null) sDate = sYesturday;
+   if(sPeriod == null) sPeriod = "MTDTYLY";
+
+   /*System.out.println(sDivision + " " + sDepartment + " " + sClass + " "
+          + sStore + " " + sDate + " " + sLevel + " " + sPeriod + " " + sSort);*/
+
+    SalesTyLy slsTyLy = new SalesTyLy(sDivision, sDepartment, sClass, sStore, sDate,
+                                      sPeriod, sLevel, sSort);
+    int iNumOfGrp = slsTyLy.getNumOfGrp();
+    String [] sGrp = slsTyLy.getGrp();
+    String [] sGrpName = slsTyLy.getGrpName();
+
+    String [] sTyDate = slsTyLy.getTyDate();
+    String [] sLyDate = slsTyLy.getLyDate();
+
+    int iNumOfReg = slsTyLy.getNumOfReg();
+    String [] sReg = slsTyLy.getReg();
+    int [] iNumOfStrInReg = slsTyLy.getNumStrInReg();
+    String [][] sStr = slsTyLy.getStr();
+
+    String [][] sTySls = slsTyLy.getTySls();
+    String [][] sLySls = slsTyLy.getLySls();
+    String [][] sVar = slsTyLy.getVar();
+
+    // Mall / Ski totals
+    String [] sMall = slsTyLy.getMall();
+    String [][] sMallTySls = slsTyLy.getMallTySls();
+    String [][] sMallLySls = slsTyLy.getMallLySls();
+    String [][] sMallVar = slsTyLy.getMallVar();
+
+    // Region totals
+    String [][] sRegTySls = slsTyLy.getRegTySls();
+    String [][] sRegLySls = slsTyLy.getRegLySls();
+    String [][] sRegVar = slsTyLy.getRegVar();
+
+    // Report totals
+    String [] sRepTySls = slsTyLy.getRepTySls();
+    String [] sRepLySls = slsTyLy.getRepLySls();
+    String [] sRepVar = slsTyLy.getRepVar();
+
+    // Selected Parameters Names
+    String sSelDivName = slsTyLy.getSelDivName();
+    String sSelDptName = slsTyLy.getSelDptName();
+    String sSelClsName = slsTyLy.getSelClsName();
+    String sSelStrName = slsTyLy.getSelStrName();
+
+    String sAvail = slsTyLy.getAvailJsa();
+
+    slsTyLy.disconnect();
+
+
+    String sColName = "Str";
+    if (sLevel.equals("D")) sColName = "Div";
+    if (sLevel.equals("P")) sColName = "Dpt";
+    if (sLevel.equals("C")) sColName = "Cls";
+
+    String sLyCol = "LY";
+    if (sPeriod.substring(5).equals("PLAN")) sLyCol = "Plan";
+
+    String sDispBy = null;
+    if (!sLevel.equals("S")) sDispBy = "Str";
+    else if ((sDivision.equals("ALL") || sDivision.substring(0, 2).equals("SK"))&& sDepartment.equals("ALL") && sClass.equals("ALL")) sDispBy = "Div";
+    else if (!sDivision.equals("ALL") && sDepartment.equals("ALL") && sClass.equals("ALL")) sDispBy = "Dpt";
+    else if (!sDepartment.equals("ALL") || !sClass.equals("ALL")) sDispBy = "Cls";
+
+    long lEndTime = (new Date()).getTime();
+    long lElapse = (lEndTime - lStartTime) / 1000;
+    if (lElapse==0) lElapse = 1;
+%>
+
+<html>
+<head>
+<Meta http-equiv="refresh">
+<style>body {background:ivory;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { border: darkred solid 1px;background:#FFE4C4;text-align:center;}
+        table.Prompt { border: gray groove 1px;}
+
+        tr.TblHdr { background:#FFE4C4; font-family:Verdanda; font-size:10px }
+
+        tr.DataTable { background:#efefef; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:PaleTurquoise; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:cornsilk; font-family:Arial; font-size:10px }
+        tr.DataTable3 { background:lightgrey; font-family:Arial; font-size:10px }
+        tr.DataTable4 { background:cornsilk; font-size:1px}
+        tr.DataTable5 { background:khaki; font-family:Arial; font-size:10px }
+
+
+        td.DataTable { padding-top:2px; padding-bottom:2px; padding-left:2px; padding-right:2px;
+                        border-bottom: #FFCC99 solid 1px; border-right: darkred solid 1px;
+                        text-align:right;}
+        td.DataTable1 { padding-top:2px; padding-bottom:2px; padding-left:2px;
+                       padding-right:2px; border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                       text-align:left;}
+        td.DataTable2 { padding-top:1px; padding-right:1px;
+                        border-bottom: darkred solid 1px; border-right: darkred solid 1px;}
+        td.DataTable3 { padding-top:2px; padding-bottom:2px; padding-left:2px; padding-right:2px;
+                       border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                       text-align:center;}
+        td.DataTable4 { padding-top:2px; padding-bottom:2px; padding-left:2px; padding-right:2px;
+                       border-bottom: #FFCC99 solid 1px; border-right: darkred solid 1px;
+                       text-align:center;}
+        td.DataTable5 { cursor:hand; color:blue; padding-top:2px; padding-bottom:2px; padding-left:2px; padding-right:2px;
+                       border-bottom: #FFCC99 solid 1px; border-right: darkred solid 1px;
+                       text-align:left; text-decoration:underline;}
+        td.DataTable6 { cursor:hand; color:blue; padding-top:2px; padding-bottom:2px; padding-left:2px; padding-right:2px;
+                       border-bottom: #FFCC99 solid 1px; border-right: darkred solid 1px;
+                       text-align:center; text-decoration:underline;}
+
+
+        div.dvPrompt { position:absolute; visibility:hidden; background-attachment: scroll;
+              border:ridge; width:250; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        div.selBox {cursor:hand; background:cornsilk; border: darkblue solid 2px; padding-top:2px; height:30px;
+                    font-family:Arial; font-size:11px; text-align:left;}
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt {border: lightgrey outset 1px; text-align:left; font-family:Arial; font-size:10px; }
+        td.Prompt1 {border: lightgrey outset 1px; text-align:center; font-family:Arial; font-size:10px; }
+
+        .Small {font-family:Arial; font-size:10px }
+        input.Small {margin-top:2px; font-family:Arial; font-size:10px }
+
+</style>
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+var Store = "<%=sStore%>";
+var Division = "<%=sDivision%>";
+var Department = "<%=sDepartment%>";
+var Class = "<%=sClass%>";
+var Level = "<%=sLevel%>";
+var SelectedDate = "<%=sDate%>";
+var Period = "<%=sPeriod%>";
+var Sort = "<%=sSort%>";
+
+var Avail = [<%=sAvail%>]
+
+var Div = null;
+var DivName = null;
+var Dpt = null;
+var DptName = null;
+var DptGroup = null;
+var Str = null;
+var StrName = null;
+//--------------- End of Global variables ----------------
+function bodyLoad()
+{
+  setBoxclasses(["BoxName",  "BoxClose"], ["dvPrompt"]);
+  window.document.focus();
+}
+//==============================================================================
+// sort feature
+//==============================================================================
+function sortBy(sort)
+{
+   url = "FlashSalesTyLy.jsp?"
+     + "Store=" + Store
+     + "&Division=" + Division
+     + "&Department=" + Department
+     + "&Class=" + Class
+     + "&Date=" + SelectedDate
+     + "&Period=" + Period
+     + "&Level=" + Level
+     + "&Sort=" + sort
+
+   //alert(url);
+   window.location.href=url;
+}
+//==============================================================================
+// Drilldown feature
+//==============================================================================
+function drillDown(grp)
+{
+   url = "FlashSalesTyLy.jsp?"
+   if (grp=="ALL")
+   {
+     url += "Store=" + Store.trim()
+         + "&Division=" + Division.trim()
+         + "&Department=" + Department
+         + "&Class=" + Class;
+   }
+   else if (Level=="S")
+   {
+     url += "Store=" + grp
+         + "&Division=" + Division.trim()
+         + "&Department=" + Department
+         + "&Class=" + Class;
+   }
+   else if (Level=="D")
+   {
+     url += "Store=" + Store.trim()
+         + "&Division=" + grp.trim()
+         + "&Department=" + Department
+         + "&Class=" + Class;
+   }
+   else if (Level=="P")
+   {
+     url += "Store=" + Store.trim()
+         + "&Division=" + Division.trim()
+         + "&Department=" + grp.trim()
+         + "&Class=" + Class;
+   }
+   else if (Level=="C")
+   {
+     url += "Store=" + Store.trim()
+         + "&Division=" + Division.trim()
+         + "&Department=" + Department
+         + "&Class=" + grp.trim();
+   }
+
+   url += "&Date=" + SelectedDate
+       + "&Period=" + Period
+       + "&Level=" + setNextLvl(grp)
+       + "&Sort=" + Sort;
+
+   //alert(url);
+   window.location.href=url;
+
+}
+//==============================================================================
+// set level for drilldown report
+//==============================================================================
+function setNextLvl(grp)
+{
+  var lvl = null;
+
+  if (Level=="S")
+  {
+    if (grp.substring(0, 3)=="REG") lvl = "S";
+    else if (grp.substring(0, 4)=="MALL") lvl = "S";
+    else if ( (Division=="ALL" || Division.substring(0, 2)=="SK")
+                             && Department=="ALL" && Class=="ALL") lvl = "D";
+    else if (Division!="ALL" && Class=="ALL") lvl = "P";
+    else if (Department!="ALL" || Class!="ALL") lvl = "C";
+  }
+  else if (grp.substring(0, 2)=="SK") { lvl="D"; }
+  else if (grp!="ALL" && Level == "D") { lvl="P";}
+  else if (grp!="ALL" && Level == "P") { lvl="C";  }
+  else if (grp!="ALL" && Level == "C" && Store=="ALL") { lvl="S";  }
+  else if (Store.substring(0, 4)=="MALL" && grp=="ALL") { lvl="S";}
+  else if (Division.substring(0, 2)=="SK" && grp=="ALL") { lvl="S";}
+
+  return lvl;
+}
+//==============================================================================
+// change selection
+//==============================================================================
+function chgSelection()
+{
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>Select Another Report</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>";
+
+    html += "<table width='100%' width='100%' cellPadding='0' cellSpacing='0'>"
+          + "<tr><td class='Prompt'>Div:</td>"
+            + "<td class='Prompt'><select class='Small' name='Division' onchange='doDivSelect(this.selectedIndex);'></select></td></tr>"
+      + "<tr><td class='Prompt'>Dpt:</td>"
+            + "<td class='Prompt'><select class='Small' name='Department' onChange='clearClassSel()'></select>"
+            + "&nbsp;<button onClick='rtvClasses()' class='Small'>Classes</button></td></tr>"
+      + "<tr><td class='Prompt'>Class:</td>"
+         + "<td class='Prompt'><select class='Small' name='Class'></select></td></tr>"
+      + "<tr><td class='Prompt'>Store:</td>"
+         + "<td class='Prompt'><select class='Small' name='Store' onChange='onStrChg(this)'></select>"
+         + "<span id='spChain'><input name='Chain' type='checkbox' value='S'>By Chain</span></td></tr>"
+      + "<tr><td class='Prompt'' nowrap colspan=2>"
+         + "Report:<br>"
+         + "<input name='Report' type='radio' value='MTDTYLY' checked>TY vs. LY MTD &nbsp;&nbsp;"
+         + "<input name='Report' type='radio' value='YTDTYLY'>TY vs. LY QTD & YTD<br>"
+         + "<input name='Report' type='radio' value='MTDTYPLAN'>TY vs. Plan MTD &nbsp;&nbsp;"
+         + "<input name='Report' type='radio' value='YTDTYPLAN'>TY vs. Plan QTD & YTD"
+      + "</tr></td>"
+      + "<tr><td class='Prompt'>Date:"
+         + "<td class='Prompt'><select class='Small' name='Date'></select></td></tr>"
+      + "<tr><td class='Prompt1' colspan=2><button onClick='submitReport()' class='Small'>Submit</button></td></tr>"
+     + "</table>"
+     + "</tr></td>"
+   + "</table>"
+
+   document.all.dvPrompt.innerHTML = html;
+   document.all.dvPrompt.style.pixelLeft= document.documentElement.scrollLeft + 400;
+   document.all.dvPrompt.style.pixelTop= document.documentElement.scrollTop + 130;
+   document.all.dvPrompt.style.visibility = "visible";
+
+   // retreive division and department
+   rtvDivDptCls("ALL", "ALL", "DIVDPT");
+   rtvStores();
+   setDates();
+}
+
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.dvPrompt.innerHTML = " ";
+   document.all.dvPrompt.style.visibility = "hidden";
+}
+//==============================================================================
+// retreive classes
+//==============================================================================
+function rtvClasses()
+{
+   var div = document.all.Division.options[document.all.Division.selectedIndex].value
+   var dpt = document.all.Department.options[document.all.Department.selectedIndex].value
+   rtvDivDptCls(div, dpt, "CLASS");
+}
+//==============================================================================
+// retreive div/dpt/classes
+//==============================================================================
+function rtvDivDptCls(div, dpt, info)
+{
+   var url = "RetreiveDivDptCls.jsp?"
+           + "Division=" + div
+           + "&Department=" + dpt
+           + "&Info=" + info;
+
+   //alert(url);
+   //window.location.href = url;
+   window.frame1.location = url;
+}
+//==============================================================================
+// retreive Stores
+//==============================================================================
+function rtvStores()
+{
+   var url = "RetreiveStore.jsp?";
+   //alert(url);
+   //window.location.href = url;
+   window.frame2.location = url;
+}
+//==============================================================================
+// set Date array
+//==============================================================================
+function  setDates()
+{
+   for(var i=0; i < Avail.length; i++)
+   {
+      document.all.Date.options[i] = new Option(Avail[i], Avail[i])
+   }
+}
+
+//==============================================================================
+// show selected classes
+//==============================================================================
+function showClasses(cls, clsName)
+{
+   if(document.all.Class != null)
+   {
+      // clear
+      for(var i = document.all.Class.length; i >= 0; i--) {document.all.Class.options[i] = null;}
+
+      //popilate
+      for(var i=0; i < cls.length; i++)
+      {
+        document.all.Class.options[i] = new Option(clsName[i], cls[i]);
+      }
+      window.frame1.close();
+   }
+}
+//==============================================================================
+// show selected Division/ department
+//==============================================================================
+function showDivDpt(div, divName, dpt, dptName, dptGroup)
+{
+   window.frame1.close();
+   Div = div;
+   DivName = divName;
+   Dpt = dpt;
+   DptName = dptName;
+   DptGroup = dptGroup;
+   // populate division and department
+   if(document.all.Division != null) doDivSelect(null);
+}
+//==============================================================================
+// show selected Division/ department
+//==============================================================================
+function showStores(str, strName)
+{
+   Str = str;
+   StrName = strName;
+   window.frame2.close();
+   if(document.all.Store != null) doStrSelect();
+}
+//==============================================================================
+// populate division dropdown menu
+//==============================================================================
+function doDivSelect(id) {
+    var df = document.all;
+
+    var allowed;
+
+    if (id == null || id == 0) {
+        //  populate the division list
+        for (var i = 0; i < Div.length; i++)
+            df.Division.options[i] = new Option(DivName[i], Div[i]);
+        id = 0;
+    }
+        allowed = DptGroup[id].split(":");
+
+        //  clear current depts
+        for (var i = df.Department.length; i >= 0; i--) df.Department.options[i] = null;
+
+        //  if all are to be displayed
+        if (allowed[0] == "all")
+            for (var i = 0; i < Dpt.length; i++)
+                df.Department.options[i] = new Option(DptName[i],Dpt[i]);
+
+        //  else display the desired depts
+        else
+            for (var i = 0; i < allowed.length; i++)
+                df.Department.options[i] = new Option(DptName[allowed[i]], Dpt[allowed[i]]);
+        clearClassSel();
+}
+//==============================================================================
+// Load Stores
+//==============================================================================
+function doStrSelect() {
+    var df = document.all;
+    for (var i = 0; i < Str.length; i++)
+    {
+       df.Store.options[i] = new Option(Str[i] + " - " + StrName[i], Str[i]);
+    }
+}
+//==============================================================================
+// clear Class dropdown menu
+//==============================================================================
+function clearClassSel()
+{
+   //  clear current classes
+   for (var i = document.all.Class.length; i >= 0; i--)
+   {
+      document.all.Class.options[i] = null;
+   }
+   document.all.Class.options[0] = new Option("All Classes","ALL");
+}
+//==============================================================================
+// check, if level must be set visible or not depend on store selection
+//==============================================================================
+function onStrChg(str)
+{
+   if (str.value != "ALL"){ document.all.spChain.style.visibility = "hidden" }
+   else { document.all.spChain.style.visibility = "visible" }
+}
+//==============================================================================
+// submit report
+//==============================================================================
+function submitReport()
+{
+  var form = document.all;
+  var error = false;
+  var msg;
+  var divIdx = form.Division.selectedIndex;
+  var dptIdx = form.Department.selectedIndex;
+  var clsIdx = form.Class.selectedIndex;
+  var strIdx = form.Store.selectedIndex;
+  var dateIdx = form.Date.selectedIndex;
+
+  var div = form.Division.options[divIdx].value;
+  var dpt = form.Department.options[dptIdx].value;
+  var cls = form.Store.options[clsIdx].value;
+  var str = form.Store.options[strIdx].value;
+  var divnm = form.Division.options[divIdx].text;
+  var dptnm = form.Department.options[dptIdx].text;
+  var clsnm = form.Class.options[clsIdx].text;
+  var date = form.Date.options[dateIdx].value;
+  var level = null;
+  var period = null;
+
+  // Report Level
+  if(str == "ALL" && !document.all.Chain.checked) level = "S";
+  else if(cls != "ALL" || dpt != "ALL") level = "C";
+  else if(div != "ALL" ) level = "P";
+  else level = "D";
+
+  // Report type
+  if(document.all.Report[0].checked) period = document.all.Report[0].value;
+  else if(document.all.Report[1].checked) period = document.all.Report[1].value;
+  else if(document.all.Report[2].checked) period = document.all.Report[2].value;
+  else if(document.all.Report[3].checked) period = document.all.Report[3].value;
+
+  var url = "FlashSalesTyLy.jsp?"
+     + "Store=" + str
+     + "&Division=" + div
+     + "&DivName=" + divnm
+     + "&Department=" + dpt
+     + "&DptName=" + dptnm
+     + "&Class=" + cls
+     + "&clsName=" + clsnm
+     + "&Date=" + date
+     + "&Level=" + level
+     + "&Period=" + period
+
+   //alert(url)
+   window.location.href=url
+}
+
+</SCRIPT>
+<!-------------------------------------------------------------------->
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<!-------------------------------------------------------------------->
+</head>
+
+
+<!-------------------------------------------------------------------->
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<iframe  id="frame2"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+
+<div id="dvPrompt" class="dvPrompt"></div>
+<!-------------------------------------------------------------------->
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr bgColor="ivory">
+<!-------------------------------------------------------------------->
+<!-------------------------------------------------------------------->
+      <td ALIGN="left" VALIGN="TOP" width="10%" style="padding-left:10px;padding-top:3px; padding-right:10px;" nowrap>
+        <div id="selBox" class="selBox" onClick="chgSelection()">
+           <a href="javascript:chgSelection()">Report Selections</a>
+           <br>Store: <b><%=sSelStrName%></b>
+           <br>Div: <b><%=sSelDivName%></b>
+           <br>Dpt: <b><%=sSelDptName%></b>
+           <br>Class: <b><%=sSelClsName%></b>
+           <br>Date: <b><%=sDate%></b></div>
+      </td>
+<!-------------------------------------------------------------------->
+
+      <td ALIGN="center" VALIGN="TOP" nowrap>
+        <b>Retail Concepts, Inc
+        <br>Flash Sales Comparison Report: TY vs. LY
+        <br>Compare date Range <%=sTyDate[1]%> thru <%=sTyDate[7]%>
+            to Range <%=sLyDate[1]%> thru <%=sLyDate[7]%>
+        <br></b>
+      </td>
+
+      <td nowrap width="10%" style="text-align:right;font-size:10px; font-weigth:bold;">Elapse: <%=lElapse%> sec.</td>
+    </tr>
+
+     <tr bgColor="ivory">
+      <td ALIGN="center" VALIGN="TOP" colspan=3>
+
+      <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+          <a href="rciWeeklyReports.html"><font color="red" size="-1">Flash Reports</font></a>&#62;
+          <a href="FlashSalesSel.jsp"><font color="red" size="-1">Select Report</font></a>&#62;
+          <font size="-1">This Page.
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          </font>
+
+
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0" width="100%">
+        <tr class="TblHdr">
+	  <td class="DataTable3"  rowspan="3">
+            <a href="javascript:sortBy('GRP')"><%=sColName%></a><br><br>
+          <%if(sStore.equals("ALL") || sStore.substring(0, 3).equals("REG") || sStore.substring(0, 4).equals("MALL")){%><a href="javascript:drillDown('ALL')">(by <%=sDispBy%>)</a><%}%></td>
+          <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+             <td class="DataTable3" colspan="2">Monday</td>
+             <td class="DataTable3" colspan="2">Tuesday</td>
+             <td class="DataTable3" colspan="2">Wednesday</td>
+             <td class="DataTable3" colspan="2">Thursday</td>
+             <td class="DataTable3" colspan="2">Friday</td>
+             <td class="DataTable3" colspan="2">Saturday</td>
+             <td class="DataTable3" colspan="2">Sunday</td>
+             <td class="DataTable3" colspan="3">Week To Date</td>
+             <td class="DataTable3" rowspan="3"><a href="javascript:sortBy('WKENDLY')"><%=sLyCol%><br>Week<br>Ending</a></td>
+          <%}%>
+          <td class="DataTable3" colspan="3">Month To Date</td>
+          <td class="DataTable3" rowspan="3"><a href="javascript:sortBy('MNENDLY')"><%=sLyCol%><br>Month<br>Ending</a></td>
+
+          <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+            <td class="DataTable3" colspan="3">Quater To Date</td>
+            <td class="DataTable3" colspan="3">Year To Date</td>
+          <%}%>
+          <td class="DataTable3"  rowspan="3"><%=sColName%></td>
+        </tr>
+        <tr class="TblHdr">
+          <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+             <td class="DataTable3">TY</td>
+             <td class="DataTable3"><%=sLyCol%></td>
+
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('WTDTY')">TY</a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('WTDLY')"><%=sLyCol%></a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('WTDVAR')">Var</a></td>
+          <%}%>
+          <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('MTDTY')">TY</a></td>
+          <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('MTDLY')"><%=sLyCol%></a></td>
+          <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('MTDVAR')">Var</a></td>
+          <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('QTDTY')">TY</a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('QTDLY')"><%=sLyCol%></a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('QTDVAR')">Var</a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('YTDTY')">TY</a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('YTDLY')"><%=sLyCol%></a></td>
+             <td class="DataTable3" rowspan="2"><a href="javascript:sortBy('YTDVAR')">Var</a></td>
+          <%}%>
+        </tr>
+        <tr class="TblHdr">
+         <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+            <td class="DataTable3"><%=sTyDate[0].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[0].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[1].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[1].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[2].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[2].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[3].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[3].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[4].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[4].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[5].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[5].substring(0,5)%></td>
+            <td class="DataTable3"><%=sTyDate[6].substring(0,5)%></td>
+            <td class="DataTable3"><%=sLyDate[6].substring(0,5)%></td>
+          <%}%>
+        </tr>
+<!------------------------------- Data Detail --------------------------------->
+      <%for(int i=0, str=0, reg=0; i < iNumOfGrp; i++) {%>
+        <tr class="DataTable">
+           <%if(sPeriod.indexOf("PLAN") < 0  && (!sLevel.equals("C") || sStore.equals("ALL")) ) {%>
+               <td class="DataTable5" onClick="drillDown('<%=sGrp[i]%>')" nowrap>
+                   <%=sGrp[i] + " - " + sGrpName[i].substring(0, 10)%></td>
+           <%}
+           else {%><td class="DataTable1" ><%=sGrp[i] + " - " + sGrpName[i].substring(0, 10)%></td><%}%>
+
+         <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+           <td class="DataTable4"><%=sTySls[i][0]%></td>
+           <td class="DataTable4"><%=sLySls[i][0]%></td>
+           <td class="DataTable4"><%=sTySls[i][1]%></td>
+           <td class="DataTable4"><%=sLySls[i][1]%></td>
+           <td class="DataTable4"><%=sTySls[i][2]%></td>
+           <td class="DataTable4"><%=sLySls[i][2]%></td>
+           <td class="DataTable4"><%=sTySls[i][3]%></td>
+           <td class="DataTable4"><%=sLySls[i][3]%></td>
+           <td class="DataTable4"><%=sTySls[i][4]%></td>
+           <td class="DataTable4"><%=sLySls[i][4]%></td>
+           <td class="DataTable4"><%=sTySls[i][5]%></td>
+           <td class="DataTable4"><%=sLySls[i][5]%></td>
+           <td class="DataTable4"><%=sTySls[i][6]%></td>
+           <td class="DataTable4"><%=sLySls[i][6]%></td>
+
+           <td class="DataTable4"><%=sTySls[i][7]%></td>
+           <td class="DataTable4"><%=sLySls[i][7]%></td>
+           <td class="DataTable4" nowrap><%=sVar[i][7]%>%</td>
+           <td class="DataTable4"><%=sLySls[i][8]%></td>
+         <%}%>
+
+           <td class="DataTable4"><%=sTySls[i][9]%></td>
+           <td class="DataTable4"><%=sLySls[i][9]%></td>
+           <td class="DataTable4" nowrap><%=sVar[i][9]%>%</td>
+           <td class="DataTable4"><%=sLySls[i][10]%></td>
+
+        <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+           <td class="DataTable4"><%=sTySls[i][11]%></td>
+           <td class="DataTable4"><%=sLySls[i][11]%></td>
+           <td class="DataTable4" nowrap><%=sVar[i][11]%>%</td>
+
+           <td class="DataTable4"><%=sTySls[i][12]%></td>
+           <td class="DataTable4"><%=sLySls[i][12]%></td>
+           <td class="DataTable4" nowrap><%=sVar[i][12]%>%</td>
+        <%}%>
+
+           <td class="DataTable4"><%=sGrp[i]%></td>
+        </tr>
+        <%if(sLevel.equals("S") && sSort.equals("GRP")) {%>
+           <%if(reg < iNumOfReg-1 && iNumOfStrInReg[reg] == str+1) {%>
+              <tr class="DataTable4"><td class="DataTable2" colspan="24">&nbsp;</td></tr>
+           <%
+               str = 0; reg++;
+             } else { str++; }%>
+
+        <%}%>
+      <%}%>
+      <!------------------------ End Details ---------------------------------->
+      <!------------------- Mall/Non-Mall Total or Non/-Ski Total ------------->
+      <%for(int i=0; i < 2; i++) {%>
+        <tr class="DataTable5">
+           <%if(sDivision.equals("ALL") && sLevel.equals("D")){%>
+                 <td class="DataTable6" onClick="drillDown('<%if(i==0){%>SKY<%} else {%>SKN<%}%>')"><%=sMall[i]%></td>
+           <%} else if(sStore.equals("ALL") && sLevel.equals("S")){%>
+                 <td class="DataTable6" onClick="drillDown('<%if(i==0){%>MALLY<%} else {%>MALLN<%}%>')"><%=sMall[i]%></td>
+           <%} else {%>
+                 <td class="DataTable4"><%=sMall[i]%></td>
+           <%}%>
+         <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+           <td class="DataTable4"><%=sMallTySls[i][0]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][0]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][1]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][1]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][2]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][2]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][3]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][3]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][4]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][4]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][5]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][5]%></td>
+           <td class="DataTable4"><%=sMallTySls[i][6]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][6]%></td>
+
+           <td class="DataTable4"><%=sMallTySls[i][7]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][7]%></td>
+           <td class="DataTable4"><%=sMallVar[i][7]%>%</td>
+           <td class="DataTable4"><%=sMallLySls[i][8]%></td>
+         <%}%>
+
+           <td class="DataTable4"><%=sMallTySls[i][9]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][9]%></td>
+           <td class="DataTable4"><%=sMallVar[i][9]%>%</td>
+           <td class="DataTable4"><%=sMallLySls[i][10]%></td>
+
+         <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+           <td class="DataTable4"><%=sMallTySls[i][11]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][11]%></td>
+           <td class="DataTable4"><%=sMallVar[i][11]%>%</td>
+           <td class="DataTable4"><%=sMallTySls[i][12]%></td>
+           <td class="DataTable4"><%=sMallLySls[i][12]%></td>
+           <td class="DataTable4"><%=sMallVar[i][12]%>%</td>
+         <%}%>
+
+           <td class="DataTable4"><%=sMall[i]%></td>
+        </tr>
+      <%}%>
+    <!------------------- End  Non/-Ski Total ------------------------------->
+
+
+    <!------------------- Regional Total ------------------------------------>
+    <%if(sLevel.equals("S")) {%>
+      <%for(int i=0; i < iNumOfReg; i++) {%>
+        <tr class="DataTable1">
+           <%if(sStore.substring(0, 3).equals("ALL")){%>
+              <td class="DataTable6" onClick="drillDown('REG<%=sReg[i]%>')">Reg <%=sReg[i]%></td>
+           <%} else {%>
+               <td class="DataTable4">Reg <%=sReg[i]%></td>
+           <%}%>
+         <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+           <td class="DataTable4"><%=sRegTySls[i][0]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][0]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][1]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][1]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][2]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][2]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][3]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][3]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][4]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][4]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][5]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][5]%></td>
+           <td class="DataTable4"><%=sRegTySls[i][6]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][6]%></td>
+
+           <td class="DataTable4"><%=sRegTySls[i][7]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][7]%></td>
+           <td class="DataTable4"><%=sRegVar[i][7]%>%</td>
+           <td class="DataTable4"><%=sRegLySls[i][8]%></td>
+         <%}%>
+
+           <td class="DataTable4"><%=sRegTySls[i][9]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][9]%></td>
+           <td class="DataTable4"><%=sRegVar[i][9]%>%</td>
+           <td class="DataTable4"><%=sRegLySls[i][10]%></td>
+
+         <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+           <td class="DataTable4"><%=sRegTySls[i][11]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][11]%></td>
+           <td class="DataTable4"><%=sRegVar[i][11]%>%</td>
+
+           <td class="DataTable4"><%=sRegTySls[i][12]%></td>
+           <td class="DataTable4"><%=sRegLySls[i][12]%></td>
+           <td class="DataTable4"><%=sRegVar[i][12]%>%</td>
+         <%}%>
+
+           <td class="DataTable4">Reg <%=sReg[i]%></td>
+        </tr>
+      <%}%>
+    <%}%>
+    <!------------------- Report Total -------------------------------------->
+        <tr class="DataTable2">
+           <td class="DataTable4">Report&nbsp;</td>
+         <%if(sPeriod.substring(0, 3).equals("MTD")){%>
+           <td class="DataTable4"><%=sRepTySls[0]%></td>
+           <td class="DataTable4"><%=sRepLySls[0]%></td>
+           <td class="DataTable4"><%=sRepTySls[1]%></td>
+           <td class="DataTable4"><%=sRepLySls[1]%></td>
+           <td class="DataTable4"><%=sRepTySls[2]%></td>
+           <td class="DataTable4"><%=sRepLySls[2]%></td>
+           <td class="DataTable4"><%=sRepTySls[3]%></td>
+           <td class="DataTable4"><%=sRepLySls[3]%></td>
+           <td class="DataTable4"><%=sRepTySls[4]%></td>
+           <td class="DataTable4"><%=sRepLySls[4]%></td>
+           <td class="DataTable4"><%=sRepTySls[5]%></td>
+           <td class="DataTable4"><%=sRepLySls[5]%></td>
+           <td class="DataTable4"><%=sRepTySls[6]%></td>
+           <td class="DataTable4"><%=sRepLySls[6]%></td>
+
+           <td class="DataTable4"><%=sRepTySls[7]%></td>
+           <td class="DataTable4"><%=sRepLySls[7]%></td>
+           <td class="DataTable4"><%=sRepVar[7]%>%</td>
+           <td class="DataTable4"><%=sRepLySls[8]%></td>
+         <%}%>
+
+           <td class="DataTable4"><%=sRepTySls[9]%></td>
+           <td class="DataTable4"><%=sRepLySls[9]%></td>
+           <td class="DataTable4"><%=sRepVar[9]%>%</td>
+           <td class="DataTable4"><%=sRepLySls[10]%></td>
+
+         <%if(sPeriod.substring(0, 3).equals("YTD")){%>
+           <td class="DataTable4"><%=sRepTySls[11]%></td>
+           <td class="DataTable4"><%=sRepLySls[11]%></td>
+           <td class="DataTable4"><%=sRepVar[11]%>%</td>
+           <td class="DataTable4"><%=sRepTySls[12]%></td>
+           <td class="DataTable4"><%=sRepLySls[12]%></td>
+           <td class="DataTable4"><%=sRepVar[12]%>%</td>
+         <%}%>
+
+           <td class="DataTable4">Report&nbsp;</td>
+        </tr>
+
+   </table>
+    <!----------------------- end of table ---------------------------------->
+  </table>
+ </body>
+</html>

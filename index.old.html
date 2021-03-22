@@ -1,0 +1,297 @@
+<HTML>
+<TITLE>RCI Intranet Home Page</TITLE>
+<HEAD>
+     <style type="text/css">
+       body {background:ivory;}
+       a.blue:visited {  font-weight: bold; color: #663399}
+       a.blue:link {  font-weight: bold; color: #0000FF}
+       th.sep1 { border: 1px; border-style: outset; background: #6699CF;
+                 text-align:center; font-family:Verdanda; font-size:18px }
+       td.sep1 { padding-left:95px; padding-bottom:5px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep2 { border-bottom: black solid 1px; padding-left:5px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep4 { border-bottom: black solid 1px; padding-left:5px; text-align:center;}
+
+       table.msg { border:2px; border-style: outset;  background:LightSteelBlue;}
+       td.msg { text-align:left; font-size:10px }
+       td.msg1 { border:2px; border-style: ridge; text-align:center; font-size:10px }
+       td.msg2 { text-align:center; font-size:10px }
+       td.misc { border:2px; border-style: ridge; text-align:left; font-size:10px }
+       td.misc1{ color: darkblue; text-align:center; font-size:12px; font-weight:bold }
+       td.img { border:ivory 2px; border-style: outset; text-align:left;}
+
+       img.skier {border:0px;}
+
+     </style>
+</HEAD>
+<script language="JavaScript1.2">
+var StrLst;
+var RcpLst;
+var NumReq;
+var NumRsp;
+var Oldest;
+// ------------------------------------------------------
+// run for body on load
+// ------------------------------------------------------
+function bodyLoad()
+{
+  chkMsgBoard();
+  chkTransfer();
+}
+
+// ------------------------------------------------------
+// load current transfer request
+// ------------------------------------------------------
+function chkTransfer()
+{
+ var MyURL = "StrTrfSum.jsp";
+
+  //alert(MyURL)
+  //window.location.href = MyURL;
+  window.frame2.location = MyURL;
+}
+
+// ------------------------------------------------------
+// set transfer summary
+// ------------------------------------------------------
+function setTrfSum(str, avl, avlDate, inp, inpDate, destDiv, destQty)
+{
+   //alert(str + "\n" + avl + "\n" + avlDate + "\n" + inp + "\n" + inpDate)
+     var trfTbl = "<table class='msg'>"
+             + "<tr><td class='msg1' colspan=7 nowarp ><a class='blue' "
+             + "href='DivTrfReqSel.jsp'>Manage Item Transfers</a></td></tr>"
+             + "<tr><td class='msg1' rowspan='2'>Str</td>"
+             + "<td class='msg1' colspan='2'>Not Printed</td>"
+             + "<td class='msg1' colspan='2'>Not Completed</td>"
+             + "<td class='msg1' colspan='2'>Total<br>Incoming</td>"
+             + "</tr>"
+             + "<tr>"
+             + "<td class='msg1'>#</td><td class='msg1'>Oldest<br>Date</td>"
+             + "<td class='msg1'>#</td><td class='msg1'>Oldest<br>Date</td>"
+             + "<td class='msg1'># of Div</td><td class='msg1'>Unit</td>"
+             + "</tr>"
+//DivTrfGrpSum.jsp?DIVISION=ALL&DIVNAME=All+Divisions&STORE=3&SUBMIT=Submit
+  for(var i=0; i < str.length; i++)
+  {
+    trfTbl += "<tr>"
+    if(str[i] != "1" && str[i] != "99" && str[i] != "100")
+    {
+       trfTbl += "<td class='msg2'><a href='DivTrfGrpSum.jsp?DIVISION=ALL&STORE="
+           + str[i] + "'>" + str[i] + "</a></td>"
+    }
+    else trfTbl += "<td class='msg2'>" + str[i] + "</td>"
+
+    trfTbl += "<td class='msg2'>" + avl[i] + "</td>"
+           + "<td class='msg2'>" + avlDate[i] + "</td>"
+           + "<td class='msg2'>" + inp[i] + "</td>"
+           + "<td class='msg2'>" + inpDate[i] + "</td>"
+           + "<td class='msg2'>" + destDiv[i] + "</td>"
+           + "<td class='msg2'>" + destQty[i] + "</td>"
+           + "</tr>"
+  }
+  trfTbl += "</table>";
+
+  document.all.ItemTrf.innerHTML=trfTbl
+  document.all.ItemTrf.style.visibility="visible"
+}
+// ---------------------- Check Message board --------------------------------
+function chkMsgBoard()
+{
+  var MyURL = "NewMsgLst.jsp?Self=Yes";
+
+  //alert(MyURL)
+  window.frame1.location = MyURL;
+  this.focus();
+}
+
+// populate message board parameters
+function setNewMsg(Store, Recepient, NumOfReq, NumOfRsp, OldDate)
+{
+  StrLst = Store;
+  RcpLst = Recepient;
+  NumReq = NumOfReq;
+  NumRsp = NumOfRsp;
+  Oldest = OldDate;
+
+  popNewMsgTbl();
+}
+function popNewMsgTbl()
+{
+  var msgTbl = "<table class='msg'>"
+             + "<tr><td class='msg1' colspan=5 nowarp ><a class='blue' href='ForumSum.jsp'>Message board - Pending</a></td></tr>"
+             + "<tr><td class='msg1'>Str</td>"
+             + "<td class='msg1' >User</td>"
+             + "<td class='msg1' >Oldest</td>"
+             + "<td class='msg1'>New</td>"
+             + "<td class='msg1'>Reply</td></tr>";
+
+  for(i=0; i < StrLst.length; i++)
+  {
+    msgTbl += "<tr>"
+           + "<td class='msg2'>" + StrLst[i] + "</td>"
+           + "<td class='msg' nowrap>" + RcpLst[i] + "</td>"
+           + "<td class='msg2'>" + Oldest[i] + "</td>"
+           + "<td class='msg2'>" + NumReq[i] + "</td>"
+           + "<td class='msg2'>" + NumRsp[i] + "</td>"
+           + "</tr>"
+  }
+  msgTbl += "</table>";
+
+  document.all.MsgBoard.innerHTML=msgTbl
+  document.all.MsgBoard.style.visibility="visible"
+
+}
+// ---------------------- End Message board --------------------------------
+</script>
+
+
+
+<body onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe
+  id="frame1"
+  src=""
+  frameborder=0 height="0" width="0">
+</iframe>
+<iframe
+  id="frame2"
+  src=""
+  frameborder=0 height="0" width="0">
+</iframe>
+<!-------------------------------------------------------------------->
+
+<Table Border=0 CELLSPACING="5" CELLPADDING="0" width="100%"
+height="100%">
+<tr>
+    <td WIDTH="20%"  valign="top" rowspan="2" bgColor="ivory" class='msg1'>
+    <table width="100%">
+      <tr><td class='misc1'>Miscellaneous</td></tr>
+      <tr>
+        <td class='misc'>
+          <a class="blue" href="MAILTO:">Send e-mail</a>
+          <br><a class="blue" href="http://sunandski.com/">Our Internet</a>
+          <br><a class="blue" href="JobList.jsp">Operator Panel</a>
+          <br><a class="blue" href="FileUtilitySel.jsp">File Utility</a>
+        </td>
+      </tr>
+    </table>
+
+    <!--
+    <a class="blue" href="ShowGame.jsp">
+      <img class="skier" src="Skier.bmp" alt="World Cup" width="80" height="80">
+      <br>World Cup Contest</a>
+       End World Cup -->
+
+    <!-- New Message List Table -->
+    <br>
+    <div id="MsgBoard" ></div>
+    <br>
+    <!-- End New Message List Table -->
+
+
+    <!-- Item transfer List-->
+    <br>
+    <div id="ItemTrf" ></div>
+    <br>
+    <!-- End Item Transfer List -->
+
+    </font></td>
+
+    <td height="20%" COLSPAN=2 class='img'>
+        <img src="Sun_ski_logo1.jpg"></td>
+
+<tr>
+    <td WIDTH="80%" class="misc" nowrap valign="top" bgColor="moccasin">
+        <Table Border=0 width="100%" CELLSPACING="0" CELLPADDING="0">
+        <tr>
+         <td class="sep4" colspan="2">
+         <h2>RETAIL CONCEPTS, INC.</h2></td>
+        </tr>
+        <!-- ================================================================ -->
+        <!--                       Sales -->
+        <!-- ================================================================ -->
+        <tr><th class="sep1" colspan="2">SALES</th></tr>
+        <tr>
+          <td class="sep1"  valign="top">
+             <a class="blue" href="SalesHistory.jsp">Historical Customer and Employee Sales..</a><br/><br>
+             <a class="blue" href="StrProdReports.html">Salesperson/Store Productivity...</a><br><br>
+          </td>
+          <td class="sep1"  valign="top">
+             <a class="blue" href="rciWeeklyReports.html">Weekly Sales Reports/GM/Analysis...</a><br/><br>
+            </td>
+        </tr>
+        <!-- ================================================================ -->
+        <!--                       Inventory -->
+        <!-- ================================================================ -->
+        <tr><th class="sep1" colspan="2">INVENTORY</th></tr>
+        <tr>
+            <td class="sep1" colspan="1" valign="top">
+                <a class="blue" href="AgedAnalysisSel.jsp?mode=1">Aged Inventory Analysis(by week)</a><br/><br/>
+                <a class="blue" href="TransferReq.html"><b>Item Transfers...</b></a><br><br/>
+                <a class="blue" href="LookupSearch.html">Lookups/Searches for Items...</a><br/>
+                <a class="blue" href="OnHandReps.html">On-Hand/BSR/PI Listings...</a><br/><br>
+            </td>
+            <td class="sep1"  valign="top">
+                <a class="blue" href="DcReceiptSel.jsp">DC Receipts</a><br>
+                <a class="blue" href="DcFrtBill.jsp">DC Daily Freight Bill Report (shipments to Stores)</a><br><br/>
+                <a class="blue" href="DstStsInqSel.jsp"><b>Distribution Status Inquiry</b></a><br>
+            </td>
+        </tr>
+
+        <!-- ================================================================ -->
+        <!--                       Signs -->
+        <!-- ================================================================ -->
+        <tr><th class="sep1" colspan="2">SIGNAGE AND PRICING</th></tr>
+        <tr>
+            <td class="sep1" colspan="1" valign="top">
+               <a class="blue" href="SignSelector.html">Signs... (store)</a><br/>
+               <a class="blue" href="SignInquires.html"><b>Sign Listings and Inquiry...(HO)</b></a><br>
+            <td class="sep1" colspan="1" valign="top">
+               <a class="blue" href="UnautMDRepSel.jsp">Unauthorized Markdown Report</a><br>
+               <a class="blue" href="servlet/salesreport3.Salesreport03?ReportId=8" >Permanent Markdown Recap Report</a>&nbsp;&nbsp;&nbsp;
+               <a class="blue" href="servlet/formgenerator.FormGenerator?FormGrp=ARCHIVE&Form=RC106C"><font size=-1>Archive</font></a><br/><br>
+            </td>
+        </tr>
+
+        <!-- ================================================================ -->
+        <!--                       Scheduling and Budgeting -->
+        <!-- ================================================================ -->
+        <tr><th class="sep1" colspan="2">SCHEDULING AND BUDGETING</th></tr>
+        <tr>
+            <td class="sep1" colspan="1" valign="top">
+               <a class="blue" href="StrScheduling.html"><b>Store Scheduling...</b></a><br><br>
+            </td>
+        </tr>
+
+        <!-- ================================================================ -->
+        <!--                       Other -->
+        <!-- ================================================================ -->
+        <tr><th class="sep1" colspan="2">OTHER</th></tr>
+        <tr>
+            <td class="sep1" colspan="1" valign="top">
+               <a class="blue" href="EventCalendar.jsp">Event Calendar</a><br/>
+               <a class="blue" href="servlet/formgenerator.FormGenerator?FormGrp=MEMOS&Form=MEMO01">Memos</a><br/>
+               <a class="blue" href="servlet/policy.GetList?Table=Form&Form=SPAPP">Performance Appraisal</a><br/>
+             </td>
+             <td class="sep1"  valign="top">
+               <a class="blue" href="servlet/policy.GetList?Table=Policy&Section=*ALL">Policy and Procedures - Manual</a><br/>
+               <a class="blue" href="servlet/policy.GetList?Table=Form&Form=GENERAL">Policy and Procedures - Forms</a><br/><br>
+            </td>
+        </tr>
+
+
+        <tr><th class="sep1" colspan="2">FUTURE USE</th></tr>
+        <tr>
+        <tr>
+            <td class="sep1" colspan="1" valign="top">
+                <a class="blue" href="ItmSlsRepSel.jsp">Item Sales Report</a><br/>
+               <a class="blue" href="SpecialOrder.jsp"><b>Special Orders...</b></a><br><br>
+            </td>
+        </tr>
+        </Table>
+    </td>
+</tr>
+</TABLE>
+</body>
+</HTML>
+
+

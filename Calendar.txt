@@ -1,0 +1,126 @@
+ document.write("<style>body {bgcolor:ivory;text-align:center;}");
+ document.write("table.DataTable { background:cornsilk; border: black solid 1px;text-align:center; font-size:10px}");
+ document.write("th.DataTable { background: lightgrey; border-bottom: black solid 1px; font-size:10px}");
+ document.write("th.DataTable1 { border-bottom: black solid 1px; font-size:10px}");
+ document.write("td.DataTable { background: white; font-size:10px}");
+ document.write("a:hover.acal { background: lightsalmon; text-decoration: none}");
+ document.write("a:link.acal { color: blue; text-decoration: none}");
+ document.write("a:visited.acal { color: blue; text-decoration: none}");
+ document.write("</style>")
+
+ var leftX = 1;
+ var topY = 1;
+ var element = 0
+
+function showtip2(e, mon, year, l, t){
+leftX = l;
+topY = t;
+element = e;
+
+    document.all.tooltip2.innerHTML=CrtCalendar(mon, year)
+    document.all.tooltip2.style.pixelLeft=document.body.scrollLeft+leftX
+    document.all.tooltip2.style.pixelTop=document.body.scrollTop+topY
+    document.all.tooltip2.style.visibility="visible"
+}
+
+
+function hidetip2(){
+  if (document.all)
+    document.all.tooltip2.style.visibility="hidden"
+    else if (document.layers){
+    clearInterval(currentscroll)
+    document.tooltip2.visibility="hidden"
+}
+}
+
+function CrtCalendar(mon, year){
+  var todate = new Date();
+
+  if (mon == null){
+     mon = todate.getMonth();
+     year = todate.getYear();
+  }
+
+  var bdate = new Date(year, mon, "01");
+  var weekday;
+  var first = true;
+  var text = "<table class='DataTable' border=2>"
+           + popHeader(bdate.getMonth(), bdate.getYear());
+
+  while(mon == bdate.getMonth()){
+     weekday = bdate.getDay();
+    // next line
+    if (weekday == 0 || first){
+       text = text + "<tr>";
+    }
+
+    text = text + popTable(bdate, first, weekday);
+
+    first = false;
+
+    if (weekday == 6){
+      text = text + "</tr>";
+    }
+
+   //Next Date
+    bdate.setDate(bdate.getDate() + 1);
+  }
+  text = text + "<tr><th colspan=7><a  class='acal' href='javascript:hidetip2()'><font size='2'>Cancel</font></a></th></tr>";
+  text = text + "</table>";
+
+  return text;
+}
+
+// populate table headings
+function popHeader(mon, year){
+  var text
+  var aMon = new Array("January","February","March","April","May","June", "July",
+                       "August", "September", "October", "November", "December");
+
+
+  var prv = new Date(year, mon-1, "01");
+  var fut = new Date(year, mon+1, "01");
+  var prvMon = prv.getMonth();
+  var futMon = fut.getMonth();
+  var prvYr = prv.getYear();
+  var futYr = fut.getYear();
+
+  text = "<table>  <tr>"
+       + "<th class='DataTable'><a class='acal' href='javascript:showtip2(" + element + "," + prvMon + "," + prvYr + "," + leftX + "," + topY + ")'><img src='left.gif' alt='Previous month' width=15 height=10></a></th>"
+       + "<th class='DataTable' colspan='5'>" + aMon[mon] + "&nbsp;" + year + "</th>"
+       + "<th class='DataTable'><a class='acal' href='javascript:showtip2(" + element + "," + futMon + "," + futYr + "," + leftX + "," + topY + ")'><img src='right.gif' alt='Next month' width=15 height=10></a></th>"
+       + "</tr>"
+       + "<tr><th  class='DataTable1'>Su</th><th class='DataTable1' >Mo</th><th class='DataTable1'>Tu</th><th class='DataTable1'>We</th><th class='DataTable1'>Th</th><th class='DataTable1'>Fr</th><th class='DataTable1'>Sa</th></tr>"
+
+  return text;
+}
+
+// populate table details
+function popTable(bdate, first, weekday){
+var text = " "
+var date = bdate.getDate()
+
+  if (first == true){
+     for(i=0; i < weekday; i++){
+        text = text + "<td class='DataTable'></td>"
+     }
+  }
+
+  if (bdate.getDate() < 10 ){
+     date = "&nbsp;" + bdate.getDate()
+  }
+
+
+  var mdy = (bdate.getMonth() + 1) + "/" + bdate.getDate() + "/" + bdate.getYear();
+  text = text + "<td class='DataTable'>"
+       + "<a class='acal' href='javascript:sentValue(&#39;"
+       + mdy + "&#39;)'>"
+       + date + "</a>"
+       + "</td>";
+  return text;
+}
+
+function sentValue(selDate){
+document.forms[0].selDate.value = selDate;
+hidetip2();
+}

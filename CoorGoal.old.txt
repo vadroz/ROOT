@@ -1,0 +1,305 @@
+<%@ page import="coordinators.CoorGoal, java.util.*"%>
+<%
+   String sCoordinator = request.getParameter("Coordinator");
+   String sMonthYear = request.getParameter("MonthYear");
+   String sMonthName = request.getParameter("MonthName");
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null || session.getAttribute("ADVERTISES")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=CoorGoal.jsp&APPL=ADVERTISES&" + request.getQueryString());
+   }
+   else
+   {
+      CoorGoal goal = new CoorGoal("2003-8-1", "CYCLE");
+
+      int iNumOfWk = goal.getNumOfWk();
+      String [] sWeek = goal.getWeek();
+      int iNumOfStr = goal.getNumOfStr();
+
+      String [] sStr = goal.getStr();
+      String [][] sSales = goal.getSales();
+      String [] sTotSls = goal.getTotSls();
+
+      String sStrJsa = goal.getStrJsa();
+      String sWeekJsa = goal.getWeekJsa();
+      String sSalesJsa = goal.getSalesJsa();
+      String sTotSlsJsa = goal.getTotSlsJsa();
+
+      goal.disconnect();
+%>
+<html>
+<head>
+<style>
+        body {background:lemonChiffon; text-align:center;}
+        a { color:blue} a:visited { color:blue}  a:hover { color:blue}
+
+        table.DataTable { border: darkred solid 1px; background:#FFE4C4;text-align:center;}
+        th.DataTable { background:#FFCC99; padding-top:3px; padding-bottom:3px;
+                       padding-left:3px; padding-right:3px;
+                       border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center;
+                       font-family:Verdanda; font-size:12px }
+        th.DataTable1 { background:#FFCC99; padding-top:3px; padding-bottom:3px;
+                       border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center;
+                       font-family:Verdanda; font-size:12px }
+
+        td.DataTable  { background:lightgrey; border-top: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                        border-right: darkred solid 1px; text-align:left; font-family:Arial;font-size:10px }
+
+        td.DataTable1  { cursor: hand; background:lightgrey; border-top: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                        border-right: darkred solid 1px; text-align:left; font-family:Arial;font-size:10px }
+
+        .small{ text-align:left; font-family:Arial; font-size:10px;}
+
+        div.CoorGoal { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:800; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {background-color: blue; color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {background-color: blue; color:white; border-bottom: black solid 1px; text-align:right; font-family:Arial; font-size:12px; }
+
+
+</style>
+<SCRIPT language="JavaScript1.2">
+//------------------------------------------------------------------------------
+// global variables
+//------------------------------------------------------------------------------
+var NumOfStr = <%=iNumOfStr%>;
+var NumOfWk = <%=iNumOfWk%>;
+var Store = [<%=sStrJsa%>];
+var Week = [<%=sWeekJsa%>];
+var Sales = [<%=sSalesJsa%>];
+var TotSls = [<%=sTotSlsJsa%>];
+//---------------------------------------------------------
+// work at loading time
+//---------------------------------------------------------
+function bodyLoad()
+{
+}
+//---------------------------------------------------------
+// reset all input fields
+//---------------------------------------------------------
+function resetAll()
+{
+  for(var i=0; i < NumOfStr; i++ )
+  {
+    for(var j=0; j < NumOfWk; j++ )
+    {
+       obj = "Prc" + i + "W" + j;
+       document.all[obj].value="";
+       obj = "Goal" + i + "W" + j;
+       document.all[obj].value="";
+    }
+  }
+}
+
+//---------------------------------------------------------
+// show panel to enter Store Goals
+//---------------------------------------------------------
+function showStrGoalEntry(str)
+{
+  var MenuName = "";
+  var MenuOpt = "";
+
+  MenuName = "<td colspan='14'  class='BoxName' nowrap>Store: " + Store[str] + " Goal Entry</td>";
+
+  // heading 1
+  MenuOpt += "<tr>"
+  for(var i=0; i < NumOfWk; i++ )
+  {
+     MenuOpt += "<th class='DataTable' colspan=3>Week1</th>"
+  }
+  MenuOpt += "<th class='DataTable' colspan=3>Monthly<br>Total</th>"
+  MenuOpt += "</tr>"
+
+  // heading 2
+  MenuOpt += "<tr>"
+  for(var i=0; i < NumOfWk + 1; i++ )
+  {
+     MenuOpt += "<th class='DataTable'>LY Sales</th>"
+     MenuOpt += "<th class='DataTable'>% <br> +/-</th>"
+     MenuOpt += "<th class='DataTable'>Goal</th>"
+  }
+  MenuOpt += "</tr>"
+
+  // weekly cells
+  MenuOpt += "<tr>"
+  for(var i=0; i < NumOfWk; i++ )
+  {
+     MenuOpt += "<td class='DataTable' >$" + Sales[str][i] + "</td>"
+            + "<td class='DataTable' ><input class='small' size=7 maxlength=7 name='Prc" + i + "'></td>"
+            + "<td class='DataTable'><input class='small' size=7 maxlength=7 name='Goal" + i + "'></td>"
+  }
+  // total cells
+  MenuOpt += "<td class='DataTable' >$" + TotSls[str] + "</td>"
+            + "<td class='DataTable' ><input class='small' size=7 maxlength=7 name='TotPrc'></td>"
+            + "<td class='DataTable'><input class='small' size=7 maxlength=7 name='TotGoal'></td>"
+           + "</tr>"
+
+
+  // add close option on menu
+  MenuOpt += "<tr><td colspan='12' class='Promo' align='center'>"
+          + "<button class='small' onclick='hidedvCoorGoal();'>Close</button>&nbsp;&nbsp;&nbsp;"
+       + "</td></tr>";
+
+  var MenuHtml = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  + "<tr>"
+     + MenuName
+     + "<td class='BoxClose' valign=top>"
+     +  "<img src='CloseButton.bmp' onclick='javascript:hidedvCoorGoal();' alt='Close'>"
+     + "</td>"
+   + "</tr>"
+   + MenuOpt
+   + "</table>"
+
+  document.all.dvCoorGoal.innerHTML=MenuHtml
+  document.all.dvCoorGoal.style.pixelLeft= (document.body.scrollLeft + screen.width - 900) / 2
+  document.all.dvCoorGoal.style.pixelTop=document.body.scrollTop + screen.height - 550;
+  document.all.dvCoorGoal.style.visibility="visible"
+
+}
+//---------------------------------------------------------
+// close goal entry menu
+//---------------------------------------------------------
+function hidedvCoorGoal()
+{
+  document.all.dvCoorGoal.style.visibility="hidden";
+}
+//---------------------------------------------------------
+// calculate seleted Store Goal
+//---------------------------------------------------------
+function calcStrGoal(str)
+{
+  for(var i=0; i < NumOfWk; i++ )
+  {
+    calcWkGoal(str, i);
+  }
+}
+//---------------------------------------------------------
+// calculate seleted week Goal
+//---------------------------------------------------------
+function calcWkGoal(str, wk)
+{
+   var prc = document.all["Prc" + str + "W" + wk].value;
+   var goal = document.all["Goal" + str + "W" + wk];
+
+   var type = "%";
+   if (prc.trim() != " " && prc.substring(0,1)=="$")
+   {
+     type = "$"; prc =  prc.substring(1);
+   }
+
+   var msg = "";
+   // validate entry
+   if(isNaN(prc)) msg += "Percent entry is not numeric"
+   else if(prc.trim() == "") {prc = 0;}
+   if(isNaN(goal.value)) msg += "\nGoal entry is not numeric"
+   else if(goal.value.trim() != " ") goal.value = 0;
+
+   // display error
+   if(msg!="") alert(msg)
+   //calculate goal based on percentage
+   else if(eval(prc) != 0 && type == "%")
+   {
+     goal.value = clcPrc(prc, Sales[str][wk]);
+   }
+   //calculate goal based on percentage
+   else if(eval(prc) != 0 && type == "$")
+   {
+     goal.value = clcAmt(prc, Sales[str][wk]);
+   }
+}
+//---------------------------------------------------------
+// calculate goal by applying percent to salses
+//---------------------------------------------------------
+function clcPrc( prc, sls )
+{
+  var goal = eval(sls) * (1 + eval(prc) / 100 );
+  return goal.toFixed(0);
+}
+//---------------------------------------------------------
+// calculate goal by adding amount to salses
+//---------------------------------------------------------
+function clcAmt( amt, sls)
+{
+  var goal = eval(sls)  + eval(amt);
+  return goal.toFixed(0);
+}
+
+//---------------------------------------------------------
+//create String method Trim
+//---------------------------------------------------------
+function String.prototype.trim()
+{ //trim leading and trailing spaces
+    var s = this;
+    var obj = /^(\s*)([\W\w]*)(\b\s*$)/;
+    if (obj.test(s)) { s = s.replace(obj, '$2'); }
+    var obj = /  /g;
+    while (s.match(obj)) { s = s.replace(obj, ""); }
+    return s;
+}
+</SCRIPT>
+
+</head>
+<!-------------------------------------------------------------------->
+<body onload="bodyLoad()" >
+<!-------------------------------------------------------------------->
+<div id="dvCoorGoal" class="CoorGoal"></div>
+<!-------------------------------------------------------------------->
+   <b><font size="+2">Enter Coordinators Goal<br>
+      <%=sMonthName%></font></b><br>
+
+   <a href="../"><font color="red" size="-1">Home</font></a>&#62;<font size="-1">This page.</font>&nbsp;&nbsp;
+
+   <table class='DataTable' cellPadding="0" cellSpacing="0">
+      <tr>
+        <th class='DataTable' rowspan="3">Store<br>#</th>
+        <%for(int j=0; j < iNumOfWk; j++) {%>
+            <th class='DataTable' colspan=3>Week <%=j+1%></th>
+        <%}%>
+        <th class='DataTable' rowspan=2 colspan=3>Month Total</th>
+      </tr>
+      <tr>
+         <%for(int j=0; j < iNumOfWk; j++) {%>
+            <th class='DataTable' colspan=3><%=sWeek[j]%></th>
+         <%}%>
+      </tr>
+      <tr>
+        <%for(int j=0; j < iNumOfWk; j++) {%>
+           <th class='DataTable'>LY<br>Sales</th>
+           <th class='DataTable'>%<br>+/-</th>
+           <th class='DataTable'>Calc<br>Goal</th>
+        <%}%>
+           <th class='DataTable'>LY<br>Sales</th>
+           <th class='DataTable'>%<br>+/-</th>
+           <th class='DataTable'>Calc<br>Goal</th>
+      </tr>
+
+     <!---------------- Market ---------------------------------------------------->
+     <%for(int i=0; i < iNumOfStr; i++) {%>
+         <tr>
+            <td class="DataTable1" onClick="calcStrGoal(<%=i%>)"><%=sStr[i]%></td>
+            <!--td class="DataTable1" onClick="showStrGoalEntry(<%=i%>)"><%=sStr[i]%></td-->
+            <!---------------- Ads ---------------------------------------------------->
+            <%for(int j=0; j < iNumOfWk; j++) {%>
+                <td class="DataTable1" onClick="calcWkGoal(<%=i%>, <%=j%>)">$<%=sSales[i][j]%></td>
+                <td class="DataTable">
+                   <input class="small"  size=7 maxlength=7 name="Prc<%=i%>W<%=j%>"></td>
+                <td class="DataTable">
+                   <input class="small"  size=7 maxlength=7 name="Goal<%=i%>W<%=j%>" readonly></td>
+            <%}%>
+            <td class="DataTable1">$<%=sTotSls[i]%></td>
+            <td class="DataTable"><input class="small"  size=7 maxlength=7 name="Prc<%=i%>T"></td>
+            <td class="DataTable" ><input class="small"  size=7 maxlength=7 name="Goal<%=i%>T" readonly></td>
+         </tr>
+     <%}%>
+    </table>
+    <button onClick="resetAll()">Reset All</button>
+</body>
+</html>
+
+<%}%>
+

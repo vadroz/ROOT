@@ -1,0 +1,312 @@
+<%@ page import="java.util.*, java.text.*, payrollreports.BdgSchActMn"%>
+<%
+   String sStore = request.getParameter("Store");
+   String sYear = request.getParameter("Year");
+   String sMonth = request.getParameter("Month");
+   String sMonName = request.getParameter("MonName");
+
+   String sUser = session.getAttribute("USER").toString();
+
+   BdgSchActMn bdgwk = new BdgSchActMn(sStore, sYear, sMonth, sUser);
+
+   int iNumOfWk = bdgwk.getNumOfWk();
+   String [] sWkend = bdgwk.getWkend();
+
+   int iNumOfCol = iNumOfWk + 1;
+
+   String [] sSlsPlan = bdgwk.getSlsPlan();
+
+   // Alternate Goal
+   String [] sAltSlsPlan = bdgwk.getAltSlsPlan();
+   String [] sAltSlsPlanPrc = bdgwk.getAltSlsPlanPrc();
+   String [] sAltSlsPlanDiff = bdgwk.getAltSlsPlanDiff();
+
+   // Actual Sales
+   String [] sActSls = bdgwk.getActSls();
+   String [] sActSlsPrc = bdgwk.getActSlsPrc();
+   String [] sActSlsDiff = bdgwk.getActSlsDiff();
+
+   // Actual Pays
+   String [] sActPayHrs = bdgwk.getActPayHrs();
+   String [] sActPayAmt = bdgwk.getActPayAmt();
+   String [] sActPayAvg = bdgwk.getActPayAvg();
+
+   // Actual Processed Payroll
+   String [] sActPrcPayHrs = bdgwk.getActPrcPayHrs();
+   String [] sActPrcPayAmt = bdgwk.getActPrcPayAmt();
+   String [] sActPrcPayAvg = bdgwk.getActPrcPayAvg();
+
+   // Budget Hours and Pay amounts
+   String [] sBdgHrs = bdgwk.getBdgHrs();
+   String [] sBdgPay = bdgwk.getBdgPay();
+   String [] sBdgAvg = bdgwk.getBdgAvg();
+   String [] sBdgHrsAll = bdgwk.getBdgHrsAll();
+   String [] sBdgPayAll = bdgwk.getBdgPayAll();
+
+   // Calculated variences
+   String [] sHrsEarned = bdgwk.getHrsEarned();
+   String [] sHrsAllowed = bdgwk.getHrsAllowed();
+   String [] sPayAllowed = bdgwk.getPayAllowed();
+   String [] sBdgPayOfSls = bdgwk.getHrsBdgVar();
+   String [] sActPayOfSls = bdgwk.getPayBdgVar();
+   String [] sActPrcPayOfSls = bdgwk.getActPrcPayOfSls();
+%>
+
+
+<style>body {background:ivory;font-family: Verdanda}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}
+                 a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}
+                       a:hover.small { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-left:20px; padding-right:20px; padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+        th.DataTable1 { background:#FFCC99;padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px;
+                       text-align:left; vertical-align:top ;font-size:12px }
+
+        tr.DataTable { background: #E7E7E7; font-size:12px }
+        tr.DataTable1 { background: yellow; font-size:12px }
+        tr.Divdr1 { background: darkred; font-size:1px }
+        tr.DataTable2 { background: #ccccff; font-size:10px }
+        tr.DataTable3 { background: #ccffcc; font-size:10px }
+        tr.DataTable31 { background: #ffff99; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; }
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+        td.DataTable21 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;  font-weight: bold}
+        td.DataTable22 {  background: azure; padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;  font-weight: bold}
+
+        td.DataTable3 { background: black; font-size:12px }
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        div.dvEmpList { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:500; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        div.dvSlsGoal { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:150px; background-color:LemonChiffon;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+</style>
+<html>
+<head><Meta http-equiv="refresh"></head>
+
+<SCRIPT language="JavaScript">
+
+//==============================================================================
+// display weekly budget details by date in new window
+//==============================================================================
+function getWkBdgRep(wkend)
+{
+  var fileType = "RCI";
+
+  var url = 'BdgSchActWk.jsp?Store=<%=sStore%>&Wkend=' + wkend
+  document.all.frame1.style.height = "600";
+  document.all.frame1.style.width = "100%";
+
+  document.all.frame1.style.height = "600";
+  document.all.frame1.style.width = "100%";
+
+  window.frame1.location = url;
+}
+</script>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+
+<body>
+<!-------------------------------------------------------------------->
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr bgColor="ivory">
+      <td ALIGN="center" VALIGN="TOP" colspan=3>
+      <b>Retail Concepts Inc.
+      <br>Monthly Budget vs. Actual Payroll
+      <br> Store: <%=sStore%> &nbsp; &nbsp; Fiscal Year/Month <%=sYear%> / <%=sMonName%>
+      </b>
+
+      <br><br><a href="../" class="small"><font color="red">Home</font></a>&#62;
+      <a href="BdgSchActMonSel.jsp" class="small"><font color="red">Selection</font></a>&#62;
+      <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table border=1 cellPadding="0" cellSpacing="0">
+        <tr>
+          <th class="DataTable1">No.</th>
+          <th class="DataTable" >Week ending Date</th>
+          <%for(int i=0; i < iNumOfWk; i++){%>
+             <th class="DataTable"><a href="javascript: getWkBdgRep('<%=sWkend[i]%>');"><%=sWkend[i]%></a></th>
+          <%}%>
+          <th class="DataTable">Total Month</th>
+          <th class="DataTable">Actual<br>Processed<br>Payroll</th>
+        </tr>
+
+     <!-------------------- Sales Plan ---------------------------------------->
+     <tr class="DataTable">
+        <th class="DataTable1">1</th>
+        <th class="DataTable1">Sales Plan</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">$<%=sSlsPlan[i]%></td>
+        <%}%>
+     </tr>
+
+     <!------------------- Alternate Sales Goal by Day % ---------------------->
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+     <tr class="DataTable">
+        <th class="DataTable1">2</th>
+        <th class="DataTable1">Sales Forecast Trend Rate</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable2"><%=sAltSlsPlanPrc[i]%>%</td>
+        <%}%>
+     </tr>
+
+     <!----------------------- Alternate Sales Goal --------------------------->
+     <tr class="DataTable">
+        <th class="DataTable1">3</th>
+        <th class="DataTable1">Sales Forecast</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable2">$<%=sAltSlsPlan[i]%></td>
+        <%}%>
+     </tr>
+
+     <!------------------------ Actual Sales  --------------------------------->
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+     <tr class="DataTable">
+        <th class="DataTable1">4</th>
+        <th class="DataTable1">Sales Actual</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">$<%=sActSls[i]%></td>
+        <%}%>
+     </tr>
+
+     <!-------------------- Sales Actual % to Plan ---------------------------->
+     <tr class="DataTable">
+        <th class="DataTable1">5</th>
+        <th class="DataTable1">Sales Actual % to Plan</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable2"><%=sActSlsPrc[i]%>%</td>
+        <%}%>
+     </tr>
+
+     <!----------------------- Sales Dollars +/- ------------------------------>
+     <tr class="DataTable">
+        <th class="DataTable1">6</th>
+        <th class="DataTable1">Sales Dollars +/-</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable2">$<%=sActSlsDiff[i]%></td>
+        <%}%>
+     </tr>
+
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+
+     <!------------------- Total Payroll Budget Dollars ----------------------->
+     <tr class="DataTable1">
+        <th class="DataTable1">7</th>
+        <th class="DataTable1">Total Payroll Budget Dollars (Week)</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">$<%=sBdgPayAll[i]%></td>
+        <%}%>
+     </tr>
+
+     <!---------------------- Actual Salary Dollars --------------------------->
+     <tr class="DataTable1">
+        <th class="DataTable1">8</th>
+        <th class="DataTable1">Actual Salary Dollars (WTD)</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">$<%=sActPayAmt[i]%></td>
+        <%}%>
+        <td class="DataTable22">$<%=sActPrcPayAmt[iNumOfCol-1]%></td>
+     </tr>
+
+     <!------------------- Actual Adjustment (Dollars) ------------------------>
+     <tr class="DataTable1">
+        <th class="DataTable1">9</th>
+        <th class="DataTable1">Actual Adjustment (Dollars)</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">&nbsp;</td>
+        <%}%>
+     </tr>
+
+     <!--------------------- Available Hourly Dollars ------------------------->
+     <tr class="DataTable">
+        <th class="DataTable1">9</th>
+        <th class="DataTable1">Available Hourly Dollars (WTD)</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21">$<%=sPayAllowed[i]%></td>
+        <%}%>
+     </tr>
+
+     <!------------------------ Average Hourly Rate --------------------------->
+     <tr class="DataTable">
+        <th class="DataTable1">10</th>
+        <th class="DataTable1">Average Hourly Rate</th>
+        <td class="DataTable21">$<%=sBdgAvg[iNumOfCol-1]%></td>
+        <td class="DataTable3" colspan=<%=iNumOfCol-1%>>&nbsp;</td>
+        <td class="DataTable22">$<%=sActPrcPayAvg[iNumOfCol-1]%></td>
+     </tr>
+
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+     <tr class="Divdr1"><td colspan="<%=iNumOfCol+1%>">&nbsp;</td></tr>
+
+     <!--------------------- Budget Payroll % To Sales ------------------------>
+     <tr class="DataTable">
+        <th class="DataTable1">11</th>
+        <th class="DataTable1">Budget Payroll % To Sales</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21"><%=sBdgPayOfSls[i]%>%</td>
+        <%}%>
+     </tr>
+
+     <!--------------------- Actual Payroll % To Sales ------------------------>
+     <tr class="DataTable">
+        <th class="DataTable1">12</th>
+        <th class="DataTable1">Actual Payroll % To Sales</th>
+        <%for(int i=0; i < iNumOfCol; i++){%>
+           <td class="DataTable21"><%=sActPayOfSls[i]%>%</td>
+        <%}%>
+        <td class="DataTable22"><%=sActPayOfSls[iNumOfCol-1]%>%</td>
+     </tr>
+
+   </table>
+    <!----------------------- end of table ---------------------------------->
+
+  </table>
+  <p style="color:red;text-align:left; font-size:12px; font-weight:bold">
+  Note: Excludes H, S, V.
+
+<!-- ======================================================================= -->
+<iframe  id="frame1"  src="" frameborder=1 height="0" width="0"></iframe>
+<!-- ======================================================================= -->
+
+ </body>
+
+</html>
+
+<%bdgwk.disconnect();%>
+
+
+
+
+
+
+
+

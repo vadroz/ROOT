@@ -1,0 +1,265 @@
+<HTML>
+<TITLE>Calculator</TITLE>
+<HEAD>
+ <style type="text/css">
+  body {background:ivory; text-align:center;}
+  table.Calc { border: black solid 1px; background:lightblue; text-align:center;}
+  .small{ text-align:left; font-family:Arial; font-size:10px;}
+  td.inpDsp{ border-style: inset;  background: azure; text-align:right; font-family:Arial; font-size:10px; z-index: 1}
+  td.Fig{ cursor:hand; border-style: groove; background: lightgrey; text-align:center; font-family:Arial; font-size:10px; width: 100%  z-index: 10}
+ </style>
+
+</HEAD>
+<script language="JavaScript1.2">
+var keyCode = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
+// command code 43 +, 45 -,42 *,47 /, 61 =, 13 Enter
+var cmdKey = [43, 45, 42, 47, 61, 13];
+var cmdCode = ['+', '-', '*', '/', '=', '='];
+
+var Factor1 = "";
+var DecPoint1 = false;
+var Factor2 = "";
+var DecPoint2 = false;
+var Result = null;
+var Action = null;
+
+
+//--------------------------------------
+// run on body load time
+//--------------------------------------
+function bodyLoad()
+{
+  resetAll();
+}
+//--------------------------------------
+// saved pressed key - key handler
+//--------------------------------------
+function savePressedKey()
+{
+   var key = window.event.keyCode;
+   //alert(key)
+   var fig = null;
+   var act = null;
+   var valid = false
+   for(var i=0; i < keyCode.length; i++)
+   {
+      if (key == keyCode[i])
+      {
+         fig = i;
+         valid = true;
+         break;
+      }
+   }
+   // save figure
+   if(valid) saveEntry(fig)
+
+   // decimal point
+   if(!valid && key == 46)
+   {
+      setDecPoint();
+      valid = true;
+   }
+
+
+   // save action
+   if(!valid)
+   {
+      for(var i=0; i < cmdKey.length; i++)
+      {
+        if (key == cmdKey[i])
+        {
+          act = cmdCode[i];
+          valid = true;
+          break;
+        }
+      }
+     if (valid) saveAction(act)
+   }
+   // reset
+   if(!valid && key == 27)
+   {
+     resetAll();
+     valid = true;
+   }
+
+}
+//--------------------------------------
+// saved cliked figure by Mouse
+//--------------------------------------
+function saveEntry(fig)
+{
+   if(Action == null)
+   {
+     Factor1 += fig;
+     document.all.inpDsp.innerHTML= Factor1;
+   }
+   else
+   {
+     Factor2 += fig;
+     document.all.inpDsp.innerHTML= Factor2;
+   }
+}
+
+//--------------------------------------
+// set Decimal Point
+//--------------------------------------
+function setDecPoint()
+{
+   if(Action == null)
+   {
+     if(!DecPoint1)
+     {
+       Factor1 += ".";
+       document.all.inpDsp.innerHTML= Factor1;
+       DecPoint1 = true;
+     }
+   }
+   else
+   {
+     if(!DecPoint2)
+     {
+       Factor2 += ".";
+       document.all.inpDsp.innerHTML= Factor2;
+       DecPoint2 = true;
+     }
+   }
+}
+
+//--------------------------------------
+// reverse factor sign
+//--------------------------------------
+function reverseFactor()
+{
+}
+//--------------------------------------
+// saved cliked action by Mouse
+//--------------------------------------
+function saveAction(act)
+{
+   if (Factor1 == "") Factor1 = "0";
+
+   if (Action == null) { Action = act; }
+   else
+   {
+     if (Factor2 == "") Factor2 = "0";
+     // Make the action
+     else if(Action == "*") doMult();
+     else if(Action == "/") doDiv();
+     else if(Action == "+") doAdd();
+     else if(Action == "-") doSubtr();
+
+     // after action
+     resetAfterAction(act)
+   }
+}
+//--------------------------------------
+// do Multiplication
+//--------------------------------------
+function doMult()
+{
+  var f1 = eval(Factor1);
+  var f2 = eval(Factor2);
+  Result = f1 * f2;
+  document.all.inpDsp.innerHTML= Result;
+}
+//--------------------------------------
+// do Division
+//--------------------------------------
+function doDiv()
+{
+  var f1 = eval(Factor1);
+  var f2 = eval(Factor2);
+  Result = f1 / f2;
+  document.all.inpDsp.innerHTML= Result;
+}
+//--------------------------------------
+// do Addition
+//--------------------------------------
+function doAdd()
+{
+  var f1 = eval(Factor1);
+  var f2 = eval(Factor2);
+  Result = f1 + f2;
+  document.all.inpDsp.innerHTML= Result;
+}
+//--------------------------------------
+// do Subtraction
+//--------------------------------------
+function doSubtr()
+{
+  var f1 = eval(Factor1);
+  var f2 = eval(Factor2);
+  Result = f1 - f2;
+  document.all.inpDsp.innerHTML= Result;
+}
+//--------------------------------------
+// reset values after action
+//--------------------------------------
+function resetAfterAction(act)
+{
+   Factor1 = "" + Result;
+   DecPoint1 = false;
+   Factor2 = "";
+   DecPoint2 = false;
+   Result = null;
+   Action = null;
+   if(act != "=")  Action = act;
+}
+//--------------------------------------
+// Reset All
+//--------------------------------------
+function resetAll()
+{
+   Factor1 = "";
+   DecPoint1 = false;
+   Factor2 = "";
+   DecPoint2 = false;
+   Result = null;
+   Action = null;
+   document.all.inpDsp.innerHTML= '0';
+}
+
+</script>
+
+
+<BODY onKeyPress="savePressedKey()" onLoad="bodyLoad()">
+<table class="Calc" width="100%" height="100%">
+  <tr>
+       <td colspan="6" id="inpDsp" class="inpDsp"><div>&nbsp;</div></td>
+  </tr>
+  <tr>
+       <td class="Fig" onClick="saveEntry(7)">7</td>
+       <td class="Fig" onClick="saveEntry(8)">8</td>
+       <td class="Fig" onClick="saveEntry(9)">9</td>
+       <td >&nbsp;</td>
+       <td class="Fig" onClick="resetLast()">CE</td>
+       <td class="Fig" onClick="resetAll()">&nbsp;C&nbsp;</td>
+  </tr>
+  <tr>
+       <td class="Fig" onClick="saveEntry(4)">&nbsp;4&nbsp;</td>
+       <td class="Fig" onClick="saveEntry(5)">&nbsp;5&nbsp;</td>
+       <td class="Fig" onClick="saveEntry(6)">&nbsp;6&nbsp;</td>
+       <td >&nbsp;</td>
+       <td class="Fig" onClick="saveAction('+')">+</td>
+       <td class="Fig" onClick="saveAction('-')">-</td>
+  </tr>
+  <tr>
+       <td class="Fig" onClick="saveEntry(1)">1</td>
+       <td class="Fig" onClick="saveEntry(2)">2</td>
+       <td class="Fig" onClick="saveEntry(3)">3</td>
+       <td >&nbsp;</td>
+       <td class="Fig" onClick="saveAction('*')">*</td>
+       <td class="Fig" onClick="saveAction('/')">/</td>
+  </tr>
+  <tr>
+       <td class="Fig" onClick="saveEntry(0)">0</td>
+       <td class="Fig" onClick="reverseFactor()">+/-</td>
+       <td class="Fig" onClick="setDecPoint()">&nbsp;.&nbsp;</td>
+       <td >&nbsp;</td>
+       <td colspan=2 class="Fig" onClick="saveAction('=')">=</td>
+  </tr>
+</table>
+</BODY>
+</HTML>
+
+

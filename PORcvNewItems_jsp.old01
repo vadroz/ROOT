@@ -1,0 +1,107 @@
+<%@ page import="rciutility.RunSQLStmt, java.text.SimpleDateFormat, java.sql.*, java.util.*"%>
+<%
+ //----------------------------------
+ // Application Authorization
+ //----------------------------------
+
+ if (session.getAttribute("USER")!=null)
+ {
+    String sPONum = request.getParameter("PO");
+    String sUser = session.getAttribute("USER").toString();
+
+    SimpleDateFormat sdfISO = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat sdfUSA = new SimpleDateFormat("MM/dd/yyyy");
+
+    //System.out.println(sPrepStmt);
+    ResultSet rslset = null;
+    RunSQLStmt runsql = new RunSQLStmt();
+
+    String sPO = "0000000000";
+    sPO = sPO.substring(0, 10 - sPONum.length()) + sPONum;
+
+    String sPrepStmt = "select PDRCVDT, PDVSTY, PDUPC, PDSKU, PDDESC, PDCLRNM, PDSIZNM"
+      + ", PDRQTY, PDRECUS, PDRECDT, PDRECTM"
+      + " from rci.PoRcvD"
+      + " where PdPoNum = " + sPO
+      + " order by PDRCVDT desc, PDVSTY";
+
+    System.out.println(sPrepStmt);
+
+    runsql.setPrepStmt(sPrepStmt);
+    runsql.runQuery();
+    Vector vRcvDt = new Vector();
+    Vector vVenSty = new Vector();
+    Vector vUpc = new Vector();
+    Vector vSku = new Vector();
+    Vector vDesc = new Vector();
+    Vector vClrNm = new Vector();
+    Vector vSizNm = new Vector();
+    Vector vRcvQty = new Vector();
+
+    while(runsql.readNextRecord())
+    {
+       java.util.Date dWkend = sdfISO.parse(runsql.getData("PdRcvDt"));
+       vRcvDt.add(sdfUSA.format(dWkend));
+       vVenSty.add(runsql.getData("PdVSty"));
+       vUpc.add(runsql.getData("PdUpc"));
+       vSku.add(runsql.getData("PdSku"));
+       vDesc.add(runsql.getData("PdDesc"));
+       vClrNm.add(runsql.getData("PdClrNm"));
+       vSizNm.add(runsql.getData("PdSizNm"));
+       vRcvQty.add(runsql.getData("PdRQty"));
+    }
+
+    Iterator it = vRcvDt.iterator();
+    int iSize = vRcvDt.size();
+    String [] sRcvDt = new String[iSize];
+    String [] sVenSty = new String[iSize];
+    String [] sUpc = new String[iSize];
+    String [] sSku = new String[iSize];
+    String [] sDesc = new String[iSize];
+    String [] sClrNm = new String[iSize];
+    String [] sSizNm = new String[iSize];
+    String [] sRcvQty = new String[iSize];
+
+    vRcvDt.toArray((String []) sRcvDt);
+    vVenSty.toArray((String []) sVenSty);
+    vUpc.toArray((String []) sUpc);
+    vSku.toArray((String []) sSku);
+    vDesc.toArray((String []) sDesc);
+    vClrNm.toArray((String []) sClrNm);
+    vSizNm.toArray((String []) sSizNm);
+    vRcvQty.toArray((String []) sRcvQty);
+
+    runsql.disconnect();
+    runsql = null;
+%>
+
+<script language="javascript">
+var RcvDt = new Array();
+var VenSty = new Array();
+var Upc = new Array();
+var Sku = new Array();
+var Desc = new Array();
+var ClrNm = new Array();
+var SizNm = new Array();
+var RcvQty = new Array();
+
+<%for(int i=0; i < sRcvDt.length; i++){%>
+  RcvDt[<%=i%>] = "<%=sRcvDt[i]%>";
+  VenSty[<%=i%>] = "<%=sVenSty[i]%>";
+  Upc[<%=i%>] = "<%=sUpc[i]%>";
+  Sku[<%=i%>] = "<%=sSku[i]%>";
+  Desc[<%=i%>] = "<%=sDesc[i]%>";
+  ClrNm[<%=i%>] = "<%=sClrNm[i]%>";
+  SizNm[<%=i%>] = "<%=sSizNm[i]%>";
+  RcvQty[<%=i%>] = "<%=sRcvQty[i]%>";
+<%}%>
+
+  parent.showSubstitutions(RcvDt, VenSty, Upc, Sku, Desc, ClrNm, SizNm, RcvQty);
+
+</script>
+<%}
+else {%>
+<script language="javascript">
+  alert("Please refresh your screen and sign on");
+</script>
+<%}%>

@@ -1,0 +1,818 @@
+<%@ page import="ecommerce.EComProdSts"%>
+<%
+    String sSrchDiv = request.getParameter("Div");
+    String sSrchDpt = request.getParameter("Dpt");
+    String sSrchCls = request.getParameter("Cls");
+    String sSrchVen = request.getParameter("Ven");
+    String sSeason = request.getParameter("Season");
+    String sSrchSite = request.getParameter("Site");
+    String sLevel = request.getParameter("Level");
+    String sPoNum = request.getParameter("Pon");
+    String sParent = request.getParameter("Parent");
+    String sSort = request.getParameter("Sort");
+
+    if(sSort==null) sSort = "GRP";
+    if(sPoNum==null) sPoNum = " ";
+    if(sParent==null) sParent = " ";
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null || session.getAttribute("ECOMMERCE")==null)
+{
+   response.sendRedirect("SignOn1.jsp?TARGET=EComProdSts.jsp");
+}
+else
+{
+    String sUser = session.getAttribute("USER").toString();
+    EComProdSts prodlst = new EComProdSts(sSrchDiv, sSrchDpt, sSrchCls, sSrchVen, sSeason,
+                sSrchSite, sLevel, sParent, sPoNum, sSort, sUser);
+    int iNumOfProd = prodlst.getNumOfProd();
+    String sColGrp = null;
+    String sColGrpName = null;
+
+    if(!sPoNum.trim().equals("") && sLevel.equals("S")){ sColGrp = "CVS"; sColGrpName = "Class-Vendor-Style Name"; }
+    else if(!sPoNum.trim().equals("") && sLevel.equals("I")){ sColGrp = "ITEM"; sColGrpName = "Item Number"; }
+
+    else if(!sParent.trim().equals("") && sLevel.equals("S")){ sColGrp = "CVS"; sColGrpName = "Class-Vendor-Style Name"; }
+    else if(!sParent.trim().equals("") && sLevel.equals("I")){ sColGrp = "ITEM"; sColGrpName = "Item Number"; }
+
+    else if(sSrchDiv.equals("ALL") && sSrchDpt.equals("ALL") && sSrchCls.equals("ALL")) { sColGrp = "Div"; sColGrpName = "Division Name"; }
+    else if(sSrchDpt.equals("ALL") && sSrchCls.equals("ALL")) { sColGrp = "Dpt"; sColGrpName = "Department Name"; }
+    else if(sSrchCls.equals("ALL")){ sColGrp = "Class"; sColGrpName = "Class Name"; }
+    else if(!sSrchCls.equals("ALL") && sLevel.equals("S")){ sColGrp = "CVS"; sColGrpName = "Class-Vendor-Style Name"; }
+    else if(!sSrchCls.equals("ALL") && sLevel.equals("I")){ sColGrp = "ITEM"; sColGrpName = "Item Number"; }
+
+%>
+<HTML>
+<HEAD>
+<title>E-Commerce</title>
+<META content="RCI, Inc." name="E-Commerce"></HEAD>
+
+<style>body {background:ivory;font-family: Verdanda}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}  a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}  a:hover.small { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding- top:3px; padding-bottom:3px;
+                       text-align:center; font-size:11px; text-decoration: underline;}
+        th.DataTable2 { padding- top:3px; padding-bottom:3px; text-align:center; font-size:11px;}
+
+        tr.DataTable { background: #E7E7E7; font-size:10px }
+        tr.DataTable0 { background: red; font-size:10px }
+        tr.DataTable1 { background: CornSilk; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+        td.DataTable01 { cursor:hand;padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        div.dvItem { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:100; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+</style>
+
+
+<script name="javascript1.3">
+//------------------------------------------------------------------------------
+var Site = "<%=sSrchSite%>"
+var Dsp5Cat = true;
+var DspRCU = true;
+//==============================================================================
+// run on loading
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvItem"]);
+   switch5Cat();
+   switchRCU();
+}
+
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.dvItem.innerHTML = " ";
+   document.all.dvItem.style.visibility = "hidden";
+}
+
+//==============================================================================
+// show table with different sorting
+//==============================================================================
+function resort(sort)
+{
+   var url = "EComProdSts.jsp?"
+           + "Div=<%=sSrchDiv%>"
+           + "&Dpt=<%=sSrchDpt%>"
+           + "&Cls=<%=sSrchCls%>"
+           + "&Ven=<%=sSrchVen%>"
+           + "&Season=<%=sSeason%>"
+           + "&Site=<%=sSrchSite%>"
+           + "&Sort=" + sort
+           + "&Level=<%=sLevel%>";
+   //alert(url)
+   window.location.href=url;
+}
+
+//==============================================================================
+// switch Volusion site
+//==============================================================================
+function drilldown(grp, level)
+{
+   var url = "EComProdSts.jsp?"
+   if(level=="Div") { url += "Div=" + grp; } else { url += "Div=<%=sSrchDiv%>"; }
+   if(level=="Dpt") { url += "&Dpt=" + grp; } else { url += "&Dpt=<%=sSrchDpt%>"; }
+   if(level=="Class") { url += "&Cls=" + grp; } else { url += "&Cls=<%=sSrchCls%>"; }
+   url += "&Ven=<%=sSrchVen%>"
+        + "&Season=<%=sSeason%>"
+        + "&Site=<%=sSrchSite%>"
+        + "&Sort=<%=sSort%>"
+        + "&Level=<%=sLevel%>";
+   //alert(url)
+   window.location.href=url;
+}
+
+//==============================================================================
+// shows Product Complete or Incomplete
+//==============================================================================
+function showProd(grp, level)
+{
+   var url = "EComProd.jsp?"
+           + "Div=<%=sSrchDiv%>"
+           + "&Dpt=<%=sSrchDpt%>"
+           + "&Cls=" + grp
+           + "&Ven=<%=sSrchVen%>"
+           + "&Season=<%=sSeason%>"
+           + "&Site=<%=sSrchSite%>"
+           + "&Stock=0"
+           + "&Ready=0&Approved=0&Assign=ALL&Excel=N";
+
+   //alert(url)
+   window.location.href=url;
+}
+//==============================================================================
+// shows Product Complete or Incomplete
+//==============================================================================
+function showItem(grp, level)
+{
+   var url = "EComItmLst.jsp?"
+   if(level != "CVS" && level !="ITEM")
+   {
+       url += "Div=<%=sSrchDiv%>&Dpt=<%=sSrchDpt%>"
+           + "&Cls=" + grp
+           + "&Ven=<%=sSrchVen%>&Parent="
+   }
+   else
+   {
+      url += "Div=ALL&Dpt=ALL&Cls=ALL&Ven=ALL"
+           + "&Parent=" + grp
+   }
+
+    url += "&Web=1&Web=2&Web=0"
+           + "&From=ALL"
+           + "&To=ALL"
+           + "&Site=ALL"
+           + "&MarkDownl=0"
+           + "&Excel=N&Pon=&ModelYr=&MapExpDt="
+
+   //alert(url)
+   window.location.href=url;
+}
+//==============================================================================
+// switch Volusion site
+//==============================================================================
+function otherSite()
+{
+   var url = "EComProdSts.jsp?"
+           + "Div=<%=sSrchDiv%>"
+           + "&Dpt=<%=sSrchDpt%>"
+           + "&Cls=<%=sSrchCls%>"
+           + "&Ven=<%=sSrchVen%>"
+           + "&Season=<%=sSeason%>"
+           + "&Sort=<%=sSort%>"
+
+   if(Site=="SASS"){ url += "&Site=SKCH"; }
+   else { url += "&Site=SASS"; }
+   //alert(url)
+   window.location.href=url;
+}
+//==============================================================================
+// hide /display 5 categories
+//==============================================================================
+function switch5Cat()
+{
+   Dsp5Cat = !Dsp5Cat;
+   var disp = "none"
+   if(Dsp5Cat) { disp = "block" }
+
+   switchCell(document.all.cellDesc, disp);
+   switchCell(document.all.cellFeat, disp);
+   switchCell(document.all.cellPhoto, disp);
+   switchCell(document.all.cellCateg, disp);
+   switchCell(document.all.cellOpt ,disp);
+   switchCell(document.all.thBlank, disp);
+}
+//==============================================================================
+// hide /display 5 categories
+//==============================================================================
+function switchRCU()
+{
+   DspRCU = !DspRCU;
+   var disp = "none"
+   if(DspRCU) { disp = "block" }
+
+   switchCell(document.all.cellLvRet, disp);
+   switchCell(document.all.cellLvCost, disp);
+   switchCell(document.all.cellLvUnit, disp);
+   switchCell(document.all.cellInRet, disp);
+   switchCell(document.all.cellInCost ,disp);
+   switchCell(document.all.cellInUnit ,disp);
+   if(document.all.thCompl.colSpan==11)
+   {
+      document.all.thCompl.colSpan=8;
+      document.all.thLive.colSpan=2;
+      document.all.thInCompl.colSpan=6;
+      document.all.thIncWS.colSpan=2;
+   }
+   else
+   {
+      document.all.thCompl.colSpan=11;
+      document.all.thLive.colSpan=5;
+      document.all.thInCompl.colSpan=9;
+      document.all.thIncWS.colSpan=5;
+   }
+}
+//==============================================================================
+// hide /display 5 categories
+//==============================================================================
+function switchCell(cells, disp)
+{
+   for(var i=0; i < cells.length; i++)  {  cells[i].style.display=disp }
+}
+
+//==============================================================================
+// show calculation
+//==============================================================================
+function showCalc(obj, amt1, name1, amt2, name2, prc, name3)
+{
+   var html = "<table border=0 cellPadding='0' cellSpacing='0' style='font-size:10px'>"
+        + "<tr><td>" + name1 + "</td><td>&nbsp;</td><td>" + amt1 + "</td>"
+        + "<tr><td><td>&nbsp;</td><td>/</td></td>"
+        + "<tr><td>" + name2 + "</td><td>&nbsp;</td><td>" + amt2 + "</td>"
+        + "<tr><td colspan=2 style='border-bottom:black 1px solid;'>&nbsp;</td>"
+        + "<tr><td>" + name3 + "</td><td>" + prc + "%</td>"
+
+   html += "</table>"
+
+   var pos = getObjPosition(obj);
+
+   document.all.dvItem.innerHTML = html;
+   document.all.dvItem.style.pixelLeft= pos[0] + 40;
+   document.all.dvItem.style.pixelTop= pos[1];
+   document.all.dvItem.style.visibility = "visible";
+}
+</script>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Get_Object_Position.js"></script>
+
+
+<BODY onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvItem" class="dvItem"></div>
+<!-------------------------------------------------------------------->
+
+
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR bgColor=moccasin>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>E-Commerce Item Status List
+        <br>Division:<%=sSrchDiv%>&nbsp;&nbsp;&nbsp;
+            Department:<%=sSrchDpt%>&nbsp;&nbsp;&nbsp;
+            Class:<%=sSrchCls%>
+        <br><%if(sSrchSite.equals("SASS")){%>Sun and Ski Sports<%}
+              else if(sSrchSite.equals("SKCH")){%>Ski Chalet<%}
+              else if(sSrchSite.equals("REBEL")){%>Rebel<%}%>
+        </B><br>
+
+        <a href="../" class="small"><font color="red">Home</font></a>&#62;
+        <a href="EComProdStsSel.jsp" class="small"><font color="red">Selection</font></a>&#62;
+        <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript: otherSite()">Change Site</a>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript: switch5Cat()">Hide/Show 5 Categories</a>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript: switchRCU()">Hide/Show Ret/Cost/Unit</a>
+<!-- ======================================================================= -->
+       <table border=1 cellPadding="0" cellSpacing="0" id="tbRtvEnt">
+         <tr class="DataTable">
+             <th class="DataTable" rowspan=4><a href="javascript:resort('GRP')"><%=sColGrp%></a></th>
+             <th class="DataTable" rowspan=4><a href="javascript:resort('GRPNM')"><%=sColGrpName%></a></th>
+             <th class="DataTable" rowspan=4>P<br>r<br>o<br>d</th>
+             <th class="DataTable" rowspan=4>I<br>t<br>e<br>m</th>
+             <th class="DataTable" id="thCompl" colspan=11>Items (Styles) Complete</th>
+             <th class="DataTable" rowspan=4>&nbsp;</th>
+
+             <th class="DataTable" id="thInCompl" colspan=9>Item (Styles) Incomplete<span style="font-size:8px; vertical-align:top;">(2)</span></th>
+             <th class="DataTable" rowspan=4>&nbsp;</th>
+
+             <th class="DataTable" id="cellDesc" colspan=5 rowspan=3>5 Completion Categories</th>
+             <th class="DataTable" id="thBlank" rowspan=4>&nbsp;</th>
+             <!-- th class="DataTable" colspan=3>Attributed<br>in IP</th -->
+             <th class="DataTable" colspan=3 rowspan=3>Total</th>
+             <th class="DataTable" rowspan=4>&nbsp;</th>
+
+             <th class="DataTable" rowspan=3 colspan=4>Items (Styles) Not <br>Attributed</th>
+         </tr>
+         <tr class="DataTable">
+           <th class="DataTable" id="thLive" rowspan=2 colspan=5>Live<span style="font-size:8px; vertical-align:top;">(1)</span></th>
+           <th class="DataTable" colspan=4>Not Live</th>
+
+           <th class="DataTable" id="thIncWS" rowspan=2 colspan=5>With Stock<span style="font-size:8px; vertical-align:top;">(3)</span></th>
+           <th class="DataTable" rowspan=2 colspan=2>W/O Stock</th>
+           <th class="DataTable" rowspan=2 colspan=2>Total</th>
+
+           <th class="DataTable" rowspan=3>With Stock<br>70</th>
+           <!-- th class="DataTable" rowspan=2>W/O Stock in 70<br>With BSR 70</th -->
+           <th class="DataTable" rowspan=3>With Stock in 1<br>W/O Stock in 70</th>
+           <!--th class="DataTable" rowspan=2>Total</th -->
+         </tr>
+
+         <tr class="DataTable">
+           <th class="DataTable" colspan=2>With Stock<br>Not Turned On</th>
+           <th class="DataTable" colspan=2>W/O Stock</th>
+         </tr>
+
+         <tr class="DataTable">
+             <th class="DataTable"><a href="javascript:resort('HIDE')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('HIDEPRC')">%</a></th>
+             <th class="DataTable" id="cellLvRet"><a href="javascript:resort('LIVERET')">Retail</a></th>
+             <th class="DataTable" id="cellLvRet"><a href="javascript:resort('LIVECOST')">Cost</a></th>
+             <th class="DataTable" id="cellLvUnit"><a href="javascript:resort('LIVEUNIT')">Units</a></th>
+
+             <th class="DataTable"><a href="javascript:resort('NOTTRN')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('NOTTRNPRC')">%</a></th>
+             <th class="DataTable"><a href="javascript:resort('COMPNOS')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('COMPNOSPRC')">%</a></th>
+             <th class="DataTable"><a href="javascript:resort('COMPALL')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('COMPALLPRC')">%</a></th>
+
+             <th class="DataTable"><a href="javascript:resort('INCSTK')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('INCSTKPRC')">%</a></th>
+             <th class="DataTable" id="cellInRet"><a href="javascript:resort('INCOMRET')">Retail</a></th>
+             <th class="DataTable" id="cellInCost"><a href="javascript:resort('INCOMCOST')">Cost</a></th>
+             <th class="DataTable" id="cellInUnit"><a href="javascript:resort('INCOMUNIT')">Units</a></th>
+
+             <th class="DataTable"><a href="javascript:resort('INCNOS')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('INCNOSPRC')">%</a></th>
+             <th class="DataTable"><a href="javascript:resort('INCOM')">Count</a></th>
+             <th class="DataTable"><a href="javascript:resort('INCOMPRC')">%</a></th>
+
+             <th class="DataTable" id="cellDesc"><a href="javascript:resort('DESC')">Desc</a></th>
+             <th class="DataTable" id="cellFeat"><a href="javascript:resort('FEAT')">Feature</a></th>
+             <th class="DataTable" id="cellPhoto"><a href="javascript:resort('PHOTO')">Photo</a></th>
+             <th class="DataTable" id="cellCateg"><a href="javascript:resort('CATEG')">Category</a></th>
+             <th class="DataTable" id="cellOpt"><a href="javascript:resort('OPTION')">Option</a></th>
+
+             <th class="DataTable"><a href="javascript:resort('TOT')">RCI</a></th>
+             <th class="DataTable"><a href="javascript:resort('VOL')">Volusion</a></th>
+             <th class="DataTable"><a href="javascript:resort('TOTPRC')">Vol %</a></th>
+         </tr>
+       <!-- ============================ Details =========================== -->
+       <%for(int i=0; i < iNumOfProd; i++ )
+         {
+            prodlst.setDetail();
+            String sGrp = prodlst.getGrp().trim();
+            String sGrpName = prodlst.getGrpName();
+            String sGrpTotWs = prodlst.getGrpTotWs();
+            String sGrpTotOs = prodlst.getGrpTotOs();
+            String sGrpTot = prodlst.getGrpTot();
+            String sGrpVol = prodlst.getGrpVol();
+            String sDesc = prodlst.getDesc();
+            String sFeature = prodlst.getFeature();
+            String sPhoto = prodlst.getPhoto();
+            String sCateg = prodlst.getCateg();
+            String sOption = prodlst.getOption();
+            String sGrpPrc = prodlst.getGrpPrc();
+            String sOnhand = prodlst.getOnhand();
+
+            String sLive = prodlst.getLive();
+            String sLivePrc = prodlst.getLivePrc();
+
+            String sCompNoStk = prodlst.getCompNoStk();
+            String sCompNoStkPrc = prodlst.getCompNoStkPrc();
+            String sNotTurn = prodlst.getNotTurn();
+            String sNotTurnPrc = prodlst.getNotTurnPrc();
+            String sCompAll = prodlst.getCompAll();
+            String sCompAllPrc = prodlst.getCompAllPrc();
+
+            String sIncomHasStk = prodlst.getIncomHasStk();
+            String sIncomHasStkPrc = prodlst.getIncomHasStkPrc();
+            String sIncomNoStk = prodlst.getIncomNoStk();
+            String sIncomNoStkPrc = prodlst.getIncomNoStkPrc();
+            String sIncom = prodlst.getIncom();
+            String sIncomPrc = prodlst.getIncomPrc();
+
+            String sLiveRet = prodlst.getLiveRet();
+            String sLiveCost = prodlst.getLiveCost();
+            String sLiveUnit = prodlst.getLiveUnit();
+            String sIncomRet = prodlst.getIncomRet();
+            String sIncomCost = prodlst.getIncomCost();
+            String sIncomUnit = prodlst.getIncomUnit();
+
+            String sOnhand70 = prodlst.getOnhand70();
+            String sBsr70 = prodlst.getBsr70();
+            String sOnhand01 = prodlst.getOnhand01();
+            String sGrpTotUna = prodlst.getGrpTotUna();
+        %>
+            <tr id="trProd" class="DataTable">
+            <td class="DataTable2" nowrap><%=sGrp%></td>
+            <%if(!sColGrp.equals("CVS")) {%>
+                 <td class="DataTable1" nowrap><a class="Small" href="javascript: drilldown('<%=sGrp%>', '<%=sColGrp%>')"><%=sGrpName%></a></td>
+            <%}
+              else {%>
+                 <td class="DataTable1" nowrap><%=sGrpName%></td>
+              <%}%>
+
+            <th class="DataTable"><%if(sColGrp.equals("Class") || sColGrp.equals("CVS") || sColGrp.equals("ITEM")){%><a class="Small" href="javascript: showProd('<%=sGrp%>', '<%=sColGrp%>')">&nbsp;P&nbsp;</a><%} else {%>&nbsp;<%}%></th>
+            <th class="DataTable"><%if(sColGrp.equals("Class") || sColGrp.equals("CVS") || sColGrp.equals("ITEM")){%><a class="Small" href="javascript: showItem('<%=sGrp%>', '<%=sColGrp%>')">&nbsp;I&nbsp;</a><%} else {%>&nbsp;<%}%></th>
+            <td  class="DataTable2" nowrap><%=sLive%></td>
+            <td  class="DataTable2" onmouseover="showCalc(this, '<%=sLive%>', 'Live', '<%=sCompAll%>', 'All Completed', '<%=sLivePrc%>', 'Percent' )" onmouseout="hidePanel();" nowrap><%=sLivePrc%>%</td>
+            <td  class="DataTable2" id="cellLvRet" nowrap><%=sLiveRet%></td>
+            <td  class="DataTable2" id="cellLvCost" nowrap><%=sLiveCost%></td>
+            <td  class="DataTable2" id="cellLvUnit" nowrap><%=sLiveUnit%></td>
+
+            <td class="DataTable2" nowrap><%=sNotTurn%></td>
+            <td class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sNotTurn%>', 'With Stock Not Turned On', '<%=sCompAll%>', 'All Completed', '<%=sNotTurnPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sNotTurnPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompNoStk%></td>
+            <td class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sCompNoStk%>', 'W/O Stock', '<%=sCompAll%>', 'All Completed', '<%=sCompNoStkPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sCompNoStkPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompAll%></td>
+            <td class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sCompAll%>', 'All Completed', '<%=sGrpVol%>', 'All', '<%=sCompAllPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sCompAllPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sIncomHasStk%></td>
+            <td  class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sIncomHasStk%>', 'Incompleted With Stock', '<%=sGrpVol%>', 'All Incompleted', '<%=sIncomHasStkPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sIncomHasStkPrc%>%</td>
+            <td  class="DataTable2" id="cellInRet" nowrap><%=sIncomRet%></td>
+            <td  class="DataTable2" id="cellInCost" nowrap><%=sIncomCost%></td>
+            <td  class="DataTable2" id="cellInUnit" nowrap><%=sIncomUnit%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStk%></td>
+            <td  class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sIncomNoStk%>', 'Incompleted W/O Stock', '<%=sGrpVol%>', 'All Incompleted', '<%=sIncomNoStkPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sIncomNoStkPrc%>%</td>
+            <td  class="DataTable2" nowrap><%=sIncom%></td>
+            <td  class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sIncom%>', 'All Incompleted', '<%=sGrpVol%>', 'Complete + Incompleted', '<%=sIncomPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sIncomPrc%>%</td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td id="cellDesc" class="DataTable2" nowrap><%=sDesc%></td>
+            <td id="cellFeat" class="DataTable2" nowrap><%=sFeature%></td>
+            <td id="cellPhoto" class="DataTable2" nowrap><%=sPhoto%></td>
+            <td id="cellCateg" class="DataTable2" nowrap><%=sCateg%></td>
+            <td id="cellOpt" class="DataTable2" nowrap><%=sOption%></td>
+            <th class="DataTable" id="thBlank">&nbsp;</th>
+
+            <!--td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotOs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTot%></td -->
+
+            <td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sLive%></td>
+            <td class="DataTable2" nowrap onmouseover="showCalc(this, '<%=sLive%>', 'Live', '<%=sGrpTot%>', 'Complete + Incomplete', '<%=sGrpPrc%>', 'Percent' )" onmouseout="hidePanel();"><%=sGrpPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td class="DataTable2" nowrap><%=sOnhand70%></td>
+            <!--td class="DataTable2" nowrap><%=sBsr70%></td-->
+            <td class="DataTable2" nowrap><%=sOnhand01%></td>
+            <!--td class="DataTable2" nowrap><%=sGrpTotUna%></td-->
+         </tr>
+       <%}%>
+
+       <!-- -------------------------- Total for Ski Division -------------- -->
+   <%if(sSrchDiv.equals("ALL") && sSrchDpt.equals("ALL") && sSrchCls.equals("ALL")){%>
+       <%
+          prodlst.setTotal(1);
+          String sGrp = prodlst.getGrp();
+          String sGrpName = prodlst.getGrpName();
+          String sGrpTotWs = prodlst.getGrpTotWs();
+          String sGrpTotOs = prodlst.getGrpTotOs();
+          String sGrpTot = prodlst.getGrpTot();
+          String sGrpVol = prodlst.getGrpVol();
+          String sDesc = prodlst.getDesc();
+          String sFeature = prodlst.getFeature();
+          String sPhoto = prodlst.getPhoto();
+          String sCateg = prodlst.getCateg();
+          String sOption = prodlst.getOption();
+          String sGrpPrc = prodlst.getGrpPrc();
+          String sOnhand = prodlst.getOnhand();
+
+          String sLive = prodlst.getLive();
+          String sLivePrc = prodlst.getLivePrc();
+
+          String sCompNoStk = prodlst.getCompNoStk();
+          String sCompNoStkPrc = prodlst.getCompNoStkPrc();
+          String sNotTurn = prodlst.getNotTurn();
+          String sNotTurnPrc = prodlst.getNotTurnPrc();
+          String sCompAll = prodlst.getCompAll();
+          String sCompAllPrc = prodlst.getCompAllPrc();
+
+          String sIncomHasStk = prodlst.getIncomHasStk();
+          String sIncomHasStkPrc = prodlst.getIncomHasStkPrc();
+          String sIncomNoStk = prodlst.getIncomNoStk();
+          String sIncomNoStkPrc = prodlst.getIncomNoStkPrc();
+          String sIncom = prodlst.getIncom();
+          String sIncomPrc = prodlst.getIncomPrc();
+          String sLiveRet = prodlst.getLiveRet();
+          String sLiveCost = prodlst.getLiveCost();
+          String sLiveUnit = prodlst.getLiveUnit();
+          String sIncomRet = prodlst.getIncomRet();
+          String sIncomCost = prodlst.getIncomCost();
+          String sIncomUnit = prodlst.getIncomUnit();
+
+          String sGrpTotUna = prodlst.getGrpTotUna();
+          String sOnhand70 = prodlst.getOnhand70();
+          String sBsr70 = prodlst.getBsr70();
+          String sOnhand01 = prodlst.getOnhand01();
+       %>
+       <tr id="trProd" class="DataTable1">
+            <td  class="DataTable1" colspan=2 nowrap >Ski Total</td>
+            <th class="DataTable">&nbsp;</th>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sLive%></td>
+            <td  class="DataTable2" nowrap><%=sLivePrc%>%</td>
+            <td  class="DataTable2" id="cellLvRet" nowrap><%=sLiveRet%></td>
+            <td  class="DataTable2" id="cellLvCost" nowrap><%=sLiveCost%></td>
+            <td  class="DataTable2" id="cellLvUnit" nowrap><%=sLiveUnit%></td>
+
+            <td class="DataTable2" nowrap><%=sNotTurn%></td>
+            <td class="DataTable2" nowrap><%=sNotTurnPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompNoStk%></td>
+            <td class="DataTable2" nowrap><%=sCompNoStkPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompAll%></td>
+            <td class="DataTable2" nowrap><%=sCompAllPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sIncomHasStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomHasStkPrc%>%</td>
+            <td  class="DataTable2" id="cellInRet" nowrap><%=sIncomRet%></td>
+            <td  class="DataTable2" id="cellInCost" nowrap><%=sIncomCost%></td>
+            <td  class="DataTable2" id="cellInUnit" nowrap><%=sIncomUnit%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStkPrc%>%</td>
+            <td  class="DataTable2" nowrap><%=sIncom%></td>
+            <td  class="DataTable2" nowrap><%=sIncomPrc%>%</td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td id="cellDesc" class="DataTable2" nowrap><%=sDesc%></td>
+            <td id="cellFeat" class="DataTable2" nowrap><%=sFeature%></td>
+            <td id="cellPhoto" class="DataTable2" nowrap><%=sPhoto%></td>
+            <td id="cellCateg" class="DataTable2" nowrap><%=sCateg%></td>
+            <td id="cellOpt" class="DataTable2" nowrap><%=sOption%></td>
+            <th class="DataTable" id="thBlank">&nbsp;</th>
+
+            <!--td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotOs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTot%></td -->
+
+            <td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sLive%></td>
+            <td class="DataTable2" nowrap><%=sGrpPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td class="DataTable2" nowrap><%=sOnhand70%></td>
+            <td class="DataTable2" nowrap><%=sBsr70%></td>
+            <!--td class="DataTable2" nowrap><%=sOnhand01%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotUna%></td-->
+         </tr>
+       <!-- -------------------------- Total for Non - Ski Division -------------- -->
+       <%
+          prodlst.setTotal(2);
+          sGrp = prodlst.getGrp();
+          sGrpName = prodlst.getGrpName();
+            sGrpTotWs = prodlst.getGrpTotWs();
+            sGrpTotOs = prodlst.getGrpTotOs();
+            sGrpTot = prodlst.getGrpTot();
+            sGrpVol = prodlst.getGrpVol();
+            sDesc = prodlst.getDesc();
+            sFeature = prodlst.getFeature();
+            sPhoto = prodlst.getPhoto();
+            sCateg = prodlst.getCateg();
+            sOption = prodlst.getOption();
+            sGrpPrc = prodlst.getGrpPrc();
+            sOnhand = prodlst.getOnhand();
+
+            sLive = prodlst.getLive();
+            sLivePrc = prodlst.getLivePrc();
+
+            sCompNoStk = prodlst.getCompNoStk();
+            sCompNoStkPrc = prodlst.getCompNoStkPrc();
+            sNotTurn = prodlst.getNotTurn();
+            sNotTurnPrc = prodlst.getNotTurnPrc();
+            sCompAll = prodlst.getCompAll();
+            sCompAllPrc = prodlst.getCompAllPrc();
+
+            sIncomHasStk = prodlst.getIncomHasStk();
+            sIncomHasStkPrc = prodlst.getIncomHasStkPrc();
+            sIncomNoStk = prodlst.getIncomNoStk();
+            sIncomNoStkPrc = prodlst.getIncomNoStkPrc();
+            sIncom = prodlst.getIncom();
+            sIncomPrc = prodlst.getIncomPrc();
+            sLiveRet = prodlst.getLiveRet();
+            sLiveCost = prodlst.getLiveCost();
+            sLiveUnit = prodlst.getLiveUnit();
+            sIncomRet = prodlst.getIncomRet();
+            sIncomCost = prodlst.getIncomCost();
+            sIncomUnit = prodlst.getIncomUnit();
+
+            sGrpTotUna = prodlst.getGrpTotUna();
+            sOnhand70 = prodlst.getOnhand70();
+            sBsr70 = prodlst.getBsr70();
+            sOnhand01 = prodlst.getOnhand01();
+       %>
+       <tr id="trProd" class="DataTable1">
+            <td  class="DataTable1" colspan=2 nowrap >Non-Ski Total</td>
+            <th class="DataTable">&nbsp;</th>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sLive%></td>
+            <td  class="DataTable2" nowrap><%=sLivePrc%>%</td>
+            <td  class="DataTable2" id="cellLvRet" nowrap><%=sLiveRet%></td>
+            <td  class="DataTable2" id="cellLvCost" nowrap><%=sLiveCost%></td>
+            <td  class="DataTable2" id="cellLvUnit" nowrap><%=sLiveUnit%></td>
+
+            <td class="DataTable2" nowrap><%=sNotTurn%></td>
+            <td class="DataTable2" nowrap><%=sNotTurnPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompNoStk%></td>
+            <td class="DataTable2" nowrap><%=sCompNoStkPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompAll%></td>
+            <td class="DataTable2" nowrap><%=sCompAllPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sIncomHasStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomHasStkPrc%>%</td>
+            <td  class="DataTable2" id="cellInRet" nowrap><%=sIncomRet%></td>
+            <td  class="DataTable2" id="cellInCost" nowrap><%=sIncomCost%></td>
+            <td  class="DataTable2" id="cellInUnit" nowrap><%=sIncomUnit%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStkPrc%>%</td>
+            <td  class="DataTable2" nowrap><%=sIncom%></td>
+            <td  class="DataTable2" nowrap><%=sIncomPrc%>%</td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td id="cellDesc" class="DataTable2" nowrap><%=sDesc%></td>
+            <td id="cellFeat" class="DataTable2" nowrap><%=sFeature%></td>
+            <td id="cellPhoto" class="DataTable2" nowrap><%=sPhoto%></td>
+            <td id="cellCateg" class="DataTable2" nowrap><%=sCateg%></td>
+            <td id="cellOpt" class="DataTable2" nowrap><%=sOption%></td>
+            <th class="DataTable" id="thBlank">&nbsp;</th>
+
+            <!--td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotOs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTot%></td -->
+
+            <td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sLive%></td>
+            <td class="DataTable2" nowrap><%=sGrpPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td class="DataTable2" nowrap><%=sOnhand70%></td>
+            <td class="DataTable2" nowrap><%=sBsr70%></td>
+            <!--td class="DataTable2" nowrap><%=sOnhand01%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotUna%></td -->
+         </tr>
+    <%}%>
+         <!-- -------------------------- Total ------------------------------- -->
+       <%
+          prodlst.setTotal(0);
+          String sGrp = prodlst.getGrp();
+          String sGrpName = prodlst.getGrpName();
+          String sGrpTotWs = prodlst.getGrpTotWs();
+          String sGrpTotOs = prodlst.getGrpTotOs();
+          String sGrpTot = prodlst.getGrpTot();
+          String sGrpVol = prodlst.getGrpVol();
+          String sDesc = prodlst.getDesc();
+          String sFeature = prodlst.getFeature();
+          String sPhoto = prodlst.getPhoto();
+          String sCateg = prodlst.getCateg();
+          String sOption = prodlst.getOption();
+          String sGrpPrc = prodlst.getGrpPrc();
+          String sOnhand = prodlst.getOnhand();
+
+          String sLive = prodlst.getLive();
+          String sLivePrc = prodlst.getLivePrc();
+
+          String sCompNoStk = prodlst.getCompNoStk();
+          String sCompNoStkPrc = prodlst.getCompNoStkPrc();
+          String sNotTurn = prodlst.getNotTurn();
+          String sNotTurnPrc = prodlst.getNotTurnPrc();
+          String sCompAll = prodlst.getCompAll();
+          String sCompAllPrc = prodlst.getCompAllPrc();
+
+          String sIncomHasStk = prodlst.getIncomHasStk();
+          String sIncomHasStkPrc = prodlst.getIncomHasStkPrc();
+          String sIncomNoStk = prodlst.getIncomNoStk();
+          String sIncomNoStkPrc = prodlst.getIncomNoStkPrc();
+          String sIncom = prodlst.getIncom();
+          String sIncomPrc = prodlst.getIncomPrc();
+          String sLiveRet = prodlst.getLiveRet();
+          String sLiveCost = prodlst.getLiveCost();
+          String sLiveUnit = prodlst.getLiveUnit();
+          String sIncomRet = prodlst.getIncomRet();
+          String sIncomCost = prodlst.getIncomCost();
+          String sIncomUnit = prodlst.getIncomUnit();
+
+          String sGrpTotUna = prodlst.getGrpTotUna();
+          String sOnhand70 = prodlst.getOnhand70();
+          String sBsr70 = prodlst.getBsr70();
+          String sOnhand01 = prodlst.getOnhand01();
+       %>
+       <tr id="trProd" class="DataTable1">
+            <td  class="DataTable1" colspan=2 nowrap >Total</td>
+            <th class="DataTable">&nbsp;</th>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sLive%></td>
+            <td  class="DataTable2" nowrap><%=sLivePrc%>%</td>
+            <td  class="DataTable2" id="cellLvRet" nowrap><%=sLiveRet%></td>
+            <td  class="DataTable2" id="cellLvCost" nowrap><%=sLiveCost%></td>
+            <td  class="DataTable2" id="cellLvUnit" nowrap><%=sLiveUnit%></td>
+
+            <td class="DataTable2" nowrap><%=sNotTurn%></td>
+            <td class="DataTable2" nowrap><%=sNotTurnPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompNoStk%></td>
+            <td class="DataTable2" nowrap><%=sCompNoStkPrc%>%</td>
+            <td class="DataTable2" nowrap><%=sCompAll%></td>
+            <td class="DataTable2" nowrap><%=sCompAllPrc%>%</td>
+            <th class="DataTable">&nbsp;</th>
+
+            <td  class="DataTable2" nowrap><%=sIncomHasStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomHasStkPrc%>%</td>
+            <td  class="DataTable2" id="cellInRet" nowrap><%=sIncomRet%></td>
+            <td  class="DataTable2" id="cellInCost" nowrap><%=sIncomCost%></td>
+            <td  class="DataTable2" id="cellInUnit" nowrap><%=sIncomUnit%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStk%></td>
+            <td  class="DataTable2" nowrap><%=sIncomNoStkPrc%>%</td>
+            <td  class="DataTable2" nowrap><%=sIncom%></td>
+            <td  class="DataTable2" nowrap><%=sIncomPrc%>%</td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td id="cellDesc" class="DataTable2" nowrap><%=sDesc%></td>
+            <td id="cellFeat" class="DataTable2" nowrap><%=sFeature%></td>
+            <td id="cellPhoto" class="DataTable2" nowrap><%=sPhoto%></td>
+            <td id="cellCateg" class="DataTable2" nowrap><%=sCateg%></td>
+            <td id="cellOpt" class="DataTable2" nowrap><%=sOption%></td>
+            <th class="DataTable" id="thBlank">&nbsp;</th>
+
+            <!--td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTotOs%></td>
+            <td class="DataTable2" nowrap><%=sGrpTot%></td -->
+
+            <td class="DataTable2" nowrap><%=sGrpTotWs%></td>
+            <td class="DataTable2" nowrap><%=sLive%></td>
+            <td class="DataTable2" nowrap><%=sGrpPrc%>%</td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap><%=sOnhand70%></td>
+            <!--td class="DataTable2" nowrap><%=sBsr70%></td-->
+            <td class="DataTable2" nowrap><%=sOnhand01%></td>
+            <!--td class="DataTable2" nowrap><%=sGrpTotUna%></td-->
+         </tr>
+     </table>
+<!-- ======================================================================= -->
+     <p style="text-align:left; font-size: 12px">
+     <font color="red">Notes:</font>
+     <br> &nbsp;&nbsp;&nbsp; <span style="font-size:8px; vertical-align:top;">(1)</span><font color="darkblue">Live</font> = Item is complete and has stock
+     <br> &nbsp;&nbsp;&nbsp; <span style="font-size:8px; vertical-align:top;">(2)</span><font color="darkblue">Incomplete</font> = one or more attributes is incomplete
+     <br> &nbsp;&nbsp;&nbsp; <span style="font-size:8px; vertical-align:top;">(3)</span><font color="darkblue">With Stock</font> = 1 child SKU has a stock.
+     <br> &nbsp;&nbsp;&nbsp; <font color="darkblue">%'s</font> are based on #of items per Volusion.
+     <br> &nbsp;&nbsp;&nbsp; Number of items are based on parent SKUs(Style)
+
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>
+<%
+   prodlst.disconnect();
+   prodlst = null;
+   }
+%>

@@ -1,0 +1,101 @@
+<HTML>
+<TITLE>Mail Me</TITLE>
+ <HEAD>
+     <style type="text/css">
+       body {background:ivory;}
+       a.blue:visited {  font-weight: bold; color: #663399}
+       a.blue:link {  font-weight: bold; color: #0000FF}
+       th.sep1 { background: lightsalmon; border-bottom: black solid 1px; text-align:center; font-family:Verdanda; font-size:18px }
+       td.sep1 { border-bottom: black solid 1px;border-right: black solid 1px; padding-bottom:5px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep2 { border-bottom: black solid 1px; text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep3 { border-right: black solid 1px;text-align:left; font-family:Verdanda; font-size:12px }
+       td.sep4 { border-bottom: black solid 1px;text-align:center;}
+       td.sep5 { text-align:left; font-family:Verdanda; font-size:12px }
+     </style>
+ </HEAD>
+
+<script language="JavaScript1.2" >
+function mailus()
+{
+var emailBody;
+var emailto;
+var emailSubject;
+var emailCC;
+var emailBCC;
+var emailURL;
+emailto = "vrozen@retailconcepts.cc"
+emailBody = "<html>" + document.body.outerHTML + "</html>"
+emailSubject = "test"
+emailCC = ""
+emailBCC = ""
+emailReplyTo = ""
+emailURL = "mailto:" + escape(emailto) +
+"?body=" + escape(emailBody);
+
+window.location = emailURL;
+}
+
+function colapse()
+{
+  if (document.getElementById("r2").style.display == "none")
+  {
+     document.getElementById("r2").style.display = "block";
+     document.getElementById("r4").style.display = "block";
+  }
+  else
+  {
+     document.getElementById("r2").style.display = "none";
+     document.getElementById("r4").style.display = "none";
+  }
+
+}
+</script>
+
+<BODY>
+<h1>Test</h1>
+    <br>&nbsp;&nbsp;&nbsp;<a class="blue" href="javascript:mailus()">Send E-Mail</a>
+<table border=1>
+<tr>
+ <th class="sep1">col 1<th>
+ <th class="sep1">col 2<th>
+ <th class="sep1">col 3<th>
+ <th class="sep1">col 4<th>
+</tr>
+
+<tr id="r1" onclick="colapse()">
+ <td class="sep1" id="r1c1">row 1   col 1<td>
+ <td class="sep1" id="r1c2">row 1   col 2<td>
+ <td class="sep1" id="r1c3">row 1   col 3<td>
+ <td class="sep1" id="r1c4">row 1   col 4<td>
+</tr>
+
+<tr id="r2" onclick="colapse()">
+ <td class="sep1" id="r2c1">row 2   col 1<td>
+ <td class="sep1" id="r2c2">row 2   col 2<td>
+ <td class="sep1" id="r2c3">row 2   col 3<td>
+ <td class="sep1" id="r2c4">row 2   col 4<td>
+</tr>
+
+<tr id="r3" >
+ <td class="sep1" id="r1c1">row 3   col 1<td>
+ <td class="sep1" id="r1c2">row 3   col 2<td>
+ <td class="sep1" id="r1c3">row 3   col 3<td>
+ <td class="sep1" id="r1c4">row 3   col 4<td>
+</tr>
+
+<tr id="r4" >
+ <td class="sep1" id="r1c1">row 4   col 1<td>
+ <td class="sep1" id="r1c2">row 4   col 2<td>
+ <td class="sep1" id="r1c3">row 4   col 3<td>
+ <td class="sep1" id="r1c4">row 4   col 4<td>
+</tr>
+</table>
+
+<OBJECT type="image/svg+xml" data="SvgGraph01.svg">
+
+ </OBJECT>
+
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,54 @@
+<%@ page import="java.io.*,java.util.*, javax.servlet.*" %>
+<%@ page import="javax.servlet.http.*" %>
+<%@ page import="org.apache.commons.fileupload.*" %>
+<%@ page import="org.apache.commons.fileupload.disk.DiskFileItemFactory" %>
+<%@ page import="org.apache.commons.fileupload.servlet.*" %>
+<%@ page import="org.apache.commons.io.output.*" %>
+
+<%
+  try
+  {
+     DiskFileItemFactory factory = new DiskFileItemFactory();
+     // maximum size that will be stored in memory
+     factory.setSizeThreshold(maxMemSize);
+     // Location to save data that is larger than maxMemSize.
+     factory.setRepository(new File("c:\\temp"));
+
+     // Create a new file upload handler
+     ServletFileUpload upload = new ServletFileUpload(factory);
+
+     List fileItems = upload.parseRequest(request);
+     Iterator i = fileItems.iterator();
+     while ( i.hasNext () )
+     {
+        FileItem fi = (FileItem)i.next();
+        if ( !fi.isFormField () )
+        {
+          // Get the uploaded file parameters
+          String fieldname = fi.getFieldName();
+          String filename = FilenameUtils.getName(fi.getName());
+          System.out.println(fieldname + "|" + filename);
+          InputStream filecontent = fi.getInputStream();
+
+          FileOutputStream fileOut = new FileOutputStream(filename);
+
+          while ((ch = filecontent.read()) != -1)
+          {
+              fileOut.write(ch);
+              fileOut.flush();
+          }
+
+          fileOut.close();
+        }
+        else
+        {
+           String fieldname = fi.getFieldName();
+           String fieldvalue = fi.getString();
+           System.out.println(fieldname + "|" + fieldvalue);
+        }
+     }
+
+  }
+  catch (Exception e) { System.out.println(e.getMessage()); }
+
+%>

@@ -1,0 +1,25 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+</head>
+
+<body width="200" height="300">
+<script LANGUAGE="JavaScript"> 
+self.resizeTo(500, 300)
+document.write("Referring link was: "+(document.referrer)+"<BR>") 
+document.write("Document URL is: "+(document.URL) +"<BR>") 
+</script>
+
+<a name="code"  href="javascript: sentValue()">Blabla</a><br>
+
+</body>
+<script>
+function sentValue(){
+opener.document.entryform.code.value="Hello World";
+window.close();
+}
+
+</script>
+
+</html>

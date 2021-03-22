@@ -1,0 +1,198 @@
+<%@ page import="dcfrtbill.CtnInq , java.util.*"%>
+<%
+   String sSelCtn = request.getParameter("Carton");
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=CtnInqSel.jsp&APPL=ALL");
+   }
+   else
+   {
+      String sUser = session.getAttribute("USER").toString();
+
+      CtnInq cartoninq = new CtnInq(sSelCtn, sUser);
+
+      boolean bNotFound = cartoninq.getNotFound();
+      String sCtn = cartoninq.getCtn();
+      String sIssStr = cartoninq.getIssStr();
+      String sDstStr = cartoninq.getDstStr();
+      String sShipId = cartoninq.getShipId();
+      String sShipTrackId = cartoninq.getShipTrackId();
+      String sReg = cartoninq.getTrans();
+      String sTrans = cartoninq.getTrans();
+      String sLastDate = cartoninq.getLastDate();
+%>
+
+<html>
+<head>
+
+<style>
+        body {background:ivory;}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}  a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}  a:hover.small { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding- top:3px; padding-bottom:3px;
+                       text-align:center; font-size:11px; text-decoration: underline;}
+
+        tr.DataTable { background: #E7E7E7; font-size:10px }
+        tr.DataTable1 { background: CornSilk; font-size:12px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+        td.DataTable01 { cursor:hand;padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        div.dvItem { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:500; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+</style>
+
+<SCRIPT language="JavaScript">
+
+//==============================================================================
+// Load initial value on page
+//==============================================================================
+function bodyLoad()
+{
+}
+</SCRIPT>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+
+</head>
+
+<body  onload="bodyLoad();">
+
+ <!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="menu" class="Menu"></div>
+<!-------------------------------------------------------------------->
+
+  <table border="0" width="100%" height="100%">
+     <tr>
+      <td height="20%" COLSPAN="2">
+        <img src="Sun_ski_logo4.png" /></td>
+     </tr>
+     <tr bgColor="moccasin">
+      <td ALIGN="center" VALIGN="TOP">
+       <b>Retail Concepts, Inc
+       <br>Carton Inquiry: <%=sSelCtn%></b><br>
+
+        <a href="../" class="small"><font color="red">Home</font></a>&#62;
+        <a href="CtnInqSel.jsp" class="small"><font color="red">Selection</font></a>&#62;
+        <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+
+  <!-- Continue to build only if carton is found in history member of carton file  -->
+  <%if (!bNotFound){%>
+      <!-- ====================== Carton Header ============================ -->
+      <table border=1 cellPadding="0" cellSpacing="0">
+        <tr class="DataTable1">
+          <td class="DataTable1" nowrap>Issuing Store</td><td class="DataTable" nowrap><%=sIssStr%></td>
+          <th class="DataTable">&nbsp;</th>
+          <td class="DataTable1" nowrap>Destination Store</td><td class="DataTable" nowrap><%=sDstStr%></td>
+        </tr>
+        <tr class="DataTable1">
+          <td class="DataTable1" nowrap>Shipping Id</td><td class="DataTable" nowrap><%=sShipId%></td>
+          <th class="DataTable">&nbsp;</th>
+          <td class="DataTable1" nowrap>Shipping Tracking Id</td><td class="DataTable" nowrap><%=sShipTrackId%></td>
+        </tr>
+        <tr class="DataTable1">
+          <td class="DataTable1" nowrap>Register</td><td class="DataTable" nowrap><%=sReg%></td>
+          <th class="DataTable">&nbsp;</th>
+          <td class="DataTable1" nowrap>Transaction Number</td><td class="DataTable" nowrap><%=sTrans%></td>
+        </tr>
+      </table>
+      <p>
+      <!-- ====================== Carton Items ============================ -->
+      <table border=1 cellPadding="0" cellSpacing="0">
+         <tr>
+           <th class="DataTable">Div<br>#</th>
+           <th class="DataTable">Dpt<br>#</th>
+           <th class="DataTable">Long Item Number</th>
+           <th class="DataTable">Short SKU</th>
+           <th class="DataTable">Item Description</th>
+           <th class="DataTable">Component<br>Qty</th>
+           <th class="DataTable">Current<br>Qty</th>
+           <th class="DataTable">Qty<br>Allocated</th>
+           <th class="DataTable">Qty<br>Picked</th>
+           <th class="DataTable">Alloc<br>#</th>
+         </tr>
+
+
+         <%
+           while( cartoninq.getNext())
+           {
+             cartoninq.setItemList();
+             int iNumOfItm = cartoninq.getNumOfItm();
+             String [] sDiv = cartoninq.getDiv();
+             String [] sDpt = cartoninq.getDpt();
+             String [] sCls = cartoninq.getCls();
+             String [] sVen = cartoninq.getVen();
+             String [] sSty = cartoninq.getSty();
+             String [] sClr = cartoninq.getClr();
+             String [] sSiz = cartoninq.getSiz();
+             String [] sSku = cartoninq.getSku();
+             String [] sDesc = cartoninq.getDesc();
+             String [] sCompQty = cartoninq.getCompQty();
+             String [] sCurrQty = cartoninq.getCurrQty();
+             String [] sQtyAlc = cartoninq.getQtyAlc();
+             String [] sQtyPick = cartoninq.getQtyPick();
+             String [] sAlcNum = cartoninq.getAlcNum();
+
+             for(int i=0; i < iNumOfItm; i++){%>
+
+             <tr class="DataTable">
+                <td class="DataTable" nowrap><%=sDiv[i]%></td>
+                <td class="DataTable" nowrap><%=sDpt[i]%></td>
+                <td class="DataTable" nowrap><%=sCls[i] + "-" + sVen[i] + "-" + sSty[i] + "-" + sClr[i] + "-" + sSiz[i]%></td>
+                <td class="DataTable" nowrap><%=sSku[i]%></td>
+                <td class="DataTable1" nowrap><%=sDesc[i]%></td>
+                <td class="DataTable" nowrap><%=sCompQty[i]%></td>
+                <td class="DataTable" nowrap><%=sCurrQty[i]%></td>
+                <td class="DataTable" nowrap><%=sQtyAlc[i]%></td>
+                <td class="DataTable" nowrap><%=sQtyPick[i]%></td>
+                <td class="DataTable1" nowrap><%=sAlcNum[i]%></td>
+             </tr>
+           <%}
+           }%>
+
+      </table>
+  <%} else{%>The carton is not found. Please, select correct number.<%}%>
+
+      </td>
+     </tr>
+    </table>
+  </body>
+</html>
+
+<%
+    cartoninq.disconnect();
+    cartoninq = null;
+  }
+%>
+
+
+

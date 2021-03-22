@@ -1,0 +1,105 @@
+//-------------------------------------------------------------
+// Move objects by cursor
+//-------------------------------------------------------------
+var leftX = 1;
+var topY = 1;
+var element = 0;
+var rtnFld = null;
+var dragapproved=false;
+var z,x,y
+
+var MovingBoxClassName = new Array();
+var MovingBoxId = new Array();
+//-------------------------------------------------------------
+// save class name for object that must be allowed to move
+//-------------------------------------------------------------
+function setBoxclasses(boxClassName, boxId)
+{
+   MovingBoxClassName = boxClassName;
+   MovingBoxId = boxId;
+   document.onmousedown=drags;
+   document.onmouseup=nodrags;
+}
+//-------------------------------------------------------------
+// Move
+//-------------------------------------------------------------
+function move()
+{
+  if (event.button==1&&dragapproved)
+  {
+     z.style.pixelLeft=temp1+event.clientX-x
+     z.style.pixelTop=temp2+event.clientY-y
+     return false
+   }
+}
+//-------------------------------------------------------------
+// drag
+//-------------------------------------------------------------
+function drags(MovingBoxClassName)
+{
+  if (!document.all) return
+  var obj = event.srcElement
+
+  if(isBoxClassMustbeMoved(event.srcElement.className))
+  {
+    while (obj.offsetParent)
+    {
+      if (isBoxIdMustbeMoved (obj.id))
+      {
+         z=obj;
+         break;
+      }
+      obj = obj.offsetParent;
+    }
+  }
+
+  if (z!=null)
+  {
+    dragapproved=true;
+    temp1=z.style.pixelLeft
+    temp2=z.style.pixelTop
+    x=event.clientX
+    y=event.clientY
+    document.onmousemove=move
+  }
+}
+//-------------------------------------------------------------
+// No drag
+//-------------------------------------------------------------
+function nodrags()
+{
+  dragapproved=false;
+  z=null;
+}
+//-------------------------------------------------------------
+// check if box name class name selected to be draged
+//-------------------------------------------------------------
+function isBoxClassMustbeMoved(boxClass)
+{
+   var allows = false;
+   for(var i=0; i < MovingBoxClassName.length; i++)
+   {
+     if( MovingBoxClassName[i] == boxClass )
+     {
+       allows = true;
+       break;
+     }
+   }
+   return allows;
+}
+//-------------------------------------------------------------
+// check if box selected to be moved
+//-------------------------------------------------------------
+function isBoxIdMustbeMoved(boxId)
+{
+   var allows = false;
+   for(var i=0; i < MovingBoxId.length; i++)
+   {
+     if( MovingBoxId[i] == boxId )
+     {
+       allows = true;
+       break;
+     }
+   }
+   return allows;
+}

@@ -1,0 +1,157 @@
+<%@ page import="patiosales.PatioAdvRecap"%>
+<%
+    String sFrDate = request.getParameter("FrDate");
+    String sToDate = request.getParameter("ToDate");
+
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+   response.sendRedirect("SignOn1.jsp?TARGET=PatioAdvRecap.jsp");
+}
+else
+{
+    String sUser = session.getAttribute("USER").toString();
+    PatioAdvRecap paheard = new PatioAdvRecap(sFrDate, sToDate, "vrozen");
+    int iNumOfStr = paheard.getNumOfStr();
+    System.out.println(iNumOfStr);
+%>
+<HTML>
+<HEAD>
+<title>Patio Sales</title>
+<META content="RCI, Inc." name="E-Commerce"></HEAD>
+
+<style>body {background:ivory;font-family: Verdanda}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}  a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}  a:hover.small { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top ;font-size:12px }
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding- top:3px; padding-bottom:3px;
+                       text-align:center; font-size:11px; text-decoration: underline;}
+        th.DataTable2 { padding- top:3px; padding-bottom:3px; text-align:center; font-size:11px;}
+
+        tr.DataTable { background: #E7E7E7; font-size:10px }
+        tr.DataTable0 { background: red; font-size:10px }
+        tr.DataTable1 { background: CornSilk; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; white-space:}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; white-space:}
+        td.DataTable01 { cursor:hand;padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; white-space:}
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        div.dvItem { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:500; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+</style>
+
+
+<script name="javascript1.3">
+//-------------------- Global Variables ----------------------------------------
+var NumOfStr = <%=iNumOfStr%>
+var Fold = "none";
+//-------------------- End Global Variables ------------------------------------
+//==============================================================================
+// run on loading
+//==============================================================================
+function bodyLoad()
+{
+  
+}
+</script>
+
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+
+
+<BODY onload="bodyLoad();">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvItem" class="dvItem"></div>
+<!-------------------------------------------------------------------->
+
+
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR bgColor=moccasin>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>Patio - How Customer Heard About Us<br>
+        Compare date Range <%=sFrDate%> thru <%=sToDate%>
+        </B><br>
+
+        <a href="../" class="small"><font color="red">Home</font></a>&#62;
+        <a href="PatioAdvRecapSel.jsp" class="small"><font color="red">Selection</font></a>&#62;
+        <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript: displayStr();">fold/unfold</a>
+<!-- ======================================================================= -->
+       <table border=1 cellPadding="0" cellSpacing="0" id="tbRtvEnt">
+         <tr class="DataTable">
+             <th class="DataTable" rowspan=3>Str</th>
+             <th class="DataTable" rowspan=3>&nbsp;</th>
+             <th id="thSold" class="DataTable" colspan=7>How Do You Heard about Us</th>                      </tr>
+         <tr class="DataTable">
+           <th class="DataTable" colspan=2>Advertisement</th>
+           <th class="DataTable" colspan=2>Coupon</th>
+           <th class="DataTable" colspan=2>Referred From a Friend</th>
+           <th class="DataTable" colspan=2>Repeat Customer</th>
+           <th class="DataTable" colspan=2>Walk-In</th>
+           <th class="DataTable" colspan=2>*Other</th>
+           <th class="DataTable" colspan=2>Total</th>
+         </tr>
+         <tr class="DataTable">
+           <%for(int i=0; i < 7; i++){%>
+           
+           		<th class="DataTable">TY</th>
+           		<th class="DataTable">LY</th>
+           <%}%>
+         </tr>
+       <!-- ============================ Details =========================== -->
+       <%for(int i=0; i < iNumOfStr; i++ )
+         {
+    	   paheard.setStrRecap();
+           String sStr = paheard.getStr();
+           String [] sTyCnt = paheard.getTyCnt();
+           String [] sLyCnt = paheard.getLyCnt();
+        %>
+            <tr id="trProd" class="DataTable">
+            <td class="DataTable1" nowrap><%=sStr%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <%for(int j=0; j < 7; j++){%>
+               <td class="DataTable2" nowrap><%=sTyCnt[j]%></td>
+               <td class="DataTable2" nowrap><%=sLyCnt[j]%></td>
+            <%}%>
+         </tr>
+       <%}%>
+       
+            </table>
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>
+<%
+   paheard.disconnect();
+   paheard = null;
+   }
+%>

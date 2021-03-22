@@ -1,0 +1,341 @@
+<%@ page import="patiosales.OrderEntry, rciutility.FormatNumericValue, java.util.*, java.text.*"%>
+<%
+   String sOrder = request.getParameter("Order");
+
+   SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+   Calendar cal = Calendar.getInstance();
+   //cal.add(Calendar.DATE, 2);
+   String sToday = sdf.format(cal.getTime());
+
+   sdf = new SimpleDateFormat("h:mm a");
+   String sCurTime = sdf.format(cal.getTime());
+
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=OrderEntry.jsp&APPL=ALL&" + request.getQueryString());
+   }
+   else
+   {
+      String sUser = session.getAttribute("USER").toString();
+
+      OrderEntry ordent = new OrderEntry();
+      ordent.serOrderInfo(sOrder.trim());
+
+      int iNumOfItm = ordent.getNumOfItm();
+      String [] sSku = ordent.getSku();
+      String [] sVenSty = ordent.getVenSty();
+      String [] sVen = ordent.getVen();
+      String [] sVenName = ordent.getVenName();
+      String [] sColor = ordent.getColor();
+      String [] sUpc = ordent.getUpc();
+      String [] sDesc = ordent.getDesc();
+      String [] sQty = ordent.getQty();
+      String [] sRet = ordent.getRet();
+
+      String sSkuJsa = ordent.cvtToJavaScriptArray(ordent.getSku());
+      String sVenStyJsa = ordent.cvtToJavaScriptArray(ordent.getVenSty());
+      String sVenJsa = ordent.cvtToJavaScriptArray(ordent.getVen());
+      String sVenNameJsa = ordent.cvtToJavaScriptArray(ordent.getVenName());
+      String sColorJsa = ordent.cvtToJavaScriptArray(ordent.getColor());
+      String sUpcJsa = ordent.cvtToJavaScriptArray(ordent.getUpc());
+      String sDescJsa = ordent.cvtToJavaScriptArray(ordent.getDesc());
+      String sQtyJsa = ordent.cvtToJavaScriptArray(ordent.getQty());
+      String sRetJsa = ordent.cvtToJavaScriptArray(ordent.getRet());
+      String sTotalJsa = ordent.cvtToJavaScriptArray(ordent.getTotal());
+
+      // check if user is authotized to change a status
+      boolean bAllowChgSts = false;
+      if(session.getAttribute("PATIOSTS")!=null) bAllowChgSts = true;
+
+      // format Numeric value
+      FormatNumericValue fmt = new FormatNumericValue();
+%>
+
+<html>
+<head>
+
+<style>body {background:white;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+
+        a.Small:link { color:blue; font-size:10px} a.Small:visited { color:blue; font-size:10px}  a.Small:hover { color:blue; font-size:10px}
+
+        table.DataTable { text-align:center;}
+        th.DataTable { background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       padding-left:3px; padding-right:3px;
+                       text-align:center; font-family:Verdanda; font-size:12px }
+
+        tr.DataTable { background:#e7e7e7; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:white; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:CornSilk; font-family:Arial; font-size:10px }
+        tr.Divider { background:black; font-family:Arial; font-size:1px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; vertical-align:middle;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center; vertical-align:middle;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right; vertical-align:middle;}
+        td.DataTable3 { color:red; padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left; vertical-align:middle;}
+
+        .Small {font-family:Arial; font-size:10px }
+        input.Small1 {background:LemonChiffon; font-family:Arial; font-size:10px }
+        input {border:none; border-bottom: black solid 1px; font-family:Arial; font-size:12px; font-weight:bold}
+        input.radio {border:none; font-family:Arial; font-size:10px }
+        input.Menu {border: ridge 2px; background:white; font-family:Arial; font-size:10px }
+
+        textarea.NoBorder {border:none; background:#E7E7E7; border-bottom: black solid 1px; font-family:Arial; font-size:10px }
+        button.Small {font-size:10px; }
+        select.selSts {display:none;font-size:10px; }
+        button.selSts {display:none;font-size:10px; }
+        input.selSts {display:none;font-size:10px; }
+
+        div.dvStatus  { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:200; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+
+@media screen
+{
+}
+@media print
+{
+}
+</style>
+
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+// orser header info
+var Order = "<%=sOrder%>";
+var NumOfItm = "<%=iNumOfItm%>";
+var Sku = [<%=sSkuJsa%>];
+var VenSty = [<%=sVenStyJsa%>];
+var Ven = [<%=sVenJsa%>];
+var VenName = [<%=sVenNameJsa%>];
+var Color =[<%=sColorJsa%>];
+var Upc = [<%=sUpcJsa%>]
+var Desc = [<%=sDescJsa%>];
+var Qty = [<%=sQtyJsa%>];
+var Ret = [<%=sRetJsa%>];
+var Total = [<%=sRetJsa%>];
+
+var ItmNewRet = new Array();
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad()
+{
+   clcOrdTot();
+}
+//==============================================================================
+// calculate order total
+//==============================================================================
+function clcOrdTot()
+{
+   var ordtot = 0;
+   for(var i=0; i < ItmNewRet.length; i++)
+   {
+      for(var j=0; j < ItmNewRet[i].length; j++)
+      {
+         ordtot += eval(ItmNewRet[i][j]);
+      }
+   }
+   document.all.TotNewRet.innerHTML = "$" + ordtot;
+}
+//==============================================================================
+// validate new retail price
+//==============================================================================
+function vldNewRet()
+{
+   var ordtot = 0;
+   var error = false;
+   var msg = "";
+   for(var i=0; i < ItmNewRet.length; i++)
+   {
+
+      for(var j=0; j < ItmNewRet[i].length; j++)
+      {
+         msg = "";
+         var br = "";
+         var nr = "NewRet" + i + j;
+         var newret = document.all[nr];
+
+         var da = "DscAmt" + i + j;
+         var dscamt = document.all[da].value.trim();
+         if(isNaN(dscamt)){error = true; msg += br + "The Discount Amount is not numeric"; br="<br>";}
+
+         var dp = "DscPrc" + i + j;
+         var dscprc = document.all[dp].value.trim();
+         if(isNaN(dscprc)){error = true; msg += br + "The Discount Percent is not numeric"; br="<br>";}
+
+         if(dscamt != 0 && dscprc != 0){error = true; msg += br + "Select only discount $ or %."; br="<br>";}
+
+         var ua = "UpgAmt" + i + j;
+         var upgamt = document.all[ua].value.trim();
+         if(isNaN(upgamt)){error = true; msg += br + "The Upgrade Amount is not numeric"; br="<br>";}
+
+
+         if(error)
+         {
+            var err = "Err" + i + j;
+            document.all[err].innerHTML = msg;
+         }
+      }
+   }
+   if(!error){clcNewRet()}
+}
+//==============================================================================
+// calculate new retail price
+//==============================================================================
+function clcNewRet()
+{
+   var ordtot = 0;
+   for(var i=0; i < ItmNewRet.length; i++)
+   {
+
+      for(var j=0; j < ItmNewRet[i].length; j++)
+      {
+         var nr = "NewRet" + i + j;
+         var newret = document.all[nr];
+
+         var da = "DscAmt" + i + j;
+         var dscamt = document.all[da].value.trim();
+         if(eval(dscamt) != 0)
+         {
+            ItmNewRet[i][j] = (Ret[i] - dscamt).toFixed(2);
+            newret.innerHTML = ItmNewRet[i][j];
+         }
+
+         var dp = "DscPrc" + i + j;
+         var dscprc = document.all[dp].value.trim();
+         if(eval(dscprc) != 0)
+         {
+            ItmNewRet[i][j] = (Ret[i] * (1 - dscprc / 100)).toFixed(2);
+            newret.innerHTML = ItmNewRet[i][j];
+         }
+
+         var ua = "UpgAmt" + i + j;
+         var upgamt = document.all[ua].value.trim();
+         if(eval(upgamt) != 0)
+         {
+            ItmNewRet[i][j] = (Ret[i] - -1 * upgamt).toFixed(2);
+            newret.innerHTML = ItmNewRet[i][j];
+         }
+
+         ordtot += eval(ItmNewRet[i][j]);
+      }
+   }
+   document.all.TotNewRet.innerHTML = "$" + (ordtot).toFixed(2);
+}
+</SCRIPT>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+
+</head>
+<title>Patio Calculator</title>
+
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvStatus" class="dvStatus"></div>
+<!-------------------------------------------------------------------->
+    <table border="0" cellPadding="0"  cellSpacing="0" width="90%">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP"nowrap>
+      <b>Patio Furniture Discount calculator
+      <br>Order: <%=sOrder%>
+      </b>
+     </td>
+    </tr>
+    <tr>
+      <td ALIGN="center" VALIGN="TOP"  colspan="3" nowrap>&nbsp;<br>
+       <table class="DataTable" border="1" cellPadding="0"  cellSpacing="0">
+          <tr class="DataTable">
+             <th class="DataTable">Short<br>SKU</th>
+             <th class="DataTable">Description</th>
+             <th class="DataTable">Retail</th>
+             <th class="DataTable">Seq<br>#</th>
+             <th class="DataTable">Group</th>
+             <th class="DataTable">Qty</th>
+             <th class="DataTable">Disc<br>Amt</th>
+             <th class="DataTable">Upgrade<br>Amt</th>
+             <th class="DataTable">Disc<br>%</th>
+             <th class="DataTable">Error</th>
+             <th class="DataTable">New<br>Price</th>
+          </tr>
+          <!-- ============ Items ================== -->
+          <%for(int i=0; i < iNumOfItm; i++){%>
+             <%int iClr = i%2; String sClr=""; if(iClr > 0){sClr="1";}%>
+             <tr class="DataTable<%=sClr%>">
+               <td class="DataTable" rowspan="<%=sQty[i]%>"><%=sSku[i]%></td>
+               <td class="DataTable" rowspan="<%=sQty[i]%>"><%=sDesc[i]%></td>
+               <td class="DataTable" rowspan="<%=sQty[i]%>">$<%=sRet[i]%></td>
+
+               <script language="javascript">
+                 ItmNewRet[<%=i%>] = new Array();
+               </script>
+
+               <%for(int j=0; j < Integer.parseInt(sQty[i]); j++){
+                     ordent.setItemDisc(sOrder, sSku[i], Integer.toString(j+1));
+                     ordent.getItemDisc();
+                     String sItmGrp = ordent.getItmGrp();
+                     String sItmDscAmt = ordent.getItmDscAmt();
+                     String sItmDscPrc = ordent.getItmDscPrc();
+                     String sItmUpgAmt = ordent.getItmUpgAmt();
+                     String sItmNewRet = ordent.getItmNewRet();
+                     if(sItmNewRet.equals(".00")){sItmNewRet = sRet[i]; }
+               %>
+               <script language="javascript">
+                 ItmNewRet[<%=i%>][<%=j%>] = "<%=sItmNewRet%>";
+               </script>
+
+                  <%if(j > 0){%><tr class="DataTable<%=sClr%>"><%}%>
+                  <td class="DataTable"><%=j+1%></td>
+                  <td class="DataTable"><input class="Small" name="Grp<%=i%><%=j%>" value="<%=sItmGrp%>" size="3" maxlength=3></td>
+                  <td class="DataTable1">1</td>
+                  <td class="DataTable">$<input class="Small" name="DscAmt<%=i%><%=j%>" value="<%=sItmDscAmt%>" size="10" maxlength=10></td>
+                  <td class="DataTable">$<input class="Small" name="UpgAmt<%=i%><%=j%>" value="<%=sItmUpgAmt%>" size="10" maxlength=10></td>
+                  <td class="DataTable"><input class="Small" name="DscPrc<%=i%><%=j%>" value="<%=sItmDscPrc%>" size="10" maxlength=10>%</td>
+                  <td class="DataTable3" id="Err<%=i%><%=j%>"></td>
+                  <td class="DataTable" id="NewRet<%=i%><%=j%>">$<%=sItmNewRet%></td>
+               <%}%>
+             </tr>
+          <%}%>
+          <!-- =========== Total ============= -->
+          <tr class="DataTable2">
+             <td class="DataTable2" colspan=10>Total:</td>
+             <td class="DataTable" id="TotNewRet">&nbsp;</td>
+          </tr>
+       </table>
+       <button class="Small" onclick="vldNewRet()">Calculate</button> &nbsp; &nbsp;
+       <button class="Small">Save</button> &nbsp; &nbsp;
+       <button class="Small">Close</button>
+      </td>
+    </tr>
+  </table>
+<%
+  ordent.disconnect(); ordent = null;
+%>
+<%}%>
+
+
+
+
+
+

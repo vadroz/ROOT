@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="stuff, to, help, search, engines, not" name="keywords">
+<meta content="What this page is about." name="description">
+<meta content="Display Webcam Stream" name="title">
+<title>Display Webcam Stream</title>
+  
+<style>
+#container {
+    margin: 0px auto;
+    width: 500px;
+    height: 375px;
+    border: 10px #333 solid;
+}
+#videoElement {
+    width: 500px;
+    height: 375px;
+    background-color: #666;
+}
+</style>
+</head>
+  
+<body>
+<div id="container">
+    <video autoplay="true" id="videoElement"></video>
+    <p>
+    <canvas  style="background: khaki; border: 1px black solid ; "></canvas>
+    <br>
+    <button id="Snap" onclick="getPic();">snap</button>
+    
+</div>
+<script>
+var video = document.querySelector("#videoElement");
+
+if (navigator.mediaDevices.getUserMedia) {       
+    navigator.mediaDevices.getUserMedia({video: true})
+  .then(function(stream) {
+    video.srcObject = stream;
+  })
+  .catch(function(error) {
+    console.log("Something went wrong!");
+  });
+}
+//=====================================
+// get picture
+//=====================================
+function getPic()
+{
+	var canvas = document.querySelector('canvas');
+    var ctx = canvas.getContext('2d');
+    
+    canvas.width = video.clientWidth;
+    canvas.height = video.clientHeight;
+    
+    ctx.drawImage(video, 10, 10, 450, 350 );
+    
+    document.getElementById("videoElement").style.display = "none";
+    document.getElementById("Snap").style.display = "none";
+    
+}
+</script>
+</body>
+
+
+
+
+
+

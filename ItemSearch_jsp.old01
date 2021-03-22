@@ -1,0 +1,473 @@
+<%
+%>
+<style>body {background:ivory; text-align:center;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+        table.DataTable1 { border: darkred solid 1px;background:Cornsilk;text-align:center;}
+        th.DataTable { background:#FFCC99;padding-top:3px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+
+        tr.DataTable { background:cornsilk; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:#e7e7e7; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:white; font-family:Arial; font-size:10px }
+
+        td.DataTable { border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       text-align:left;}
+        td.DataTable1 { border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:right;}
+        td.DataTable2 {border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+        td.DataTable3 { background:azure;  border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       text-align:left;}
+
+        td.StrInv { cursor:hand; padding-top:3px; padding-bottom:3px;
+                    padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; text-align:left;}
+
+        td.StrInv1{ padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:left;}
+
+        td.StrLst { background:#FFCC99; border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:center; font-size:9px}
+
+        <!-------- select another div/dpt/class pad ------->
+        .Small {font-family:Arial; font-size:10px }
+        input {border:none; border-bottom: black solid 1px; font-family:Arial; font-size:12px; font-weight:bold}
+        input.radio {border:none; font-family:Arial; font-size:10px }
+        input.Menu {border: ridge 2px; background:white; font-family:Arial; font-size:10px }
+
+        textarea {border:none; background:#E7E7E7; border-bottom: black solid 1px; font-family:Arial; font-size:10px }
+        button.Small {font-size:10px; }
+        select.selSts {display:none;font-size:10px; }
+        button.selSts {display:none;font-size:10px; }
+
+        <!-------- transfer entry pad ------->
+        div.Fake { };
+        div.dvOrder  { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:200; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.Grid  { background:darkblue; color:white; text-align:center; font-family:Arial; font-size:11px; font-weight:bolder}
+        td.Grid1 { text-align:left; font-family:Arial; font-size:10px;}
+        td.Grid2  { background:darkblue; color:white; text-align:right;
+                    font-family:Arial; font-size:11px; font-weight:bolder}
+        td.Grid3 { text-align:center; font-family:Arial; font-size:10px;}
+
+        td.Menu { text-align:center; font-family:Arial; font-size:10px;}
+        <!-------- end transfer entry pad ------->
+
+</style>
+<SCRIPT language="JavaScript1.2">
+var iPoRow = 0;
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad()
+{
+   clrLine();
+}
+//==============================================================================
+// get item by SKU
+//==============================================================================
+function getSkuUpc()
+{
+   sku = document.all.Sku
+   upc = document.all.Upc
+   var url = "PsOrdGetItem.jsp?"
+
+   if (sku.value.trim() != ""  && sku.value.trim() != " ")
+   {
+     url += "Sku=" + sku.value + "&Action=INQ"
+     //window.location.href=url
+     window.frame1.location.href=url
+   }
+   else if (upc.value.trim() != "" && upc.value.trim() != " ")
+   {
+     url += "Upc=" + upc.value + "&Action=INQ"
+     //window.location.href=url
+     window.frame1.location.href=url
+   }
+
+   clrTable();
+}
+
+//==============================================================================
+// get item by SKU
+//==============================================================================
+function searchSet(sku)
+{
+   // Make Set Lines hidden
+   for(var i=0; i < document.all.trSet.length; i++)
+   {
+      document.all.trSet[i].style.display="none";
+   }
+
+   var url = "PsOrdGetItem.jsp?"
+           + "Sku=" + sku + "&Action=INQ"
+   //window.location.href=url
+   window.frame1.location.href=url
+}
+//==============================================================================
+// clear "Adding line" row.
+//==============================================================================
+function clrLine()
+{
+   document.all.tbPoList.style.display = "none";
+
+   document.all.tdDesc.innerHTML = "&nbsp;";
+   document.all.Sku.value = "";
+   document.all.Upc.value = "";
+   document.all.Sku.readOnly = false;
+   document.all.Upc.readOnly = false;
+
+   document.all.tdQty35.innerHTML = "&nbsp;";
+   document.all.tdQty46.innerHTML = "&nbsp;";
+   document.all.tdQty50.innerHTML = "&nbsp;";
+   document.all.tdQty86.innerHTML = "&nbsp;";
+   document.all.tdTempPrc.innerHTML = "";
+   document.all.tdPrice.innerHTML = "";
+   document.all.tdGroup.innerHTML = "&nbsp;";
+   document.all.tdSugPrc.innerHTML = "&nbsp;";
+   document.all.tdClrNm.innerHTML = "&nbsp;";
+   document.all.tdVenNm.innerHTML = "&nbsp;";
+   document.all.tdVenSty.innerHTML = "&nbsp;";
+
+   document.all.Sku.focus();
+   // Make Set Lines hidden
+   for(var i=0; i < document.all.trSet.length; i++)
+   {
+      document.all.trSet[i].style.display="none";
+   }
+
+   // Make Set Lines hidden
+   document.all.trSetLstHdr.style.display="none";
+   for(var i=0; i < document.all.trSetLst.length; i++)
+   {
+      document.all.trSetLst[i].style.display="none";
+   }
+}
+//==============================================================================
+// clear set and set list table
+//==============================================================================
+function clrTable()
+{
+   // Make Set Lines hidden
+   for(var i=0; i < document.all.trSet.length; i++)
+   {
+      document.all.trSet[i].style.display="none";
+   }
+
+   // Make Set Lines hidden
+   document.all.trSetLstHdr.style.display="none";
+   for(var i=0; i < document.all.trSetLst.length; i++)
+   {
+      document.all.trSetLst[i].style.display="none";
+   }
+}
+//==============================================================================
+// set Search
+//==============================================================================
+function setSearch()
+{
+   var url = "UpcSearch.jsp";
+   var WindowName = 'UPC_Search';
+   var WindowOptions = 'resizable=yes , toolbar=yes, location=yes, directories=yes, status=yes, scrollbars=yes,menubar=yes';
+
+   //alert(url);
+   window.open(url, WindowName, WindowOptions);
+}
+//==============================================================================
+// populate table with dselected Item
+//==============================================================================
+function getSearchedItem(sku)
+{
+   var url = "PsOrdGetItem.jsp?"
+   url += "Sku=" + sku + "&Action=INQ"
+   //window.location.href=url
+   window.frame1.location.href=url
+}
+//==============================================================================
+// display error
+//==============================================================================
+function displayError(err)
+{
+   window.frame1.location.href="";
+   window.frame1.close();
+   msg = "";
+   for(var i=0; i < err.length; i++)  {  msg += err[i] + "\n"; }
+   alert(msg);
+
+}
+//==============================================================================
+// populate "Adding line" row.
+//==============================================================================
+function popAddLine(desc, sku, upc, set, price, group, qty35, qty46, qty50, qty86,
+                    sugprc, tempprc, clrnm, vennm, vensty, action)
+{
+   document.all.tdDesc.innerHTML = desc;
+   document.all.Sku.value = sku;
+   document.all.Upc.value = upc;
+   document.all.tdTempPrc.innerHTML = tempprc;
+   document.all.tdPrice.innerHTML = price;
+   document.all.tdGroup.innerHTML = group;
+
+   //if(set=="0")
+   //{
+      document.all.tdQty35.innerHTML = qty35;
+      document.all.tdQty46.innerHTML = qty46;
+      document.all.tdQty50.innerHTML = qty50;
+      document.all.tdQty86.innerHTML = qty86;
+      document.all.tdTotal.innerHTML = eval(qty35) + eval(qty46) + eval(qty50) + eval(qty86);
+   //}
+   document.all.tdSugPrc.innerHTML = sugprc;
+   document.all.tdClrNm.innerHTML = clrnm;
+   document.all.tdVenNm.innerHTML = vennm;
+   document.all.tdVenSty.innerHTML = vensty;
+}
+
+//==============================================================================
+// populate "Adding line" row.
+//==============================================================================
+function popAddSetLines(numofset, setdesc, setsku, setupc, setprice, setgroup, setqty35, setqty46,
+            setqty50, setqty86, setsugprc, settot, setuntprc, settempprc,
+            setclrnm, setvennm, setvensty, action)
+{
+   for(var i=0; i < numofset; i++)
+   {
+      document.all.trSet[i].style.display="block";
+      document.all.tdSetDesc[i].innerHTML = setdesc[i];
+      document.all.tdSetTotQty[i].innerHTML = settot[i];
+      document.all.tdSetSku[i].innerHTML = setsku[i] + " / " + setupc[i];
+      document.all.tdSetTempPrc[i].innerHTML = settempprc[i];
+      document.all.tdSetPrice[i].innerHTML = setprice[i];
+      document.all.tdSetGroup[i].innerHTML = setgroup[i];
+      document.all.tdSetQty35[i].innerHTML = setqty35[i];
+      document.all.tdSetQty46[i].innerHTML = setqty46[i];
+      document.all.tdSetQty50[i].innerHTML = setqty50[i];
+      document.all.tdSetQty86[i].innerHTML = setqty86[i];
+      document.all.tdSetTotal[i].innerHTML = eval(setqty35[i]) + eval(setqty46[i]) + eval(setqty50[i]) + eval(setqty86[i]);
+      document.all.tdSetSugPrc[i].innerHTML = setsugprc[i];
+      document.all.tdSetClrNm[i].innerHTML = setclrnm[i];
+      document.all.tdSetVenNm[i].innerHTML = setvennm[i];
+      document.all.tdSetVenSty[i].innerHTML = setvensty[i];
+   }
+
+   window.frame1.close();
+   window.frame1.location.href=null;
+}
+//==============================================================================
+// populate Set List
+//==============================================================================
+function popSetLists(numofset, setdesc, setsku, setupc, setprice, setgroup,
+       setqty35, setqty46, setqty50, setqty86, setsugprc, settot, setuntprc, settempprc,
+       setclrnm, setvennm, setvensty, action)
+{
+   document.all.trSetLstHdr.style.display="block";
+
+   for(var i=0; i < numofset; i++)
+   {
+      document.all.trSetLst[i].style.display="block";
+      document.all.tdLstDesc[i].innerHTML = setdesc[i];
+      document.all.tdLstSku[i].innerHTML =
+        "<a href='javascript: searchSet(&#34;" + setsku[i] + "&#34;)'>"
+               + setsku[i] + " / " + setupc[i] + "</a>";
+
+      document.all.tdLstGroup[i].innerHTML = setgroup[i];
+      document.all.tdLstTotQty[i].innerHTML = settot[i];
+      document.all.tdLstQty35[i].innerHTML = setqty35[i];
+      document.all.tdLstQty46[i].innerHTML = setqty46[i];
+      document.all.tdLstQty50[i].innerHTML = setqty50[i];
+      document.all.tdLstQty86[i].innerHTML = setqty86[i];
+      document.all.tdLstTempPrc[i].innerHTML = settempprc[i];
+      document.all.tdLstTotal.innerHTML = eval(setqty35[i]) + eval(setqty46[i]) + eval(setqty50[i]) + eval(setqty86[i]);
+      document.all.tdLstSugPrc[i].innerHTML = setsugprc[i];
+      document.all.tdLstClrNm[i].innerHTML = setclrnm[i];
+      document.all.tdLstVenNm[i].innerHTML = setvennm[i];
+      document.all.tdLstVenSty[i].innerHTML = setvensty[i];
+   }
+ }
+//==============================================================================
+// populate PO Table
+//==============================================================================
+function popPoTable(NumOfPoItm, PoSku, LineBySku, PoStr, PoNum, PoQty, PoAdi)
+{
+   // remove PO line
+   var body = document.all.tbodyPoList;
+   while (body.childNodes.length > 0)
+   {
+      body.removeChild(body.firstChild)
+   }
+   iPoRow = 0;
+
+   document.all.tbPoList.style.display = "block";
+   window.frame1.close();
+   window.frame1.location.href=null;
+
+   for(var i=0; i < NumOfPoItm; i++)
+   {
+      var row = document.createElement("TR");
+      row.className="DataTable";
+      row.id="trPoItm"; //add ID
+
+      var td = new Array();
+      td[0] = addTDElem(PoSku[i], "tdPoSku", "DataTable") // sku
+      td[1] = addTDElem(PoStr[i][0], "tdPoStr", "DataTable") // str
+      td[2] = addTDElem(PoNum[i][0], "tdPoNum", "DataTable") // P.O.
+      td[3] = addTDElem(PoQty[i][0], "tdPoQty", "DataTable") // qty
+      td[4] = addTDElem(PoAdi[i][0], "tdPoAdi", "DataTable") // anticipation date
+
+      // add cell to row
+      for(var k=0; k < td.length; k++) { row.appendChild(td[k]); }
+      iPoRow++;
+
+      // add row to the table
+      document.all.tbodyPoList.appendChild(row);
+   }
+}
+//---------------------------------------------------------
+// add new TD element
+//---------------------------------------------------------
+function addTDElem(value, id, classnm)
+{
+  var td = document.createElement("TD") // Reason
+  td.appendChild (document.createTextNode(value))
+  td.className=classnm;
+  td.id = id;
+  return td;
+}
+</SCRIPT>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+
+
+<body onLoad="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+    <div id="dvStatus" class="dvStatus"></div>
+<!-------------------------------------------------------------------->
+ <table border="0" cellPadding="0"  cellSpacing="0">
+  <tr>
+   <td ALIGN="center" VALIGN="TOP" nowrap>
+      <b>Retail Concepts, Inc
+      <br>Item Search</b>
+      <br><a href="index.jsp"><font color="red" size="-1">Home</font></a>
+   </td>
+   </td>
+   <tr>
+    <td align=center>
+     <table class="DataTable" cellPadding="0" width="100%" cellSpacing="0" id="tbAddLine">
+       <tr>
+        <th class="DataTable" nowrap>Short Sku / UPC<br>
+             <a class="Small" href="javascript: setSearch()">Search Items</a><br>
+        </th>
+        <th class="DataTable" nowrap>Description</th>
+        <th class="DataTable" nowrap>Set<br>Qty</th>
+        <th class="DataTable" nowrap>Store 35<br>Inv</th>
+        <th class="DataTable" nowrap>Store 46<br>Inv</th>
+        <th class="DataTable" nowrap>Store 50<br>Inv</th>
+        <th class="DataTable" nowrap>Store 86<br>Inv</th>
+        <th class="DataTable" nowrap>Total<br>Inv</th>
+        <th class="DataTable" nowrap>Sales<br>Price</th>
+        <th class="DataTable" nowrap>Price</th>
+        <th class="DataTable" nowrap>Group</th>
+        <th class="DataTable" nowrap>MSRP</th>
+        <th class="DataTable" nowrap>Color<br>Name</th>
+        <th class="DataTable" nowrap>Vendor<br>Name</th>
+        <th class="DataTable" nowrap>Vendor<br>Sty</th>
+       </tr>
+
+      <tr  class="DataTable">
+        <td class="DataTable" nowrap>
+           <input class="Small" type="text" name="Sku" size=10 maxlength=10> /
+           <input class="Small" type="text" name="Upc" size=12 maxlength=12><br>
+        </td>
+        <td class="DataTable" id="tdDesc" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdTotQty" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdQty35" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdQty46" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdQty50" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdQty86" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdTotal" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdTempPrc" nowrap></td>
+        <td class="DataTable" id="tdPrice" nowrap></td>
+        <td class="DataTable" id="tdGroup" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdSugPrc" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdClrNm" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdVenNm" nowrap>&nbsp;</td>
+        <td class="DataTable" id="tdVenSty" nowrap>&nbsp;</td>
+        <!-- td class="DataTable" id="tdUntPrc" nowrap>&nbsp;</td -->
+      </tr>
+      <!-- --------------------- New Set Components ------------------------ -->
+      <%for(int i=0; i < 50; i++) {%>
+         <tr  class="DataTable1" id="trSet">
+           <td class="DataTable" id="tdSetSku" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetDesc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetTotQty" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetQty35" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetQty46" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetQty50" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetQty86" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetTotal" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetTempPrc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetPrice" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetGroup" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetSugPrc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetClrNm" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetVenNm" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdSetVenSty" nowrap>&nbsp;</td>
+         </tr>
+      <%}%>
+      <!-- ------------------- End of Set Components ----------------------- -->
+
+      <!-- --------------------- New Set Components ------------------------ -->
+      <tr  class="DataTable2" id="trSetLstHdr">
+         <td class="DataTable2" colspan=15>Set List where searched item participates</td>
+      </tr>
+
+      <%for(int i=0; i < 200; i++) {%>
+         <tr  class="DataTable2" id="trSetLst">
+           <td class="DataTable" id="tdLstSku" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstDesc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstTotQty" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstQty35" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstQty46" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstQty50" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstQty86" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstTotal" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstTempPrc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstPrice" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstGroup" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstSugPrc" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstClrNm" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstVenNm" nowrap>&nbsp;</td>
+           <td class="DataTable" id="tdLstVenSty" nowrap>&nbsp;</td>
+         </tr>
+      <%}%>
+      <!-- ------------------- End of Set Components ----------------------- -->
+
+    </table>
+
+    <br><br>
+    <table class="DataTable" cellPadding="0" width="100%" cellSpacing="0" id="tbPoList">
+       <tr>
+          <th class="DataTable" nowrap>Sku</th>
+          <th class="DataTable" nowrap>Str</th>
+          <th class="DataTable" nowrap>P.O. #</th>
+          <th class="DataTable" nowrap>Qty</th>
+          <th class="DataTable" nowrap>Anticipation<br>Date</th>
+       </tr>
+       <tbody id="tbodyPoList">
+       </tbody>
+     </table>
+      <button onClick="getSkuUpc()">Search</button>&nbsp;&nbsp;&nbsp;&nbsp;
+      <button onClick="clrLine();">Clear</button>
+    </td>
+  </tr>
+ </table>
+</body>

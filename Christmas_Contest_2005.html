@@ -1,0 +1,238 @@
+<html>
+<head>
+
+<style>
+  body {background:ivory;}
+  a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+  table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+  th.DataTable { background:#FFCC99; border-bottom: darkred solid 1px;
+                 border-right: darkred solid 1px;
+                 padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 text-align:center; vertical-align:top; font-family:Verdanda; font-size:12px }
+
+  tr.DataTable1 { background:lightgreen; font-family:Arial; font-size:10px }
+  tr.DataTable2 { background:SkyBlue; font-family:Arial; font-size:10px }
+  tr.DataTable3 { background:coral; font-family:Arial; font-size:10px }
+  tr.DataTable4 { background:151b7e; color:white;font-family:Arial; font-size:10px }
+
+  td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 border-bottom: darkred solid 1px;
+                 border-right: darkred solid 1px; text-align:right;}
+
+  td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                 border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:center;}
+
+ .small{ text-align:left; font-family:Arial; font-size:10px;}
+
+</style>
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+//--------------- End of Global variables ----------------
+//---------------------------------------------
+// initialize value on load
+//---------------------------------------------
+function  bodyload()
+{
+}
+
+//------------------------------------------------------
+// show another selected week
+//------------------------------------------------------
+function sbmNewSort(sort)
+{
+   var url = "ChristmasContest.jsp?Sort=" + sort
+
+   //alert(url);
+   window.location.href=url
+}
+
+</SCRIPT>
+
+
+</head>
+<body onload="bodyload()">
+<!-------------------------------------------------------------------->
+    <div id="dvSelect" class="dvSelect"></div>
+<!-------------------------------------------------------------------->
+ <table border="0" width="100%" height="100%" cellPadding="0" cellSpacing="0">
+   <tr>
+      <td ALIGN="center" VALIGN="TOP" nowrap>
+      <b>Retail Concepts, Inc
+      <br>Christmas Bike Sales Contest
+      <br>From: 11/21/2005 Thru: 01/15/2006</b>
+     <tr>
+       <td ALIGN="center" VALIGN="TOP">
+       <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+       <font size="-1">This Page.</font>&nbsp;&nbsp&nbsp;&nbsp&nbsp;&nbsp
+      </td>
+   </tr>
+   <tr>
+      <td ALIGN="center" VALIGN="TOP">
+<!-------------------------------------------------------------------->
+  <!----------------- beginning of table ------------------------>
+  <table class="DataTable" width="40%" cellPadding="0" cellSpacing="0">
+    <tr>
+      <th class="DataTable" rowspan="2">Tier</th>
+      <th class="DataTable" rowspan="2">Store</th>
+      <th class="DataTable" colspan="3">Yesterday Sales</th>
+      <th class="DataTable" colspan="3">Total</th>
+    </tr>
+
+    <tr>
+      <th class="DataTable">Qty</th>
+      <th class="DataTable">Weekly<br>Plan</th>
+      <th class="DataTable">Var</th>
+
+      <th class="DataTable">Qty</th>
+      <th class="DataTable">Total<br>Plan</th>
+      <th class="DataTable">Var</th>
+    </tr>
+
+<!------------------------------- Detail Data --------------------------------->
+   
+         <tr class="DataTable1">
+           
+              <td class="DataTable1" rowspan=3 nowrap>#1 Tier</td>
+           
+           <td class="DataTable1" nowrap>3</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>410</td>
+           <td class="DataTable" nowrap>350</td>
+           <td class="DataTable" nowrap>1.17%</td>
+        </tr>
+   
+         <tr class="DataTable1">
+           
+           <td class="DataTable1" nowrap>4</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>298</td>
+           <td class="DataTable" nowrap>330</td>
+           <td class="DataTable" nowrap>.90%</td>
+        </tr>
+   
+         <tr class="DataTable1">
+           
+           <td class="DataTable1" nowrap>5</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>333</td>
+           <td class="DataTable" nowrap>330</td>
+           <td class="DataTable" nowrap>1.01%</td>
+        </tr>
+   
+         <tr class="DataTable2">
+           
+              <td class="DataTable1" rowspan=3 nowrap>#2 Tier</td>
+           
+           <td class="DataTable1" nowrap>8</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>268</td>
+           <td class="DataTable" nowrap>210</td>
+           <td class="DataTable" nowrap>1.28%</td>
+        </tr>
+   
+         <tr class="DataTable2">
+           
+           <td class="DataTable1" nowrap>82</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>220</td>
+           <td class="DataTable" nowrap>230</td>
+           <td class="DataTable" nowrap>.96%</td>
+        </tr>
+   
+         <tr class="DataTable2">
+           
+           <td class="DataTable1" nowrap>98</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>183</td>
+           <td class="DataTable" nowrap>200</td>
+           <td class="DataTable" nowrap>.92%</td>
+        </tr>
+   
+         <tr class="DataTable3">
+           
+              <td class="DataTable1" rowspan=3 nowrap>#3 Tier</td>
+           
+           <td class="DataTable1" nowrap>88</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>91</td>
+           <td class="DataTable" nowrap>130</td>
+           <td class="DataTable" nowrap>.70%</td>
+        </tr>
+   
+         <tr class="DataTable3">
+           
+           <td class="DataTable1" nowrap>11</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>95</td>
+           <td class="DataTable" nowrap>150</td>
+           <td class="DataTable" nowrap>.63%</td>
+        </tr>
+   
+         <tr class="DataTable3">
+           
+           <td class="DataTable1" nowrap>20</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>97</td>
+           <td class="DataTable" nowrap>170</td>
+           <td class="DataTable" nowrap>.57%</td>
+        </tr>
+   
+         <tr class="DataTable4">
+           
+              <td class="DataTable1" rowspan=3 nowrap>#4 Tier</td>
+           
+           <td class="DataTable1" nowrap>40</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>95</td>
+           <td class="DataTable" nowrap>85</td>
+           <td class="DataTable" nowrap>1.12%</td>
+        </tr>
+   
+         <tr class="DataTable4">
+           
+           <td class="DataTable1" nowrap>45</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>128</td>
+           <td class="DataTable" nowrap>130</td>
+           <td class="DataTable" nowrap>.98%</td>
+        </tr>
+   
+         <tr class="DataTable4">
+           
+           <td class="DataTable1" nowrap>10</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>0</td>
+           <td class="DataTable" nowrap>.00%</td>
+           <td class="DataTable" nowrap>63</td>
+           <td class="DataTable" nowrap>100</td>
+           <td class="DataTable" nowrap>.63%</td>
+        </tr>
+   
+<!-------------------------- end of Report Totals ----------------------------->
+ </table>
+ <!----------------------- end of table ------------------------>
+  </table>
+ </body>
+</html>

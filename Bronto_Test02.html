@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>SOAP JavaScript Client Test 02</title>
+    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+    
+    <script type="text/javascript">
+        function soap() {
+            var xmlhttp = new XMLHttpRequest();
+            url= "https://api.bronto.com/v4 HTTP/1.1";
+
+            // build SOAP request
+            var sr = '<?xml version="1.0"?>'
+               + '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:v4="http://api.bronto.com/v4">'
+	           + '<soapenv:Header/>'
+	           + '<soapenv:Body><v4:login>'
+	           + '<apiToken>94133B95-3AAA-4149-BBAB-052867610D1B</apiToken>'
+	           + '</v4:login></soapenv:Body></soapenv:Envelope>'
+	           + '</form>';
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: "text/xml",
+                dataType: "xml",
+                data: sr,
+                success: processSuccess,
+                error: processError
+            });
+
+        }
+
+        function processSuccess(data, status, req) {
+            if (status == "success")
+                $("#response").text($(req.responseXML));
+        }
+
+        function processError(data, status, req) {
+            alert(req.responseText + " " + status);
+        }  
+    
+        
+    </script>
+</head>
+<body>
+    <form name="Demo" action="" method="post">
+        <div>
+            <input type="button" value="Soap" onclick="soap();" />
+        </div>
+    </form>
+</body>
+<html>
+

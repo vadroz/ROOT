@@ -1,0 +1,1655 @@
+<%@ page import="agedanalysis.PlanSps, rciutility.FormatNumericValue, java.util.*"%>
+<%
+   String [] sStore = request.getParameterValues("STORE");
+   String sDivision = request.getParameter("DIVISION");
+   String sDepartment = request.getParameter("DEPARTMENT");
+   String sClass = request.getParameter("CLASS");
+   String sChgPlan = request.getParameter("AlwChg");
+
+   if(sClass == null) sClass = "ALL";
+
+   //System.out.println(sStore  + " " + sDivision + " " + sDepartment + " " + sClass
+   //       + " " + sNumMon + " " + sRetVal + " " + sCstVal + " " + sUntVal);
+   PlanSps plans = new PlanSps(sStore, sDivision, sDepartment, sClass, sChgPlan);
+
+int iNumOfYr = plans.getNumOfYr();
+    int iNumOfMon = plans.getNumOfMon();
+
+    String [] sMonName = plans.getMonName();
+    String [] sYear = plans.getYear();
+    String sCurMon = plans.getCurMon();
+    String sCurYear = plans.getCurYear();
+    String sPercent = plans.getPercent();
+    String sNumWk = plans.getNumWk();
+
+    // Javascript arrays
+    String sMonNameJsa = plans.getMonNameJsa();
+    String sYearJsa = plans.getYearJsa();
+    // sales, inventory markdowns
+    String sPlanSls = plans.getPlanSlsJsa();
+    String sPlanInv = plans.getPlanInvJsa();
+    String sPlanMkd = plans.getPlanMkdJsa();
+    // stock ledger
+    String sLdgSls = plans.getLdgSls();
+    String sLdgInv = plans.getLdgInv();
+    String sLdgMkd = plans.getLdgMkd();
+    // PO
+    String sPurchOrd = plans.getPurchOrdJsa();
+
+    String sNumOfVen = plans.getNumOfVenJsa();
+    String sPoVen = plans.getPoVenJsa();
+    String sPoVenName = plans.getPoVenNameJsa();
+    String sPoRet = plans.getPoRetJsa();
+    String sPoCst = plans.getPoCstJsa();
+    String sPoUnt = plans.getPoUntJsa();
+
+    plans.disconnect();
+
+    String sCSSCls = "DataTable";
+    StringBuffer sbStr = new StringBuffer();
+    for(int i=0; i < sStore.length; i++)
+    {
+       sbStr.append(sStore[i] + " ");
+    }
+
+    FormatNumericValue fmt = new FormatNumericValue();
+ %>
+
+<html>
+<head>
+
+<style>body {background:ivory;}
+        a:link { color:blue; font-size:12px } a:visited { color:blue; font-size:12px }  a:hover { color:blue; font-size:12px }
+        table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+        th.DataTable { background:#FFCC99;padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+        tr.Button { background:ivory; padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+
+        th.InvData { background:#FFCC99;padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+        td.InvData { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:right;}
+
+
+        tr.DataTable { background:#E7E7E7; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:white; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:CornSilk; font-family:Arial; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:right;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:center;}
+
+        input.Cell {border:none; background:none; width:55; text-align:right; font-family:Arial; font-size:10px }
+
+        div.dvForm {background:Khaki; border: darkblue solid 2px; padding-top:3px; height:30px;
+                    font-family:Arial; font-size:10px; text-align:center;}
+        select.Small {font-family:Arial; font-size:10px }
+        input.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        button.Small {margin-top:3px; font-family:Arial; font-size:10px }
+
+        div.Prompt { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:250; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {background-color: blue; color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {background-color: blue; color:white; border-bottom: black solid 1px; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt {border-bottom: black solid 2px; border-right: black solid 1px; text-align:center;
+                   font-family:Arial; font-size:10px; }
+
+</style>
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+//report parameters
+var Store = ["ALL", "1", "2", "3", "4", "5", "8", "10", "11", "12", "20", "28",
+             "30", "40", "45", "61", "82", "88", "98", "99" , "100", "101", "199"];
+var SelStr = new Array(<%=sStore.length%>);
+<%for(int i=0; i < sStore.length; i++) {%>  SelStr[<%=i%>] = "<%=sStore[i]%>"; <%}%>
+
+var Division = "<%=sDivision%>";
+var Department = "<%=sDepartment%>";
+var Class = "<%=sClass%>";
+var ChgPlan = "<%=sChgPlan%>";
+var New = 0;
+
+//--------------------------------------------------------
+// Set Report Values
+var NumOfYr = <%=iNumOfYr%>; // number of month
+var NumOfMon = <%=iNumOfMon%>; // required retail, cost or unit values
+var CurMon = <%=sCurMon%>;
+var CurYear = <%=sCurYear%>;
+var Percent = <%=sPercent%>;
+var NumWk = [<%=sNumWk%>];
+
+var Year = [<%=sYearJsa%>];
+var MonName = [<%=sMonNameJsa%>];
+
+var SlsVal = [<%=sPlanSls%>];
+var InvVal = [<%=sPlanInv%>];
+var MkdVal = [<%=sPlanMkd%>];
+
+// Save data to restore on reset
+var SaveSlsVal = [<%=sPlanSls%>];
+var SaveInvVal = [<%=sPlanInv%>];
+var SaveMkdVal = [<%=sPlanMkd%>];
+
+var ApplySls = new Array();
+var ApplyInv = new Array();
+var ApplyMkd = new Array();
+
+// Stock ledger
+var LdgSls = <%=sLdgSls%>;
+var LdgInv = <%=sLdgInv%>;
+var LdgMkd = <%=sLdgMkd%>;
+
+// POs
+var POVal = [<%=sPurchOrd%>];
+
+//sales
+var SlsCell = new Array();
+var SlsTot = new Array();
+var SlsTotCell = new Array();
+var ChgSlsCell = new Array();
+var ChgSlsTotCell = new Array();
+// markdwns
+var MkdCell = new Array();
+var MkdTot = new Array();
+var MkdTotCell = new Array();
+var ChgMkdCell = new Array();
+var ChgMkdTotCell = new Array();
+
+// EOM Inventory
+var EmiCell = new Array();
+var EmiTot = new Array();
+var EmiTotCell = new Array();
+var ChgEmiCell = new Array();
+var ChgEmiTotCell = new Array();
+
+//sales
+var POCell = new Array();
+var POTot = new Array();
+var POTotCell = new Array();
+
+var BmiCell = new Array();// BOM Inventory
+var BmiVal = new Array();// BOM Inventory
+var SsrCell = new Array();// Stock to sales ration
+var FcwCell = new Array();// fiscal weeks
+var AswCell = new Array();// Average sales/week
+var TurnCell = new Array();// Turn
+
+
+var RfpCell = new Array();// Required for Plan
+var RfpVal = new Array();// Required for Plan
+var RfpTotCell = new Array();// Required for Plan
+var RfpTot = new Array();// Required for Plan
+
+var OtrCell = new Array();// Open to receive
+var OtrVal = new Array();// Open to receive
+var OtrTotCell = new Array();// Open to receive
+var OtrTot = new Array();// Open to receive
+
+var OtbCell = new Array();// Open to buy
+var OtbVal = new Array();// Open to buy
+var OtbTotCell = new Array();// Open to buy
+var OtbTot = new Array();// Open to buy
+
+var OcfCell = new Array();// OTB Carry Forward
+var OcfVal = new Array();// OTB Carry Forward
+var OcfTotCell = new Array();// OTB Carry Forward
+var OcfTot = new Array();// OTB Carry Forward
+
+//--------------------------------------------------------
+// Open Purchase Orders by vendors
+var NumOfVen = [<%=sNumOfVen%>];
+var PoVen = [<%=sPoVen%>];
+var PoVenName = [<%=sPoVenName%>];
+var PoRet = [<%=sPoRet%>];
+var PoCst = [<%=sPoCst%>];
+var PoUnt = [<%=sPoUnt%>];
+
+var ApplyHist = false;
+
+//--------------------------------------------------------
+// prompt arrays
+var strLst = null;
+var strName = null;
+var divLst = null;
+var divName = null;
+var dptLst = null;
+var dptName = null;
+var dptGrpLst = null;
+var clsLst = null;
+var clsName = null;
+//--------------------------------------------------------
+var ShowHist = true;
+//--------------- End of Global variables ----------------
+function bodyLoad()
+{
+   document.all.Save[0].style.visibility="hidden"
+   document.all.Save[1].style.visibility="hidden"
+
+   saveCell(SlsCell, SlsTotCell, "SLS", NumOfYr); // actual and planed sales
+   setCellVal(SlsVal, SlsTot, SlsCell, SlsTotCell);
+   saveCell(ChgSlsCell, ChgSlsTotCell, "CHGSLS", NumOfYr-1); // actual and planed % change of sales
+   setChgCellVal(SlsVal, SlsTot, ChgSlsCell, ChgSlsTotCell);
+
+
+   saveCell(MkdCell, MkdTotCell, "MKD", NumOfYr); // actual and planed markdowns
+   setCellVal(MkdVal, MkdTot, MkdCell, MkdTotCell);
+   saveCell(ChgMkdCell, ChgMkdTotCell, "CHGMKD", 2); // actual and planed % change of markdowns
+   setChgMkdCellVal();
+
+   saveCell(EmiCell, EmiTotCell, "EMI", NumOfYr); // actual and planed EOM Inv.
+   setCellVal(InvVal, EmiTot, EmiCell, EmiTotCell);
+   saveCell(ChgEmiCell, ChgEmiTotCell, "CHGEMI", NumOfYr-1); // actual and planed % change of EOM Inv.
+   setChgCellVal(InvVal, EmiTot, ChgEmiCell, ChgEmiTotCell);
+
+   saveBmi(); // BOM Inv.
+   setBmiVal();
+   saveSsr(); // Stock to sales Ration
+   setSsrVal();
+   saveFcw(); // fiscal weeks
+   setFcwVal();
+   saveAsw(); // avg sls/weeks
+   setAswVal();
+   saveTurn(); // avg sls/weeks
+   setTurnVal();
+
+   savePOCell(POCell, POTotCell, "OPO", 2); // Open PO
+   setPOCellVal(POVal, POTot, POCell, POTotCell);
+
+   saveRfp(); // Required for Plan
+   setRfpVal();
+   saveOtr(); // Open to receive
+   setOtrVal();
+   saveOtb(); // Open to buy
+   setOtbVal();
+   saveOcf(); // OTB carry forward
+   setOcfVal();
+
+}
+
+//--------------------------------------------------------
+// save cell objects in array
+//--------------------------------------------------------
+function saveCell(cells, totcell, cellName, max)
+{
+   for(var i=0; i < max; i++)
+   {
+      var amtc = new Array();
+      for(var j=0; j < NumOfMon; j++) { amtc[j] = document.all[cellName + i + "M" + j]; }
+      cells[i] = amtc;
+      totcell[i] = document.all[cellName + i + "T"];
+   }
+}
+//--------------------------------------------------------
+// set cell value
+//--------------------------------------------------------
+function setCellVal(amt,tot, cells, totcell)
+{
+   var totamt;
+   for(var i=0; i < NumOfYr; i++)
+   {
+      totamt = 0;
+      for(var j=0; j < NumOfMon; j++)
+      {
+         cells[i][j].value = format(amt[i][j]);
+         totamt += eval(amt[i][j]);
+         if(i == 0 || i==1 && j >= CurMon)
+         {
+            cells[i][j].style.backgroundColor="white";
+            cells[i][j].readOnly=false;
+         }
+      }
+      totcell[i].value = format(totamt);
+      tot[i] = totamt;
+      if(i == 0 || i==1 && CurMon < 12)
+      {
+        totcell[i].style.backgroundColor="white";
+        totcell[i].readOnly=false;
+      }
+   }
+}
+
+//--------------------------------------------------------
+// set % change cell values
+//--------------------------------------------------------
+function setChgCellVal(amt, tot, cells, totcell)
+{
+   var prc = 0;
+   for(var i=0; i < NumOfYr-1; i++)
+   {
+      totamt = 0;
+      for(var j=0; j < NumOfMon; j++)
+      {
+         prc = 0;
+         if(amt[i+1][j] != 0) prc = ( (amt[i][j] - amt[i+1][j])/ amt[i+1][j] * 100).toFixed(1)
+         cells[i][j].innerHTML = format(prc) + "%";
+      }
+      prc = 0;
+      if(tot[i+1] != 0) prc = ((tot[i] - tot[i+1]) /  tot[i+1] * 100).toFixed(1)
+
+      totcell[i].innerHTML = format(prc) + "%";
+   }
+}
+//--------------------------------------------------------
+// set % To Total cell values for markdownds
+//--------------------------------------------------------
+function setChgMkdCellVal()
+{
+   //   MkdVal, MkdTot, ChgMkdCell, ChgMkdTotCell
+   var prc = 0;
+   for(var i=0; i < 2; i++)
+   {
+      totamt = 0;
+      for(var j=0; j < NumOfMon; j++)
+      {
+         prc = 0;
+         if(SlsVal[i][j] != 0) prc = ( (1 - (MkdVal[i][j] - SlsVal[i][j]) / SlsVal[i][j]) * 100).toFixed(1)
+         ChgMkdCell[i][j].innerHTML = format(prc) + "%";
+      }
+      prc = 0;
+      if(SlsTot[i] != 0) prc = ( (1 - (MkdTot[i] - SlsTot[i]) / SlsTot[i]) * 100).toFixed(1)
+
+      ChgMkdTotCell[i].innerHTML = format(prc) + "%";
+   }
+}
+//--------------------------------------------------------
+// save BOM Inventory cell objects in array
+//--------------------------------------------------------
+function saveBmi(){ for(var i=0; i < NumOfMon; i++) { BmiCell[i] = document.all["BMI" + i]; } }
+//--------------------------------------------------------
+// set BOM Inventory values
+//--------------------------------------------------------
+function setBmiVal()
+{
+   BmiCell[0].innerHTML = format(InvVal[1][11]);
+   BmiVal[0] = InvVal[1][11];
+   for(var i=1; i < NumOfMon; i++)
+   {
+     BmiCell[i].innerHTML = format(InvVal[0][i-1]);
+     BmiVal[i] = InvVal[0][i-1];
+   }
+}
+
+//--------------------------------------------------------
+// save stock to sales ratio objects in array
+//--------------------------------------------------------
+function saveSsr(){ for(var i=0; i < NumOfMon; i++) { SsrCell[i] = document.all["SSR" + i]; } }
+//--------------------------------------------------------
+// set stock to sales ratio values
+//--------------------------------------------------------
+function setSsrVal()
+{
+   for(var i=0; i < NumOfMon; i++)
+   {
+     SsrCell[i].innerHTML = 0;
+     if (SlsVal[1][i] != 0) SsrCell[i].innerHTML = format((BmiVal[i] / SlsVal[1][i]).toFixed(1));
+   }
+}
+//--------------------------------------------------------
+// save fiscal calendar week objects in array
+//--------------------------------------------------------
+function saveFcw(){ for(var i=0; i < NumOfMon; i++) { FcwCell[i] = document.all["FCW" + i]; } }
+//--------------------------------------------------------
+// set stock to sales ratio values
+//--------------------------------------------------------
+function setFcwVal()
+{
+   for(var i=0; i < NumOfMon; i++)  { FcwCell[i].innerHTML = NumWk[i]; }
+}
+//--------------------------------------------------------
+// save stock to sales ratio objects in array
+//--------------------------------------------------------
+function saveAsw(){ for(var i=0; i < NumOfMon; i++) { AswCell[i] = document.all["ASW" + i]; } }
+//--------------------------------------------------------
+// set stock to sales ratio values
+//--------------------------------------------------------
+function setAswVal() { for(var i=0; i < NumOfMon; i++) { AswCell[i].innerHTML = format((SlsVal[1][i] / NumWk[i]).toFixed(0)); }}
+//--------------------------------------------------------
+// save turn objects in array
+//--------------------------------------------------------
+function saveTurn(){ for(var i=0; i < NumOfYr; i++) { TurnCell[i] = document.all["TRN" + i]; } }
+//--------------------------------------------------------
+// set Turn values
+//--------------------------------------------------------
+function setTurnVal()
+{
+   for(var i=0; i < NumOfYr; i++) { TurnCell[i].innerHTML = (SlsTot[i] / EmiTot[i]).toFixed(1); }
+}
+
+//--------------------------------------------------------
+// save cell objects in array
+//--------------------------------------------------------
+function savePOCell(cells, totcell, cellName, max)
+{
+   for(var i=0; i < max; i++)
+   {
+      var amtc = new Array();
+      for(var j=0; j < NumOfMon; j++) { amtc[j] = document.all[cellName + i + "M" + j]; }
+      cells[i] = amtc;
+      totcell[i] = document.all[cellName + i + "T"];
+   }
+}
+//--------------------------------------------------------
+// set cell value
+//--------------------------------------------------------
+function setPOCellVal(amt,tot, cells, totcell)
+{
+   var totamt;
+   for(var i=0; i < 2; i++)
+   {
+      totamt = 0;
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(i == 0 || i==1 && j >= CurMon-1)
+         {
+            cells[i][j].innerHTML = format(amt[i][j]);
+            totamt += eval(amt[i][j]);
+         }
+      }
+
+      totcell[i].innerHTML = format(totamt);
+      tot[i] = totamt;
+   }
+}
+//--------------------------------------------------------
+// save Required for plan cell objects in array
+//--------------------------------------------------------
+function saveRfp()
+{
+   for(var i=0; i < 2; i++)
+   {
+      RfpCell[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         RfpCell[i][j] = document.all["RFP" + i + "M" + j];
+      }
+      RfpTotCell[i] = document.all["RFP" + i + "T"];
+   }
+}
+//--------------------------------------------------------
+// set Required for plan values
+//--------------------------------------------------------
+function setRfpVal()
+{
+   var amt = 0;
+   for(var i=0; i < 2; i++)
+   {
+      var tot = 0;
+      RfpVal[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(i == 0 || i==1 && j >= CurMon-1)
+         {
+            amt = eval(SlsVal[i][j]) + eval(MkdVal[i][j]) + eval(InvVal[i][j]);
+            if(i==1 && j == CurMon-1)
+            {
+              amt = eval(amt) - (eval(SlsVal[i][CurMon-1]) + eval(MkdVal[i][CurMon-1])) * Percent;
+            }
+
+            tot += eval(SlsVal[i][j]) + eval(MkdVal[i][j]);
+            amt  = amt.toFixed(0);
+            RfpVal[i][j] = amt;
+            RfpCell[i][j].innerHTML = format(amt);
+         }
+      }
+
+      tot += eval(InvVal[i][11]);
+      if(i==1)
+      {
+         tot = tot - (eval(SlsVal[i][CurMon-1]) + eval(MkdVal[i][CurMon-1])) * Percent;
+      }
+      tot = tot.toFixed(0);
+      RfpTotCell[i].innerHTML = format(tot);
+      RfpTot[i] = tot;
+   }
+}
+//--------------------------------------------------------
+// save Open to receive cell objects in array
+//--------------------------------------------------------
+function saveOtr()
+{
+   for(var i=0; i < 2; i++)
+   {
+      OtrCell[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         OtrCell[i][j] = document.all["OTR" + i + "M" + j];
+         if(i == 0 || i==1 && j >= CurMon)
+         {
+            OtrCell[i][j].style.backgroundColor="white";
+            OtrCell[i][j].readOnly=false;
+         }
+      }
+
+      OtrTotCell[i] = document.all["OTR" + i + "T"];
+      if(i == 0 || i==1 && CurMon < 12)
+      {
+            OtrTotCell[i].style.backgroundColor="white";
+            OtrTotCell[i].readOnly=false;
+      }
+   }
+}
+//--------------------------------------------------------
+// set Open to receive values
+//--------------------------------------------------------
+function setOtrVal()
+{
+   var amt = 0;
+   var bom = 0;
+   for(var i=0; i < 2; i++)
+   {
+      var tot = 0;
+      OtrVal[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(i == 0 || i==1 && j >= CurMon-1)
+         {
+            if(j==0) bom = InvVal[i+1][11];
+            else if(i==1 && j == CurMon-1) bom = LdgInv;
+            else bom = InvVal[i][j-1];
+
+            amt = eval(RfpVal[i][j]) - eval(bom);
+            OtrVal[i][j] = amt;
+            OtrCell[i][j].value = format(amt);
+         }
+      }
+
+      tot = eval(RfpTot[i])
+      if(i==0) tot = tot - eval(InvVal[1][11]);
+      else if(i==1) tot = tot - LdgInv;
+      OtrTotCell[i].value = format(tot);
+      OtrTot[i] = tot;
+   }
+}
+//--------------------------------------------------------
+// save Open to buy cell objects in array
+//--------------------------------------------------------
+function saveOtb()
+{
+   for(var i=0; i < 2; i++)
+   {
+      OtbCell[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         OtbCell[i][j] = document.all["OTB" + i + "M" + j];
+      }
+      OtbTotCell[i] = document.all["OTB" + i + "T"];
+   }
+}
+//--------------------------------------------------------
+// set Open to buy values
+//--------------------------------------------------------
+function setOtbVal()
+{
+   var amt = 0;
+   for(var i=0; i < 2; i++)
+   {
+      var tot = 0;
+      OtbVal[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(i == 0 || i==1 && j >= CurMon-1)
+         {
+            amt = eval(OtrVal[i][j]) - eval(POVal[i][j]);
+            tot += amt;
+            OtbVal[i][j] = amt;
+            OtbCell[i][j].innerHTML = format(amt);
+         }
+      }
+
+      OtbTotCell[i].innerHTML = format(tot);
+      OtbTot[i] = tot;
+   }
+}
+
+//--------------------------------------------------------
+// save OTB Carry Forward cell objects in array
+//--------------------------------------------------------
+function saveOcf()
+{
+   for(var i=0; i < 2; i++)
+   {
+      OcfCell[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         OcfCell[i][j] = document.all["OCF" + i + "M" + j];
+      }
+      OcfTotCell[i] = document.all["OCF" + i + "T"];
+   }
+}
+//--------------------------------------------------------
+// set OTB Carry Forward values
+//--------------------------------------------------------
+function setOcfVal()
+{
+   //if (i > 0) amt = amt + savocf;
+   var amt = 0;
+   for(var i=0; i < 2; i++)
+   {
+      var tot = 0;
+      OcfVal[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(i == 0 || i==1 && j >= CurMon-1)
+         {
+            amt = eval(OtbVal[i][j]);
+
+            if(i == 0 && j == 0) amt = amt + eval(OtbVal[1][11]); // add previous month carry forward
+            else if(i == 0 && j > 0) amt = amt + eval(OcfVal[0][j-1]);
+            else if(i == 1 && j > CurMon-1) amt = amt + eval(OcfVal[0][j-1]);
+
+
+
+            tot += amt;
+            OcfVal[i][j] = amt;
+            OcfCell[i][j].innerHTML = format(amt);
+         }
+      }
+
+      OcfTot[i] = tot;
+   }
+}
+
+//--------------------------------------------------------
+// apply Last Year Actual
+//--------------------------------------------------------
+function applyLYActual()
+{
+   for(var j=0; j < NumOfMon; j++)
+   {
+      if(j < CurMon-1) SlsVal[0][j] = SlsVal[1][j];
+      else { SlsVal[0][j] = SlsVal[2][j]; }
+      if(SlsVal[0][j]  < 0) SlsVal[0][j] = 0;
+   }
+   // update screen with new plan values recalculate derivative values
+   setNewPlanValues();
+
+   document.all.Calc[0].style.visibility="hidden";
+   document.all.Calc[1].style.visibility="hidden";
+   document.all.Save[0].style.visibility="visible";
+   document.all.Save[1].style.visibility="visible";
+   ApplyHist = true;
+}
+//--------------------------------------------------------
+// calculate new plan
+//--------------------------------------------------------
+function clcNewPlan()
+{
+   // validate entries - return if error
+   if(validateEntry())
+   {
+      alert("Some of the entered values or percents are not valid numeric entries.")
+      return;
+   }
+
+   // check total
+   for(var i=0; i < 2; i++)
+   {
+      var isTotalApplied = false;
+
+      // initialize second demension of arrays
+      if(ApplySls[i] == null) ApplySls[i] = new Array();
+      if(ApplyInv[i] == null) ApplyInv[i] = new Array();
+      if(ApplyMkd[i] == null) ApplyMkd[i] = new Array();
+
+      // apply total
+      if (SlsTotCell[i].value.trim() != format(SlsTot[i])) { clcAllPlanByPrc(i, SlsTotCell[i].value.trim(), SlsTot[i], SlsVal, ApplySls); isTotalApplied = true; }
+      if (EmiTotCell[i].value.trim() != format(EmiTot[i])) { clcAllPlanByPrc(i, EmiTotCell[i].value.trim(), EmiTot[i], InvVal, ApplyInv); isTotalApplied = true; }
+      if (MkdTotCell[i].value.trim() != format(MkdTot[i])) { clcAllPlanByPrc(i, MkdTotCell[i].value.trim(), MkdTot[i], MkdVal, ApplyMkd); isTotalApplied = true; }
+      if (OtrTotCell[i].value.trim() != format(OtrTot[i])) { clcAllOtrPrc(i); isTotalApplied = true; }
+
+      if( !isTotalApplied )
+      {
+         clcPlanByPrc(i, SlsCell, SlsVal, ApplySls);
+         clcPlanByPrc(i, EmiCell, InvVal, ApplyInv);
+         clcPlanByPrc(i, MkdCell, MkdVal, ApplyMkd);
+         clcOtrByPrc(i);
+      }
+
+   }
+
+   // update screen with new plan values recalculate derivative values
+   setNewPlanValues();
+
+   document.all.Apply[0].style.visibility="hidden";
+   document.all.Apply[1].style.visibility="hidden";
+   document.all.Save[0].style.visibility="visible";
+   document.all.Save[1].style.visibility="visible";
+}
+//--------------------------------------------------------
+// validate new entries
+//--------------------------------------------------------
+function validateEntry()
+{
+   var error = false;
+   for(var i=0; i < 2; i++)
+   {
+      // validate totals
+      if (SlsTotCell[i].value.trim() != format(SlsTot[i])
+        && ( SlsTotCell[i].value.trim() && isNaN(SlsTotCell[i].value.trim().substring(1))
+          || SlsTotCell[i].value.trim().substring(0, 1) != '$' && isNaN(SlsTotCell[i].value.trim())
+           )
+         ) { error = true; }
+
+      if (MkdTotCell[i].value.trim() != format(MkdTot[i])
+        && ( MkdTotCell[i].value.trim() && isNaN(MkdTotCell[i].value.trim().substring(1))
+          || MkdTotCell[i].value.trim().substring(0, 1) != '$' && isNaN(MkdTotCell[i].value.trim())
+           )
+         ) { error = true; }
+
+      if (EmiTotCell[i].value.trim() != format(EmiTot[i])
+        && ( EmiTotCell[i].value.trim() && isNaN(EmiTotCell[i].value.trim().substring(1))
+          || EmiTotCell[i].value.trim().substring(0, 1) != '$' && isNaN(emiTotCell[i].value.trim())
+           )
+         ) { error = true; }
+
+
+
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if (SlsCell[i][j].value.trim() != format(SlsVal[i][j])
+           && ( SlsCell[i][j].value.trim() && isNaN(SlsCell[i][j].value.trim().substring(1))
+             || SlsCell[i][j].value.trim().substring(0, 1) != '$' && isNaN(SlsCell[i][j].value.trim())
+              )
+            ) { error = true; }
+
+         if (MkdCell[i][j].value.trim() != format(MkdVal[i][j])
+           && ( MkdCell[i][j].value.trim().substring(0, 1) == '$' && isNaN(MkdCell[i][j].value.trim().substring(1))
+             || MkdCell[i][j].value.trim().substring(0, 1) != '$' && isNaN(MkdCell[i][j].value.trim())
+              )
+            ) { error = true; }
+
+         if (EmiCell[i][j].value.trim() != format(InvVal[i][j])
+           && ( EmiCell[i][j].value.trim().substring(0, 1) == '$' && isNaN(EmiCell[i][j].value.trim().substring(1))
+             || EmiCell[i][j].value.trim().substring(0, 1) != '$' && isNaN(EmiCell[i][j].value.trim())
+              )
+            ) { error = true; }
+
+        if (OtrCell[i][j].value.trim() != format(OtrVal[i][j])
+           && ( OtrCell[i][j].value.trim().substring(0, 1) == '$' && isNaN(OtrCell[i][j].value.trim().substring(1))
+             || OtrCell[i][j].value.trim().substring(0, 1) != '$' && isNaN(OtrCell[i][j].value.trim())
+              )
+            ) { error = true; }
+      }
+   }
+
+   return error;
+}
+//--------------------------------------------------------
+// calculate All future year plan by entered percenatage
+//--------------------------------------------------------
+function clcAllPlanByPrc(year, totcell, totamt, curamt, apply)
+{
+   var prc = 1;
+   if(totcell.substring(0, 1) == "$")
+   {
+      prc = eval(totcell.substring(1)) / eval(totamt);
+   }
+   else { prc = 1 + totcell/100; }
+
+   for(var j=0; j < NumOfMon; j++)
+   {
+      if(year==0 || year == 1 && j >= CurMon)
+      {
+        curamt[year][j] = (curamt[year][j] * prc).toFixed(0);
+        apply[year][j] = curamt[year][j];
+      }
+   }
+}
+//--------------------------------------------------------
+// calculate All future year plan by entered percenatage
+//--------------------------------------------------------
+function clcPlanByPrc(year, cell, curamt, apply)
+{
+   var prc=0;
+   for(var j=0; j < NumOfMon; j++)
+   {
+      if (cell[year][j].value.trim() != format(curamt[year][j]))
+      {
+         if(year==0 || year == 1 && j >= CurMon)
+         {
+            if (cell[year][j].value.trim().substring(0,1) != "$")
+            {
+               prc = 1 + cell[year][j].value.trim()/100;
+               curamt[year][j] = (curamt[year][j] * prc).toFixed(0);
+            }
+            else { curamt[year][j] = eval(cell[year][j].value.trim().substring(1)).toFixed(0);}
+            apply[year][j] = cell[year][j].value.trim();
+         }
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+// calculate all month Open to receive future year plan by entered percenatage
+//------------------------------------------------------------------------------
+function clcAllOtrPrc(year)
+{
+   var prc = 1;
+   if(OtrTotCell[year].value.trim().substring(0, 1) == "$")
+   {
+      prc = eval(OtrTotCell[year].value.trim()) / eval(OtrTot[year]);
+   }
+   else { prc = 1 + OtrTotCell[year].value.trim()/100; }
+
+   for(var j=0; j < NumOfMon; j++)
+   {
+      if(year==0 || year == 1 && j >= CurMon)
+      {
+        // change Inventory
+        //alert("inv: " + InvVal[year][j] + "\notr: " + OtrVal[year][j]
+        //     + "\ndiff: " + eval(OtrVal[year][j]) * (prc - 1) + "\n"
+        //     + (eval(InvVal[year][j]) + eval(OtrVal[year][j]) * (prc - 1)))
+        InvVal[year][j] = (eval(InvVal[year][j]) + eval(OtrVal[year][j]) * (prc - 1)).toFixed(0);
+        ApplyInv[year][j] = InvVal[year][j];
+      }
+   }
+}
+//------------------------------------------------------------------------------
+// calculate Open to Receive future year plan by entered percenatage
+//------------------------------------------------------------------------------
+function clcOtrByPrc(year)
+{
+   var prc=0;
+   for(var j=0; j < NumOfMon; j++)
+   {
+      if (OtrCell[year][j].value.trim() != format(OtrVal[year][j]))
+      {
+         if(year==0 || year == 1 && j >= CurMon)
+         {
+            if (OtrCell[year][j].value.trim().substring(0,1) != "$")
+            {
+               prc = 1 + OtrCell[year][j].value.trim()/100;
+               InvVal[year][j] = (eval(InvVal[year][j]) + eval(OtrVal[year][j]) * (prc - 1)).toFixed(0);
+            }
+            else
+            {
+              InvVal[year][j] = (eval(InvVal[year][j])
+                         + eval(OtrCell[year][j].value.trim().substring(1) - OtrVal[year][j])).toFixed(0);
+            }
+
+            ApplyInv[year][j] = InvVal[year][j];
+         }
+      }
+   }
+}
+//--------------------------------------------------------
+// update screen with new plan values recalculate derivative values
+//--------------------------------------------------------
+function setNewPlanValues()
+{
+   setCellVal(SlsVal, SlsTot, SlsCell, SlsTotCell);
+   setChgCellVal(SlsVal, SlsTot, ChgSlsCell, ChgSlsTotCell);
+   setCellVal(MkdVal, MkdTot, MkdCell, MkdTotCell);
+   setChgMkdCellVal();
+   setCellVal(InvVal, EmiTot, EmiCell, EmiTotCell);
+   setChgCellVal(InvVal, EmiTot, ChgEmiCell, ChgEmiTotCell);
+   setBmiVal();
+   setSsrVal();
+   setFcwVal();
+   setAswVal();
+   setTurnVal();
+
+   setRfpVal();
+   setOtrVal();
+   setOtbVal();
+   setOcfVal();
+}
+//--------------------------------------------------------
+// save new Plans
+//--------------------------------------------------------
+function saveNewPlan()
+{
+   var url = "PlanSave.jsp"
+      + "?DIVISION=" + Division
+      + "&DEPARTMENT=" + Department
+      + "&CLASS=" + Class
+      + "&ChgPlan=" + ChgPlan
+
+   // check store selected for current inquiry
+   for(var i=0; i < SelStr.length; i++) { url += "&STORE=" + SelStr[i]; }
+
+   // save plans applied from last year actual sales
+   if(ApplyHist){ url += "&Hist=1"; }
+   else
+   {
+      url += "&Hist=0";
+      url += clcSendingPercent(ApplySls, SaveSlsVal, "Sls");
+      url += clcSendingPercent(ApplyInv, SaveInvVal, "Mkd");
+      url += clcSendingPercent(ApplyMkd, SaveMkdVal, "Inv");
+   }
+
+   //alert(url)
+   //window.location.href=url;
+   window.frame1.location=url;
+
+}
+//--------------------------------------------------------
+// calculate final sending percent of value changes
+//--------------------------------------------------------
+function clcSendingPercent(apply, amt, tag)
+{
+   var url = "";
+   var allowAmt = SelStr.length = 1 && SelStr[0] != Store[0] && Class != "ALL";
+
+   for(var i=0; i < 2; i++)
+   {
+      if(apply[i] == null) apply[i] = new Array();
+      for(var j=0; j < NumOfMon; j++)
+      {
+         if(apply[i][j] != null)
+         {
+            if (apply[i][j].substring(0, 1) == "$" && allowAmt) apply[i][j] = eval(apply[i][j].substring(1)).toFixed(0);
+            else if(apply[i][j].substring(0, 1) == "$" && amt[i][j] != 0) apply[i][j] = (apply[i][j].substring(1) / amt[i][j]).toFixed(4);
+            else if(apply[i][j].substring(0, 1) != "$" && amt[i][j] != 0) apply[i][j] = (apply[i][j] / amt[i][j]).toFixed(4);
+            else if (amt[i][j] == 0) apply[i][j] = "";
+         }
+         else apply[i][j] = "";
+         url += "&" + tag + "=" + apply[i][j];
+      }
+   }
+   return url;
+}
+//--------------------------------------------------------
+// re-display Planning screen
+//--------------------------------------------------------
+function redisplayPlanning()
+{
+   location.reload();
+}
+//--------------------------------------------------------
+// reset new Plans
+//--------------------------------------------------------
+function resetNewPlan()
+{
+   document.all.Calc[0].style.visibility="visible";
+   document.all.Calc[1].style.visibility="visible";
+   document.all.Apply[0].style.visibility="visible";
+   document.all.Apply[1].style.visibility="visible";
+   document.all.Save[0].style.visibility="hidden";
+   document.all.Save[1].style.visibility="hidden";
+   ApplyHist = false;
+
+   // reset values
+   for(var i=0; i < NumOfYr; i++)
+   {
+      for(var j=0; j < NumOfMon; j++)
+      {
+         SlsVal[i][j] = SaveSlsVal[i][j];
+         InvVal[i][j] = SaveInvVal[i][j];
+         MkdVal[i][j] = SaveMkdVal[i][j];
+      }
+   }
+
+   ApplySls = new Array();
+   ApplyInv = new Array();
+   ApplyMkd = new Array();
+
+   // update screen with new plan values recalculate derivative values
+   setNewPlanValues();
+}
+//--------------------------------------------------------
+// show selection screen
+//--------------------------------------------------------
+function selectPanel()
+{
+   var html = "<table border='0'>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right' nowrap>Division (<a href='javascript: rtvDivDptCls(1)'>Prompt</a>): </td>"
+         + "<td><input name='DIVISION' value='" + Division + "' class='Small' size='3' maxlength='3'><br>"
+         + "<select name='DivSel' onchange='doDivSelect(this.selectedIndex);' class='Small' style='visibility:hidden'></select></td>"
+         + "<td style='text-align:right'>&nbsp;&nbsp; Department: </td>"
+         + "<td><input name='DEPARTMENT' value='" + Department + "' class='Small' size='3' maxlength='3'><br>"
+         + "<select name='DptSel' onchange= 'doDptSel(this.selectedIndex)' class='Small' style='visibility:hidden'></select></td>"
+       + "</tr>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right' nowrap>Class (<a href='javascript: rtvDivDptCls(2)'>Prompt</a>): </td>"
+         + "<td><input name='CLASS' value='" + Class + "' class='Small' size='4' maxlength='4'><br>"
+         + "<select name='ClsSel' onchange= 'doClsSelect(this.selectedIndex)' class='Small' style='visibility:hidden'></select></td>"
+       + "</tr>"
+       + "<tr style='font-size:10px'>"
+       + "<td style='text-align:right'>Store: </td>"
+       + "<td colspan='3'>"
+
+       for(var i=0; i < Store.length; i++)
+       {
+         html += "<input name='STORE' type='checkbox' value='" + Store[i] + "' class='Small'>" + Store[i]
+         if(i == 10) html += "<br>";
+       }
+
+       html += "</td></tr>"
+       + "<tr style='font-size:10px'>"
+         + "<td style='text-align:right'>Value: </td>"
+         + "<td ><input name='ChgPlan' type='radio' value='R' class='Small' >Retail</td>"
+         + "<td ><input name='ChgPlan' type='radio' value='C' class='Small' >Cost</td>"
+         + "<td ><input name='ChgPlan' type='radio' value='U' class='Small' >Unit</td>"
+         + "</td>"
+       + "</tr>"
+       + "<tr style='font-size:10px'>"
+         + "<td colspan='4' style='text-align:center' >"
+           + "<button onClick='hidePanel()' class='Small'>Close</button>&nbsp;"
+           + "<button onClick='validateReport(false)' class='Small'>Submit</button>&nbsp;"
+           + "<button onClick='validateReport(true)' class='Small'>Submit in New Window</button>"
+         + "</td>"
+       + "</tr>"
+
+       + "</table>"
+   document.all.Prompt.innerHTML = html;
+   document.all.Prompt.style.pixelLeft= 20;
+   document.all.Prompt.style.pixelTop= 20;
+   document.all.Prompt.style.visibility = "visible";
+   checkSelValues();
+}
+
+//--------------------------------------------------------
+// show POs by Vendor
+//--------------------------------------------------------
+function showPObyVen(obj)
+{
+   var yr = obj.id.substring(3, 4);
+   var mon = obj.id.substring(5);
+
+   var ven = PoVen[yr][mon];
+   var vennm = PoVenName[yr][mon];
+   var ret = PoRet[yr][mon];
+   var cst = PoCst[yr][mon];
+   var unt = PoUnt[yr][mon];
+
+   var totr = 0;
+   var totc = 0;
+   var totu = 0;
+
+   var html = "<table border='0' width='100%' cellPadding='0' cellSpacing='0'>"
+      + "<tr>"
+       + "<td colspan='4' class='BoxName' nowrap>Purchase Orders by Vendor</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td>"
+      + "</tr>"
+      + "<tr>"
+        + "<th class='DataTable' colspan='5' nowrap>Selected Month: " + MonName[mon] + " '" + Year[yr] + "</th>"
+      + "</tr>"
+
+      + "<tr>"
+        + "<th class='DataTable' nowrap>Vendor</th>"
+        + "<th class='DataTable' nowrap>Vendor Name</th>"
+        + "<th class='DataTable' nowrap>Retail</th>"
+        + "<th class='DataTable' nowrap>Cost</th>"
+        + "<th class='DataTable' nowrap>Unit</th>"
+      + "</tr>";
+
+   // vendor details
+   for(var i=0; i < ven.length; i++)
+   {
+      html += "<tr class='DataTable1'>"
+          + "<td class='DataTable1' nowrap>" + ven[i] + "</td>"
+          + "<td class='DataTable1' nowrap>" + vennm[i] + "</td>"
+          + "<td class='DataTable' nowrap>" + format(ret[i]) + "</td>"
+          + "<td class='DataTable' nowrap>" + format(cst[i]) + "</td>"
+          + "<td class='DataTable' nowrap>" + format(unt[i]) + "</td>"
+        + "</tr>"
+
+      if(ret[i].trim()!='') { totr += eval(ret[i]); }
+      if(cst[i].trim()!='') { totc += eval(cst[i]); }
+      if(unt[i].trim()!='') { totu += eval(unt[i]); }
+   }
+
+   //vendor totals
+   html += "<tr class='DataTable2'>"
+          + "<td class='DataTable1' nowrap colspan='2'>Total</td>"
+          + "<td class='DataTable' nowrap>" + format(totr) + "</td>"
+          + "<td class='DataTable' nowrap>" + format(totc) + "</td>"
+          + "<td class='DataTable' nowrap>" + format(totu) + "</td>"
+        + "</tr>"
+
+   html += "</table>"
+
+   document.all.Prompt.innerHTML = html;
+   document.all.Prompt.style.pixelLeft= 100;
+   document.all.Prompt.style.pixelTop= 200;
+   document.all.Prompt.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// Check selected values
+//--------------------------------------------------------
+function checkSelValues()
+{
+   if(ChgPlan=="R") document.all.ChgPlan[0].checked=true;
+   if(ChgPlan=="C") document.all.ChgPlan[1].checked=true;
+   if(ChgPlan=="U") document.all.ChgPlan[2].checked=true;
+
+   // check store selected for current inquiry
+   for(var i=0; i < Store.length; i++)
+   {
+      for(var j=0; j < SelStr.length; j++)
+      {
+         if(SelStr[j] == Store[i]) { document.all.STORE[i].checked = true; }
+      }
+   }
+}
+//--------------------------------------------------------
+// validate report with new selection
+//--------------------------------------------------------
+function validateReport(newwin)
+{
+  var msg = " ";
+  var error = false;
+  var div = document.all.DIVISION.value.toUpperCase();
+  var dpt = document.all.DEPARTMENT.value.toUpperCase();
+  var cls = document.all.CLASS.value.toUpperCase();
+  var chg;
+  var str = new Array();
+  var strchk = false;
+
+  for(var i=0, j=0; i < document.all.STORE.length; i++)
+  {
+     if(document.all.STORE[i].checked) { str[j++] = document.all.STORE[i].value; strchk=true}
+  }
+
+  if(document.all.ChgPlan[0].checked) chg = document.all.ChgPlan[0].value;
+  if(document.all.ChgPlan[1].checked) chg = document.all.ChgPlan[1].value;
+  if(document.all.ChgPlan[2].checked) chg = document.all.ChgPlan[2].value;
+
+  // validate division
+  if (div!="ALL" && isNaN(div) || div!="ALL" && (div < 1 || div > 99))
+  {
+     msg += "\nPlease, enter correct division number."
+     error = true;
+  }
+  // validate department
+  if (dpt!="ALL" && isNaN(dpt) || dpt!="ALL" && (dpt < 1 || dpt > 999))
+  {
+     msg += "\nPlease, enter correct department number."
+     error = true;
+  }
+  // validate class
+  if (cls!="ALL" && isNaN(cls) || cls!="ALL" && (cls < 1 || cls > 9999))
+  {
+     msg += "\nPlease, enter correct class number."
+     error = true;
+  }
+
+  // validate store
+  if (!strchk)
+  {
+     msg += "\nPlease, check at least 1 store."
+     error = true;
+  }
+
+  // show error or submit report
+  if(error) alert(msg);
+  else submitReport(div, dpt, cls, str, chg, newwin);
+}
+//--------------------------------------------------------
+// submit report with new selection
+//--------------------------------------------------------
+function submitReport(div, dpt, cls, str, chg, newwin)
+{
+   var url = "PlanSps.jsp"
+     + "?DIVISION=" + div
+     + "&DEPARTMENT=" + dpt
+     + "&CLASS=" + cls
+
+   for(var i=0; i < str.length; i++) { url += "&STORE=" + str[i]; }
+
+   url += "&AlwChg=" + chg;
+
+   // close selection panel
+   hidePanel();
+
+   //alert(url);
+   if (newwin)
+   {
+     var WindowName = 'Planning' + New++;
+     var WindowOptions =
+     'resizable=yes , toolbar=yes, location=yes, directories=yes, status=yes, scrollbars=yes,menubar=yes';
+      window.open(url, WindowName, WindowOptions);
+   }
+   else window.location.href=url;
+}
+
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.Prompt.innerHTML = " ";
+   document.all.Prompt.style.visibility = "hidden";
+}
+//--------------------------------------------------------
+// retreive div, dpt, cls and str
+//--------------------------------------------------------
+function rtvDivDptCls(mode)
+{
+  var div = document.all.DIVISION.value.toUpperCase();
+  var dpt = document.all.DEPARTMENT.value.toUpperCase();
+
+  if(div.trim()=="") div ="ALL";
+  if(dpt.trim()=="") dpt ="ALL";
+
+  var url = 'DivDptClsSel.jsp?'
+  if (mode==2)
+  {
+     url += "mode=" + mode
+       + "&DIVISION=" + div
+       + "&DEPARTMENT=" + dpt
+  }
+  else  { url += "mode=" + mode }
+
+ //alert(url);
+ //window.location.href = url;
+ window.frame1.location = url;
+}
+
+//---------------------------------------------------------
+// populate Div, dpt, class list
+//---------------------------------------------------------
+function popDivDptCls(mode, div, divNames, dpt, dptNames, dep_div, cls, clsNames, str, strNames)
+{
+    window.frame1.location = null;
+    strLst = str;
+    strName = strNames;
+    divLst = div;
+    divName = divNames;
+    dptLst = dpt;
+    dptName = dptNames;
+    dptGrpLst = dep_div;
+    clsLst= cls;
+    clsName = clsNames;
+
+    // load div/dpt
+    if(mode==1)
+    {
+       doDivSelect(null);
+       document.all.DivSel.style.visibility="visible";
+       document.all.DptSel.style.visibility="visible";
+       document.all.ClsSel.style.visibility="hidden";
+    }
+    // load classes
+    else
+    {
+       doClsSelect(null);
+       document.all.DivSel.style.visibility="hidden";
+       document.all.DptSel.style.visibility="hidden";
+       document.all.ClsSel.style.visibility="visible";
+    }
+
+    document.all.DIVISION.readOnly=true;
+    document.all.DEPARTMENT.readOnly=true;
+}
+
+//==============================================================================
+// popilate division selection
+//==============================================================================
+function doDivSelect(id) {
+    var df = document.all;
+    var allowed;
+
+    if (id == null || id == 0)
+    {
+        //  populate the division list
+        for (var i = 0; i < divLst.length; i++)
+            df.DivSel.options[i] = new Option(divName[i],divLst[i]);
+        id = 0;
+    }
+    else
+    {
+      df.DIVISION.value = df.DivSel.options[df.DivSel.selectedIndex].value
+      df.DEPARTMENT.value = "ALL";
+    }
+
+    allowed = dptGrpLst[id].split(":");
+
+    //  clear current depts
+    for (var i = df.DptSel.length; i >= 0; i--) df.DptSel.options[i] = null;
+
+    //  if all are to be displayed
+    if (allowed[0] == "all")
+    {
+       for (var i = 0; i < dptLst.length; i++)
+       {
+         df.DptSel.options[i] = new Option(dptName[i],dptLst[i]);
+       }
+    }
+    //  else display the desired depts
+    else
+    {
+       for (var i = 0; i < allowed.length; i++)
+                df.DptSel.options[i] = new Option(dptName[allowed[i]],
+                                                        dptLst[allowed[i]]);
+    }
+}
+//==============================================================================
+// populate class selection
+//==============================================================================
+function doClsSelect(id) {
+  var df = document.all;
+  if(id==null)
+  {
+     //  clear current classes
+     for (var i = df.ClsSel.length; i >= 0; i--)  df.ClsSel.options[i] = null;
+
+     //  populate the class list
+     for (var i = 0; i < clsLst.length; i++)  { df.ClsSel.options[i] = new Option(clsName[i], clsLst[i]); }
+  }
+  else
+  {
+     document.all.CLASS.value = document.all.ClsSel.options[id].value;
+  }
+}
+//==============================================================================
+// Copy selected department to input department field
+//==============================================================================
+function doDptSel(id)
+{
+   document.all.DEPARTMENT.value = document.all.DptSel.options[id].value;
+}
+//==============================================================================
+// fold/unfold History (1 years back )
+//==============================================================================
+function switchHist()
+{
+   ShowHist =! ShowHist;
+   if(!ShowHist)
+   {
+      document.all.PSAR2.style.display="none";
+      document.all.PSPR0.style.display="none";
+      document.all.PSPR1.style.display="none";
+
+      document.all.MKDA2.style.display="none";
+      document.all.MKDP0.style.display="none";
+      document.all.MKDP1.style.display="none";
+
+      document.all.EMIA2.style.display="none";
+      document.all.EMIP0.style.display="none";
+      document.all.EMIP1.style.display="none";
+   }
+   else
+   {
+      document.all.PSAR2.style.display="block";
+      document.all.PSPR0.style.display="block";
+      document.all.PSPR1.style.display="block";
+
+      document.all.MKDA2.style.display="block";
+      document.all.MKDP0.style.display="block";
+      document.all.MKDP1.style.display="block";
+
+      document.all.EMIA2.style.display="block";
+      document.all.EMIP0.style.display="block";
+      document.all.EMIP1.style.display="block";
+   }
+}
+//---------------------------------------------------------
+//create String method Trim
+//---------------------------------------------------------
+function String.prototype.trim()
+{ //trim leading and trailing spaces
+    var s = this;
+    var obj = /^(\s*)([\W\w]*)(\b\s*$)/;
+    if (obj.test(s)) { s = s.replace(obj, '$2'); }
+    var obj = /  /g;
+    while (s.match(obj)) { s = s.replace(obj, " "); }
+    return s;
+}
+</SCRIPT>
+<script LANGUAGE="JavaScript1.2" src="FormatNumerics.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe
+  id="frame1"
+  src=""
+  frameborder=0 height="0" width="0">
+</iframe>
+<!-------------------------------------------------------------------->
+  <div id="Prompt" class="Prompt"></div>
+<!-------------------------------------------------------------------->
+
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP">
+        <b>Retail Concepts, Inc
+        <br>Planning</b>
+      </td>
+     </tr>
+
+     <tr>
+      <td ALIGN="Center" VALIGN="TOP" colspan=3>
+
+      <b>Store: <%=sbStr.toString()%>
+         &nbsp;&nbsp; Division: <%=sDivision%>
+         &nbsp;&nbsp; Department: <%=sDepartment%>
+         &nbsp;&nbsp; Class: <%=sClass%></b><br>
+
+      <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+          <a href="PlanningSel.jsp?mode=1">
+            <font color="red" size="-1">Planning Selection</font></a>&#62;
+          <font size="-1">This Page.</font>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="javascript: selectPanel();">Report Parameters</a>
+      <br><button name="Apply" onClick="applyLYActual()" class="Small">Apply LY Actual</button>&nbsp;&nbsp;
+          <button name="Calc" onClick="clcNewPlan()" class="Small">Calc</button>&nbsp;&nbsp;
+          <button name="Reset" onClick="resetNewPlan()" class="Small">Reset</button>&nbsp;&nbsp;
+          <button name="Save" onClick="saveNewPlan()" class="Small">Save</button>
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0" border=0>
+        <tr>
+	  <th class="DataTable" ><a href="javascript: switchHist()">Fold/Unfold Hist</a></th>
+          <th class="DataTable" >Year</th>
+          <th class="DataTable" >Total</th>
+          <!-- Month Names -->
+          <%for (int i=0; i < iNumOfMon; i++){%><th class="DataTable"><%=sMonName[i]%></th><%}%>
+        </tr>
+       <!------------------------------- Data Detail --------------------------------->
+       <!------------------------------- BOM Inventory --------------------------------->
+           <tr class="<%=sCSSCls%>">
+              <td class="DataTable">BOM Inventory</td>
+              <td class="DataTable">&nbsp;</td>
+              <td class="DataTable">&nbsp;</td>
+              <%for(int j=0; j < iNumOfMon; j++) {%>
+                    <td class="DataTable" id="BMI<%=j%>"></td>
+              <%}%>
+           </tr>
+
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+       <!------------------------------- Planned Sales --------------------------------->
+           <%for(int i=0; i < iNumOfYr; i++) {%>
+                <tr class="<%=sCSSCls%>" id="PSAR<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2" >Planed Sales</td><%}%>
+                   <%if(i==2) {%><td class="DataTable">Planed Sales (H)</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable"><input class="Cell" name="SLS<%=i%>T" readonly maxsize=9></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable"><input class="Cell" name="SLS<%=i%>M<%=j%>" readonly maxsize=9></td>
+                   <%}%>
+                </tr>
+           <%}%>
+
+           <!-- % changes -->
+           <%for(int i=0; i < iNumOfYr-1; i++) {%>
+                <tr class="<%=sCSSCls%>"  id="PSPR<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">% Changes</td><%}%>
+                   <td class="DataTable"><%=sYear[i] + "/" + sYear[i+1]%></td>
+                   <td class="DataTable" id="CHGSLS<%=i%>T"</td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="CHGSLS<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+           <!------------------------------- Markdowns --------------------------------->
+           <%for(int i=0; i < iNumOfYr; i++) {%>
+                <tr class="<%=sCSSCls%>" id="MKDA<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">Markdowns</td><%}%>
+                   <%if(i==2) {%><td class="DataTable">Markdowns(H)</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable"><input class="Cell" name="MKD<%=i%>T" readonly maxsize=9></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable"><input class="Cell" name="MKD<%=i%>M<%=j%>" readonly maxsize=9></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <!-- % changes -->
+           <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>" id="MKDP<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="3">% Changes</td><%}%>
+                   <td class="DataTable"><%=sYear[i] + "/" + sYear[i+1]%></td>
+                   <td class="DataTable" id="CHGMKD<%=i%>T"</td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="CHGMKD<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+           <!------------------------------- Recepts --------------------------------->
+           <!------------------------------- PO Details ------------------------------------->
+           <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">Purchase Orders</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable" id="OPO<%=i%>T"></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="OPO<%=i%>M<%=j%>" onClick="showPObyVen(this)"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <!------------------------------- Open to Receive ------------------------------------->
+           <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">Open to Receive</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable"><input class="Cell" name="OTR<%=i%>T" readonly maxsize=9></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable"><input class="Cell" name="OTR<%=i%>M<%=j%>" readonly maxsize=9></td>
+                   <%}%>
+                </tr>
+         <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+           <!------------------------------- EOM --------------------------------->
+           <%for(int i=0; i < iNumOfYr; i++) {%>
+                <tr class="<%=sCSSCls%>" id="EMIA<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">End Of Month<br>Inventory</td><%}%>
+                   <%if(i==2) {%><td class="DataTable">End Of Month<br>Inventory (H)</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable"><input class="Cell" name="EMI<%=i%>T" readonly maxsize=9></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable"><input class="Cell" name="EMI<%=i%>M<%=j%>" readonly maxsize=9></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <!-- % changes -->
+           <%for(int i=0; i < iNumOfYr-1; i++) {%>
+                <tr class="<%=sCSSCls%>"  id="EMIP<%=i%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">% Changes</td><%}%>
+                   <td class="DataTable"><%=sYear[i] + "/" + sYear[i+1]%></td>
+                   <td class="DataTable" id="CHGEMI<%=i%>T"</td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="CHGEMI<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+           <!--------------------------------------------------------------------------->
+           <tr class="<%=sCSSCls%>">
+              <td class="DataTable" nowrap>Stock to Sales Ratio</td>
+              <td class="DataTable">&nbsp;</td>
+              <td class="DataTable">&nbsp;</td>
+              <%for(int j=0; j < iNumOfMon; j++) {%>
+                    <td class="DataTable" id="SSR<%=j%>"></td>
+              <%}%>
+           </tr>
+           <tr class="<%=sCSSCls%>">
+              <td class="DataTable"  nowrap>Fiscal Calendar Week</td>
+              <td class="DataTable">&nbsp;</td>
+              <td class="DataTable">&nbsp;</td>
+              <%for(int j=0; j < iNumOfMon; j++) {%>
+                    <td class="DataTable" id="FCW<%=j%>"></td>
+              <%}%>
+           </tr>
+           <tr class="<%=sCSSCls%>">
+              <td class="DataTable"  nowrap>Average Sales/Week</td>
+              <td class="DataTable">&nbsp;</td>
+              <td class="DataTable">&nbsp;</td>
+              <%for(int j=0; j < iNumOfMon; j++) {%>
+                    <td class="DataTable" id="ASW<%=j%>"></td>
+              <%}%>
+           </tr>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+           <!------------------------------------------------------------------------------->
+
+           <%for(int i=0; i < iNumOfYr; i++) {%>
+              <tr class="<%=sCSSCls%>">
+                 <%if(i==0) {%><td class="DataTable" rowspan="3">Turn</td><%}%>
+                 <td class="DataTable"><%=sYear[i]%></td>
+                 <td class="DataTable" id="TRN<%=i%>"></td>
+                 <td class="DataTable" colspan="12">&nbsp;</td>
+              </tr>
+           <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+        <!------------------------------- Required for Plan ------------------------------------->
+        <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">Required for Plan</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable" id="RFP<%=i%>T"></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="RFP<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+          <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+        <!------------------------------- Open to Buy Details ------------------------------------->
+        <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">Open to buy</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable" id="OTB<%=i%>T"></td>
+
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="OTB<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+           <tr><td></td></tr><tr><td></td></tr><tr><td></td></tr>
+        <!------------------------------- OTB Carry Forward ------------------------------------->
+        <%for(int i=0; i < 2; i++) {%>
+                <tr class="<%=sCSSCls%>">
+                   <%if(i==0) {%><td class="DataTable" rowspan="2">OTB Carry Forward</td><%}%>
+                   <td class="DataTable"><%=sYear[i]%></td>
+                   <td class="DataTable" id="OCF<%=i%>T"></td>
+
+                   <%for(int j=0; j < iNumOfMon; j++) {%>
+                       <td class="DataTable" id="OCF<%=i%>M<%=j%>"></td>
+                   <%}%>
+                </tr>
+           <%}%>
+       <!--------------------- Calculate  ----------------------->
+        <tr class="Button">
+          <td style="border:none;" colspan="15">
+            <button name="Apply" onClick="applyLYActual()" class="Small">Apply LY Actual</button>&nbsp;&nbsp;
+            <button name="Calc" onClick="clcNewPlan()" class="Small">Calc</button>&nbsp;&nbsp;
+            <button name="Reset" onClick="resetNewPlan()" class="Small">Reset</button>&nbsp;&nbsp;
+            <button name="Save" onClick="saveNewPlan()" class="Small">Save</button>
+          </td>
+        </tr>
+
+      </table>
+      <!--------------------- end of This Year table ----------------------->
+   </tr>
+  </table>
+ </body>
+</html>

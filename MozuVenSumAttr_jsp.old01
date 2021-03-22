@@ -1,0 +1,379 @@
+<%@ page import="java.text.*, java.util.*, mozu_com.MozuVenSumAttr, java.sql.ResultSet"%>
+<%
+   String sSite = request.getParameter("Site");
+   String sSelVen = request.getParameter("ALL");
+   String sSort = request.getParameter("VEN");
+   
+   if(sSite == null){sSite = "11961";}
+   if(sSelVen == null){ sSelVen = "ALL"; }
+   if(sSort == null){ sSort = "VEN"; }
+   
+//----------------------------------
+// Application Authorization
+//----------------------------------
+if (session.getAttribute("USER")==null)
+{
+     response.sendRedirect("SignOn1.jsp?TARGET=MozuVenSumAttr.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{	
+	String sUser = session.getAttribute("USER").toString();
+	
+	MozuVenSumAttr vensum = new MozuVenSumAttr();
+	vensum.setAttrByCls(sSite,  sSelVen, sSort);
+	int iNumOfVen = vensum.getNumOfVen();
+%>
+<html>
+<head>
+
+<title>Vendor Priority Attribution</title>
+
+<style>body {background:ivory;}
+        a:link { color:blue; font-size:12px} a:visited { color:blue; font-size:12px}  a:hover { color:red; font-size:12px}
+        a:link.small { color:blue; font-size:10px} a:visited.small { color:blue; font-size:10px}  a:hover.small { color:red; font-size:10px}
+        th.DataTable { padding:3px; text-align:center; vertical-align:top}
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding- top:3px; padding-bottom:3px;
+                       text-align:center; font-size:11px; text-decoration: underline;}
+
+        tr.DataTable { background: #E7E7E7; font-size:12px }
+        tr.DataTable1 { background: CornSilk; font-size:12px }
+        tr.DataTable2 { background: white; font-size:12px }
+        tr.DataTable3 { background: #FFCC99; font-size:12px }
+        tr.DataTable4 { background: LimonChiffon; font-size:12px }
+
+        td.DataTable { padding:3px; text-align:center; white-space:}
+        td.DataTable1 { padding:3px; text-align:left; white-space:}
+        td.DataTable2 { padding:3px; text-align:right; white-space:}
+        td.DataTable01 { cursor:hand;padding:3px; text-align:center; white-space:}
+        td.DataTable02 { cursor:hand;padding:3px; text-align:left; white-space:}
+
+        select.Small {font-size:10px }
+        input.Small {margin-top:3px;  font-size:10px }
+        button.Small {margin-top:3px; font-size:10px }
+        textarea.Small { font-size:10px }
+
+        div.dvItem { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:500; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+        
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+        td.Prompt3 { text-align:left; vertical-align:midle; font-family:Arial; font-size:10px; }
+
+		td.Error { color: red; text-align:left; vertical-align:midle; font-family:Arial; font-size:12px; }
+</style>
+
+
+<SCRIPT>
+
+//--------------- Global variables -----------------------
+var aDaAsset = new Array();
+var aImgAsset = new Array();
+var aCoop = new Array();
+var aPty = new Array();
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initial process
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvNote"]);
+}
+//==============================================================================
+//show fedex data
+//==============================================================================
+function addNote(ven, type )
+{
+	var hdr = "Add ";
+	if(type=="DAASSET"){ hdr += "Data Asset"; }
+	else if(type=="IMGASSET"){ hdr += "Image Asset"; }
+	else if(type=="COOP"){ hdr += "COOP Amount"; }
+	else if(type=="PRIORITY"){ hdr += "Priority"; }
+	hdr += ". Vendor: " + ven; 
+	
+	   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+	     + "<tr>"
+	       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+	       + "<td class='BoxClose' valign=top>"
+	         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+	       + "</td></tr>"
+	     + "<tr><td class='Prompt' colspan=2>" + popNote(ven, type  )
+	       + "</td></tr>"
+	     + "</table>"
+
+	  document.all.dvNote.style.width=500;
+	  document.all.dvNote.innerHTML = html;
+	  document.all.dvNote.style.pixelLeft = document.documentElement.scrollLeft + 300;
+	  document.all.dvNote.style.pixelTop =  document.documentElement.scrollTop + 50;
+	  document.all.dvNote.style.visibility = "visible";
+	  
+	  document.all.Ven.value = ven;
+	}
+	//==============================================================================
+	// populate panel
+	//==============================================================================
+	function popNote(ven, type)
+	{		   
+	   var panel = "<table class='tbl01' id='tblLog'>"
+	    + "<tr>"
+	       + "<td class='td08'>";
+	    if(type=="DAASSET" || type=="IMGASSET")
+	    {
+	    	panel += "<TextArea class='Small' name='Prop' cols=100 rows=10></TextArea>";
+	    }
+	    else  
+	    { 
+	    	panel += "<input name='Prop' maxlength=50 size=50 readOnly>"
+	    	 + "<br><br>Select:<select name='selOpt' onchange='setSelProp(this)'></select>"
+	    }	    
+	    
+	    panel += "<input type='hidden' name='Ven'>";	     
+	    panel += "</td>";	       
+	    panel += "</tr>";  
+	    
+		panel += "</table> <br/>";
+	    panel += "<tr>"
+  		  + "<td id='tdError' class='Small' colspan=2 style='color:red;font-size:12px;'></td>"
+		   + "</tr>";
+		   
+	    panel += "</table>"
+	        + "<button onClick='vldNote();' class='Small'>Save Changes</button>&nbsp; &nbsp;"
+	        + "<button onClick='hidePanel();' class='Small'>Close</button>&nbsp;"
+	    ;
+	        
+		return panel;
+	}
+//==============================================================================
+//validate new value
+//==============================================================================
+function vldNote()
+{
+	var error = false;
+  	var msg = "";
+  	document.all.tdError.innerHTML="";
+
+  	var id = document.all.Id.value.trim();
+  	var prop = document.all.Prop.value;
+  	var i = prop.indexOf("\n");  
+  	prop = prop.replace(/\n/g, "\\n");
+  	
+  	if(error){ document.all.tdError.innerHTML=msg; }
+  	else{ sbmPropValue(id, prop); }
+}
+//==============================================================================
+//submit store status changes
+//==============================================================================
+function sbmPropValue(id, prop)
+{
+	
+  	var nwelem = window.frame1.document.createElement("div");
+  	nwelem.id = "dvSbmStrSts"
+  	
+  	var html = "<form name='frmItmProp'"
+     + " METHOD=Post ACTION='MozuParentSave.jsp'>"
+     + "<input name='Site'>"
+     + "<input name='Cls'>"
+     + "<input name='Ven'>"
+     + "<input name='Sty'>"
+     + "<input name='Id'>"
+     + "<input name='Prop'>"       
+     + "<input name='Action'>"
+
+  	html += "</form>"
+  	
+  		
+  	nwelem.innerHTML = html;
+  	window.frame1.document.body.appendChild(nwelem);
+
+  	window.frame1.document.all.Cls.value = Cls;
+  	window.frame1.document.all.Ven.value = Ven;
+  	window.frame1.document.all.Sty.value = Sty;
+  	window.frame1.document.all.Id.value = id;
+  	window.frame1.document.all.Prop.value = prop;
+  	window.frame1.document.all.Action.value="SvItemProp";
+  
+  	window.frame1.document.frmItmProp.submit();
+}
+//==============================================================================
+//Hide selection screen
+//==============================================================================
+function hidePanel()
+{
+	document.all.dvNote.innerHTML = " ";
+	document.all.dvNote.style.visibility = "hidden";
+}
+//==============================================================================
+// mark Item as Received or handled
+//==============================================================================
+function markItem(site, ord, pack, sku, sn, action)
+{
+	var url = "MozuOrSTSSave.jsp?"
+	 + "Site=" + site
+	 + "&Ord=" + ord
+	 + "&Pack=" + pack
+	 + "&Sku=" + sku
+	 + "&Sn=" + sn
+	 + "&Action=" + action
+	
+	window.frame1.location.href=url;
+}
+
+</SCRIPT>
+<script src="StrSelBox.js"></script>
+<script src="MoveBox.js"></script>
+<script src="String_Trim_function.js"></script>
+<script src="Get_Object_Position.js"></script>
+<script src="Calendar.js"></script>
+
+</head>
+<body onload="bodyLoad()" >
+<!-------------------------------------------------------------------->
+<div id="dvNote" class="dvNote"></div>
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div style="clear: both; overflow: AUTO; width: 100%; height: 100%; POSITION: relative; color:black;">
+<!-------------------------------------------------------------------->
+
+      <!----------------- beginning of table ------------------------>          
+      <table  border=1 cellPadding="0" cellSpacing="0">      
+        <tr id="trTopHdr" class="DataTable3" style="z-index: 100; position: relative; top: expression(this.offsetParent.scrollTop);">
+          <th colspan=45>
+            <b>Retail Concepts, Inc
+            <br>Mozu - Vendor Attribution Priority
+            </b>
+            
+            <br>
+              <a href="/"><font color="red" size="-1">Home</font></a>&#62;
+              <font size="-1">This Page.</font> &nbsp; &nbsp; &nbsp; &nbsp;            
+          </th>
+        </tr>
+        
+      <!-- ======================================================================= -->
+      
+              
+      	<tr id="trId" class="DataTable3" style="z-index: 100; position: relative; top: expression(this.offsetParent.scrollTop-3);">
+           <th class="DataTable" nowrap>No.</th>           
+           <th class="DataTable" id="tdhdr1" nowrap><a href="javascript: resort('VEN')">Vendor</a></th>
+           <th class="DataTable" id="tdhdr10" nowrap><a href="javascript: resort('VENNM')">Vendor Name</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('ONHAND')">Total<br>Units</a></th>           
+           <th class="DataTable" nowrap><a href="javascript: resort('PO30UNT')">PO Units<br>30 Days</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('PO60UNT')">PO Units<br>60 Days</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('PO90UNT')">PO Units<br>90 Days</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('POTOTUNT')">Total<br>PO Units</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('ONHRET')">Total<br>Retail</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('AVG')">Avg</a></th>
+           <th class="DataTable" nowrap><a href="javascript: resort('PTY')">Prc</a></th>
+           <th class="DataTable" nowrap>Data Asset</th>
+           <th class="DataTable" nowrap>Image Asset</th>
+           <th class="DataTable" nowrap>Coop</th>
+           <th class="DataTable" nowrap><a href="javascript: resort('VEN')">Pty</a></th>           
+        </tr> 
+        <!----------------------- total line ------------------------>
+         <%vensum.setTotal();
+ 		String sVen = vensum.getVen();
+ 		String sVenNm = vensum.getVenNm();
+ 		String sOnhUnt = vensum.getOnhUnt();
+ 		String sOnhRet = vensum.getOnhRet();
+ 		String sPo30Unt = vensum.getPo30Unt();
+ 		String sPo60Unt = vensum.getPo60Unt();
+ 		String sPo90Unt = vensum.getPo90Unt();
+ 		String sPo30Ret = vensum.getPo30Ret();
+ 		String sPo60Ret = vensum.getPo60Ret();
+ 		String sPo90Ret = vensum.getPo90Ret();
+ 		String sDaAsset = vensum.getDaAsset();
+ 		String sImgAsset = vensum.getImgAsset();
+ 		String sCoop = vensum.getCoop();
+ 		String sPty = vensum.getPty();
+ 		String sTotPoUnt = vensum.getTotPoUnt();
+ 		String sTotPoRet = vensum.getTotPoRet();
+ 		String sAvg = vensum.getAvg();
+ 		String sPrc = vensum.getPrc();
+ 		 		
+ 		%>
+ 		
+ 		<tr id="trId" class="DataTable1" style="z-index: 100; position: relative; top: expression(this.offsetParent.scrollTop-2);">
+            <td class="td37" nowrap>&nbsp;</td>
+            <td class="td37" nowrap colspan=2><%=sVenNm%></td>
+            <td class="td36" nowrap><%=sOnhUnt%></td>
+            <td class="td36" nowrap><%=sPo30Unt%></td>
+            <td class="td36" nowrap><%=sPo60Unt%></td>
+            <td class="td36" nowrap><%=sPo90Unt%></td>
+            <td class="td36" nowrap><%=sTotPoUnt%></td>
+            <td class="td36" nowrap>$<%=sOnhRet%></td>
+            <td class="td36" nowrap>$<%=sAvg%></td>
+            <td class="td36" nowrap>&nbsp;</td>
+            <td class="td37" nowrap><%=sDaAsset%>&nbsp;</td>
+            <td class="td37" nowrap><%=sImgAsset%>&nbsp;</td>
+            <td class="td37" nowrap><%=sCoop%>&nbsp;</td>
+            <td class="td37" nowrap><%=sPty%>&nbsp;</td>
+        </tr>       
+<!------------------------------- Detail --------------------------------->
+        
+        <% boolean bEven = true;        
+        for(int i=0; i < iNumOfVen; i++)
+		{ 
+			vensum.setDetail();
+			sVen = vensum.getVen();
+			sVenNm = vensum.getVenNm();
+			sOnhUnt = vensum.getOnhUnt();
+			sOnhRet = vensum.getOnhRet();
+			sPo30Unt = vensum.getPo30Unt();
+			sPo60Unt = vensum.getPo60Unt();
+			sPo90Unt = vensum.getPo90Unt();
+			sPo30Ret = vensum.getPo30Ret();
+			sPo60Ret = vensum.getPo60Ret();
+			sPo90Ret = vensum.getPo90Ret();
+			sDaAsset = vensum.getDaAsset();
+			sImgAsset = vensum.getImgAsset();
+			sCoop = vensum.getCoop();
+			sPty = vensum.getPty();
+			sTotPoUnt = vensum.getTotPoUnt();
+			sTotPoRet = vensum.getTotPoRet();
+			sAvg = vensum.getAvg();
+			sPrc = vensum.getPrc();
+			
+            bEven = !bEven;
+         %>
+         <tr id="trId" class="<%if(bEven) {%>DataTable<%} else {%>DataTable2<%}%>">
+            <td class="DataTable" nowrap><%=i+1%></td>
+            <td class="DataTable" nowrap><%=sVen%></td>
+            <td class="DataTable" nowrap><%=sVenNm%></td>
+            <td class="DataTable" nowrap><%=sOnhUnt%></td>
+            <td class="DataTable" nowrap><%=sPo30Unt%></td>
+            <td class="DataTable" nowrap><%=sPo60Unt%></td>
+            <td class="DataTable" nowrap><%=sPo90Unt%></td>
+            <td class="DataTable" nowrap><%=sTotPoUnt%></td>
+            <td class="DataTable" nowrap>$<%=sOnhRet%></td>
+            <td class="DataTable" nowrap>$<%=sAvg%></td>
+            <td class="DataTable" nowrap><%=sPrc%>%</td>
+            <td class="DataTable" nowrap><a href="javascript: addNote(<%=sVen%>,'DAASSET')"><%if(!sDaAsset.equals("")){%><%=sDaAsset%><%} else {%>Add Data Access<%}%></a></td>
+            <td class="DataTable" nowrap><a href="javascript: addNote(<%=sVen%>,'IMGASSET')"><%if(!sImgAsset.equals("")){%><%=sImgAsset%><%} else {%>Add Image Access<%}%></a></td>
+            <td class="DataTable" nowrap><a href="javascript: addNote(<%=sVen%>,'COOP')"><%if(!sCoop.equals("")){%><%=sCoop%><%} else {%>Add Coop Amount<%}%></a></td>
+            <td class="DataTable" nowrap><a href="javascript: addNote(<%=sVen%>,'PRIORITY')"><%if(!sPty.equals("")){%><%=sPty%><%} else {%>Add Priority<%}%></a></td>
+         
+         	<script>
+         	   aDaAsset[<%=i%>] = "<%=sDaAsset%>"; aImgAsset[<%=i%>] = "<%=sImgAsset%>";
+         	   aCoop[<%=i%>] = "<%=sCoop%>"; aPty[<%=i%>] = "<%=sPty%>";         
+         	</script>
+         <%}%>
+         </table>
+             
+      <!----------------------- end of table ------------------------>
+       <br><br><br><br><br><br><br><br><br><br>
+       
+   </div>
+    
+ </body>
+</html>
+<%
+vensum.disconnect();
+vensum = null;
+}
+%>

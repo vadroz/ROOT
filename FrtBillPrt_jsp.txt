@@ -1,0 +1,148 @@
+<%@ page import="dcfrtbill.FrtBillPrt, java.util.*, java.text.*"%>
+<%
+    String sFrtB = request.getParameter("FrtB");
+
+    FrtBillPrt frbPrt = new FrtBillPrt(sFrtB);
+    int iNumOfPlt = frbPrt.getNumOfPlt();
+    int iNumOfCtn = frbPrt.getNumOfCtn();
+
+    String sStr = frbPrt.getStr();
+    String sCarrier = frbPrt.getCarrier();
+    String sSts = frbPrt.getSts();
+    String sShipDt = frbPrt.getShipDt();
+    String sComment = frbPrt.getComment();
+    String sFbNumPlt = frbPrt.getFbNumPlt();
+    String sFbNumCtn = frbPrt.getFbNumCtn();
+
+    String [] sPlt = frbPrt.getPlt();
+    String [] sNumCtn = frbPrt.getNumCtn();
+    int [] iFrArg = frbPrt.getFrArg();
+    int [] iToArg = frbPrt.getToArg();
+
+    String [] sCtn = frbPrt.getCtn();
+    String [] sWgt = frbPrt.getWgt();
+    String [] sItmQty = frbPrt.getItmQty();
+
+    frbPrt.disconnect();
+    String sStatus = "Shipped";
+    if(sSts.equals("O")) sStatus = "Opened";
+%>
+
+<html>
+<head>
+
+<!-- --------------- Date Selection prompt ----------------------- -->
+<script LANGUAGE="JavaScript1.2" src="Calendar.js">
+</script>
+
+
+<style>body {background:white;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { border: black solid 1px; text-align:center; font-size:12px; font-family:Arial;}
+        table.DataTable1 { border: none; text-align:center; font-size:12px; font-family:Arial;}
+        th.DataTable { padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                       border-bottom: black solid 1px;border-right: black solid 1px;
+                       text-align:center; font-family:Verdanda; font-size:12px }
+        td.DataTable { border-bottom: black solid 1px;border-right: black solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                       text-align:left;}
+        td.DataTable1 { border-bottom: black solid 1px;border-right: black solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                       text-align:center;}
+        td.DataTable2 { border-bottom: black solid 1px;border-right: black solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-right:3px; padding-left:3px;
+                       text-align:right;}
+
+
+        td.Grid { text-align:center;}
+
+
+        p.reg {text-align:center; font-family:Arial; font-size:10px}
+
+</style>
+
+
+<SCRIPT language="JavaScript">
+//--------------- Global variables -----------------------
+//--------------- End of Global variables -----------------------
+function bodyLoad()
+{
+}
+</SCRIPT>
+
+</head>
+<!-------------------------------------------------------------------->
+<body onload="bodyLoad();">
+<div id="tooltip2" style="border: black solid 3px; position:absolute;visibility:hidden;background-color:LemonChiffon; z-index:10"></div>
+
+    <table border="0" width="100%" cellPadding="0" cellSpacing="0">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP">
+       <b>Sun & Ski Sports<br>
+        <br><font size="+1">Fright Bill Manifest</font>
+        <br>Fright Bill: <%=sFrtB%><br><br>
+       </b>
+     </tr>
+     <tr>
+      <td ALIGN="center" VALIGN="TOP">
+      <!----------------- Palets ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+         <tr>
+           <td class="DataTable">Store</th>
+           <td class="DataTable1"><%=sStr%></th>
+           <td class="DataTable">Carrier</th>
+           <td class="DataTable1"><%=sCarrier%></th>
+         </tr>
+         <tr>
+           <td class="DataTable">Status</th>
+           <td class="DataTable1"><%=sStatus%></th>
+           <td class="DataTable">Shipping Date</th>
+           <td class="DataTable1"><%=sShipDt%></th>
+         </tr>
+         <tr>
+           <td class="DataTable">Comment:&nbsp;</th>
+           <td class="DataTable1" colspan="3"><%=sComment%>&nbsp;&nbsp;</th>
+         </tr>
+         <tr>
+           <td class="DataTable">Number of Pallets</th>
+           <td class="DataTable1"><%=sFbNumPlt%></th>
+           <td class="DataTable">Number of Cartons</th>
+           <td class="DataTable1"><%=sFbNumCtn%></th>
+         </tr>
+      </table>
+      <br><br>
+      <!----------------- Palets ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+         <tr>
+           <th class="DataTable">Pallet</th>
+           <th class="DataTable" colspan="2">Number of<br>Cartons</th>
+         </tr>
+
+         <%for(int i=0; i < iNumOfPlt; i++ ){%>
+           <tr>
+             <td class="DataTable"><%=sPlt[i]%></td>
+             <td class="DataTable1" colspan="2"><%=sNumCtn[i]%></td>
+           </tr>
+           <tr><td class="DataTable" colspan="3">&nbsp;</td></tr>
+           <!----------------- Cartons ------------------------>
+            <tr>
+                  <th class="DataTable">Carton</th>
+                  <th class="DataTable">Weight</th>
+                  <th class="DataTable">Item<br>Quantity</th>
+               </tr>
+
+               <%for(int j=iFrArg[i]-1; j < iToArg[i]; j++){%>
+                  <tr>
+                    <td class="DataTable"><%=sCtn[j]%></td>
+                    <td class="DataTable2"><%=sWgt[j]%></td>
+                    <td class="DataTable2"><%=sItmQty[j]%></td>
+                  </tr>
+               <%}%>
+              </table>
+            </td>
+           </tr>
+         <%}%>
+
+  </table>
+ </body>
+</html>

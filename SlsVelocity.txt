@@ -1,0 +1,193 @@
+<%@ page import="salesvelocity.SlsVelocity, java.util.*"%>
+<%
+   String sDivision = request.getParameter("DIVISION");
+   String sDate = request.getParameter("DATE");
+   String sSortBy = request.getParameter("SORT");
+
+   SlsVelocity slsVel = new SlsVelocity(sDivision, sDate, sSortBy);
+   int iNumOfItm = slsVel.getNumOfItm();
+   String [] sDiv = slsVel.getDiv();
+   String [] sDpt = slsVel.getDpt();
+   String [] sCls = slsVel.getCls();
+   String [] sVen = slsVel.getVen();
+   String [] sSty = slsVel.getSty();
+   String [] sUnits = slsVel.getUnits();
+   String [] sRetail = slsVel.getRetail();
+   String [] sOnHand = slsVel.getOnHand();
+   String [] sOnOrder = slsVel.getOnOrder();
+   String [] sAvgRet = slsVel.getAvgRet();
+   String [] sItmName = slsVel.getItmName();
+   String [] sVenName = slsVel.getVenName();
+
+   String [][] sFiveWeekkSls = slsVel.getFiveWeekkSls();
+
+   int iNumOfStr = slsVel.getNumOfStr();
+   String [] sStr = slsVel.getStr();
+
+   String [][] sWkSales = slsVel.getWkSales();
+   String [][] sWkInv = slsVel.getWkInv();
+
+   String sDivJSA = slsVel.getDivLstJSA();
+   String sDivNameJSA = slsVel.getDivNameJSA();
+
+   slsVel.disconnect();
+%>
+
+<html>
+<head>
+
+<style>body {background:ivory;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { border: darkred solid 1px;background:#FFE4C4;text-align:center;}
+
+        th.DataTable  { background:#FFCC99;padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+
+
+        tr.DataTable  { background:LightGrey; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:CornSilk; font-family:Arial; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:right;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; border-top: double darkred; border-bottom: darkred solid 1px; border-right: darkred solid 1px; text-align:left;}
+
+        td.DataTable3 { background:#FFCC99;padding-top:3px; padding-bottom:3px; border-bottom: darkred solid 1px;border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:10px }
+
+        select.Small {font-family:Arial; font-size:10px }
+        input.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        button.Small {margin-top:3px; font-family:Arial; font-size:10px }
+</style>
+<SCRIPT language="JavaScript1.2">
+
+//--------------- Global variables -----------------------
+var Div = [<%=sDivJSA%>];
+var DivName = [<%=sDivNameJSA%>];
+//--------------- End of Global variables ----------------
+
+
+function bodyLoad()
+{
+  for(i=0; i < Div.length; i++)
+  {
+    document.all.DIVISION.options[i+1] = new Option(Div[i] + " - " + DivName[i],Div[i]);
+  }
+}
+
+function getDivData()
+{
+   var idx = document.all.DIVISION.selectedIndex
+   var selDiv = document.all.DIVISION.options[idx].value
+
+   window.location.href="SlsVelocity.jsp?"
+      + "DIVISION=" + selDiv
+      + "&DATE=<%=sDate%>"
+      + "&SORT=<%=sSortBy%>"
+}
+</SCRIPT>
+
+
+</head>
+<body onload="bodyLoad()">
+
+    <table border="0" width="100%" height="100%" cellPadding="0" cellSpacing="0">
+     <tr bgColor="moccasin">
+
+      <td ALIGN="center" VALIGN="TOP" nowrap>
+        <b>Retail Concepts, Inc
+        <br>Top Sellers Report
+        <br>Division: <%=sDivision%>&nbsp;&nbsp;&nbsp;&nbsp;
+            Date: <%if(sDate.equals("CURDATE")) out.print("Current");
+                    else  out.print(sDate);%></b>
+        <br><SELECT name="DIVISION" class="small">
+           <OPTION value="ALL">All Division</OPTION>
+        </SELECT>&nbsp;
+        <button class="small" onClick="getDivData()" value="GO" name="GO" onClick="">Go</button>
+      </td>
+     </tr>
+
+     <tr bgColor="moccasin">
+      <td ALIGN="center" VALIGN="TOP">
+
+      <a href="index.html"><font color="red" size="-1">Home</font></a>&#62;
+          <a href="SlsVelocitySel.jsp">
+            <font color="red" size="-1">Select Report</font></a>&#62;
+          <font size="-1">This Page.</font>
+
+<!-------------------------------------------------------------------->
+      <!----------------- beginning of table ------------------------>
+      <table class="DataTable" cellPadding="0" cellSpacing="0">
+        <tr>
+          <th class="DataTable" rowspan="2">Div<br>#</th>
+          <th class="DataTable" rowspan="2">Dpt<br>#</th>
+          <th class="DataTable" rowspan="2">Item<br>Number</th>
+          <th class="DataTable" rowspan="2">Item<br>Description</th>
+          <th class="DataTable" rowspan="2">Vendor<br>Name</th>
+          <th class="DataTable" rowspan="2">WTD<br>Chain<br>Retail</th>
+          <th class="DataTable" colspan="2">Chain Sales</th>
+          <th class="DataTable" colspan="2">Total Units</th>
+          <th class="DataTable" colspan="5">Prior 5 Week Unit Sales</th>
+          <th class="DataTable" colspan="<%=iNumOfStr + 1%>">WTD Sales/ Current Inventory byStore</th>
+        </tr>
+
+
+        <tr>
+          <th class="DataTable" >Units</th>
+          <th class="DataTable" >Retail</th>
+          <th class="DataTable" >On<br>Hand</th>
+          <th class="DataTable" >On<br>Order</th>
+
+          <%for(int i=0; i < 5; i++) {%>
+            <th class="DataTable" ><%=i+1%></th>
+          <%}%>
+
+          <th class="DataTable" >&nbsp;</th>
+          <%for(int i=0; i < iNumOfStr; i++) {%>
+            <th class="DataTable" ><%=sStr[i]%></th>
+          <%}%>
+        </tr>
+<!------------------------------- Data Detail --------------------------------->
+           <%String sClass = null;
+           boolean bOdd = true; %>
+           <%for(int i=0; i < iNumOfItm; i++) {%>
+
+              <%if(bOdd) { sClass = "DataTable"; bOdd = false;}
+                else { sClass = "DataTable1"; bOdd = true; }%>
+
+              <tr class=<%=sClass%>>
+                <td class="DataTable" rowspan="2"><%=sDiv[i]%></td>
+                <td class="DataTable" rowspan="2"><%=sDpt[i]%></td>
+                <td class="DataTable1" rowspan="2" nowrap>
+                  <%=sCls[i] + "-" + sVen[i] + "-" + sSty[i]%></td>
+                <td class="DataTable1"  rowspan="2" nowrap><%=sItmName[i]%></td>
+                <td class="DataTable1"  rowspan="2" nowrap><%=sVenName[i]%></td>
+                <td class="DataTable"  rowspan="2">$<%=sAvgRet[i]%></td>
+                <td class="DataTable"  rowspan="2"><%=sUnits[i]%></td>
+                <td class="DataTable"  rowspan="2">$<%=sRetail[i]%></td>
+                <td class="DataTable"  rowspan="2"><%=sOnHand[i]%></td>
+                <td class="DataTable"  rowspan="2"><%=sOnOrder[i]%></td>
+
+                <%for(int j=0; j < 5; j++) {%>
+                   <td class="DataTable" rowspan="2"><%=sFiveWeekkSls[j][i]%></td>
+                <%}%>
+
+                <td class="DataTable3" >S</td>
+                <%for(int j=0; j < iNumOfStr; j++) {%>
+                   <td class="DataTable" ><%=sWkSales[i][j]%></td>
+                <%}%>
+              </tr>
+
+
+              <tr class=<%=sClass%>>
+                <td class="DataTable3" >I</td>
+                <%for(int j=0; j < iNumOfStr; j++) {%>
+                   <td class="DataTable" ><%=sWkInv[i][j]%></td>
+                <%}%>
+              </tr>
+           <%}%>
+      </table>
+      <!----------------------- end of table ------------------------>
+  </table>
+ </body>
+</html>

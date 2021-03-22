@@ -1,0 +1,41 @@
+<html>
+
+<script>
+function showProperties() {
+  var objName = "MySpreadsheet";
+  obj = eval(objName);
+  var msg = "";
+  for (var i in obj) {
+    try {
+      // work around bug in IE
+      if (i != "domain") msg += objName + "." + i + "=" + obj[i] + "\n";
+    }
+    catch(e) {}
+  }
+  form.output.value = msg;
+}
+</script>
+
+
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>New Page 1</title>
+</head>
+
+<body>
+<OBJECT ID="MySpreadsheet"
+        CLASSID="CLSID:0002E510-0000-0000-C000-000000000046">
+</OBJECT>
+
+<FORM NAME="form">
+<TEXTAREA NAME="output" COLS="80" ROWS="10" WRAP="virtual"></TEXTAREA>
+<INPUT TYPE="Button" VALUE="Show Properties" ONCLICK="showProperties()">
+</FORM>
+
+
+</BODY>
+</HTML>
+

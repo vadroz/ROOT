@@ -1,0 +1,195 @@
+package rciutility;
+
+import java.util.*;
+import java.text.*;
+import rciutility.CallAs400SrvPgm;
+
+public class SetStrDivDptCls {
+  SetDivList setDiv;
+
+  SetDptList [] setDpt = new SetDptList[5];
+
+  private int iNumOfDiv = 0;
+  private String [] sDiv = null;
+  private String [] sDivName = null;
+
+  private int [] iNumOfDpt = null;
+  private String [][] sDpt = null;
+  private String [][] sDptName = null;
+
+  // Load Divsion
+  public SetStrDivDptCls()
+  {
+     setDiv = new SetDivList();
+     setDiv.getDivFromAs400();
+     iNumOfDiv = setDiv.getNumOfDiv();
+     sDiv = setDiv.getDiv();
+     sDivName = setDiv.getDivName();
+
+     // set Department Array
+     Date date = new Date();
+     setDptArr();
+     double dur = (new Date().getTime() - date.getTime()) / 1000.00;
+     System.out.println("Dpt retreiving time=" + dur + "\n-------------------------------------------");
+  }
+//---------------------------------------------------------------
+// set Department Array
+//---------------------------------------------------------------
+private void setDptArr()
+{
+   // instantiate all department thread classes
+   for(int i=0; i < setDpt.length; i++)
+   {
+     setDpt[i] = new SetDptList();
+   }
+
+   // initialize by number of division
+   iNumOfDpt = new int[iNumOfDiv];
+   sDpt = new String[iNumOfDiv][];
+   sDptName = new String[iNumOfDiv][];
+
+   boolean [] bStart = new boolean[setDpt.length]; // number of started threads
+   //  initialize to start
+   for(int i=0; i < setDpt.length; i++){ bStart[i]= true; }
+   int j = 0;
+
+   for(int i=0; i < iNumOfDiv; i++)
+   {
+       System.out.println("Start  -  Div=" + sDiv[i] + "  j=" + j);
+       setDpt[j].setSearch(sDiv[i], i);
+
+       // start thread
+       if (bStart[j])
+       {
+          try{ setDpt[j].start(); } catch(Exception e){ e.printStackTrace();}
+          bStart[j] = false;
+       }
+       else { setDpt[j].getDptFromAs400();}
+
+       j = getAvailDptThread(); // get number of available department thread
+   }
+
+   getLastDptResults();
+}
+//---------------------------------------------------------------
+// get number of available department thread
+//---------------------------------------------------------------
+private int getAvailDptThread()
+{
+   int i = 0;
+   boolean bAvail = false;
+   while( !bAvail )
+   {
+      // run dpt reteiving
+      for(i = 0; i < setDpt.length; i++)
+      {
+        if(setDpt[i].isAvailable()) { bAvail = true; break;}
+      }
+
+      // get result
+      if( !bAvail)
+      {
+         for(int j = 0; j < setDpt.length; j++) {  if(setDpt[j].hasResult()) { setDptResult(j);} }
+      }
+   }
+   return i;
+}
+//---------------------------------------------------------------
+// get last Department results
+//---------------------------------------------------------------
+private void getLastDptResults(){ for(int j = 0; j < setDpt.length; j++) {  setDptResult(j); }}
+
+//---------------------------------------------------------------
+// set department result in array
+//---------------------------------------------------------------
+private void setDptResult(int iThread)
+{
+    // get division index explored by current thread
+    int i = setDpt[iThread].getIndex();
+
+    // save department properties in array
+    iNumOfDpt[i] = setDpt[iThread].getNumOfDpt();
+    sDpt[i] = setDpt[iThread].getDpt();
+    sDptName[i] = setDpt[iThread].getDptName();
+
+    // make thread available again for next division
+    setDpt[iThread].setAvailable();
+    System.out.println("Received  -  Div=" + sDiv[i]);
+}
+
+
+/** --------------- Public methods to reach results ------------------**/
+  public int getNumOfDiv(){return iNumOfDiv;}
+  public String [] getDiv(){return sDiv;}
+  public String [] getDivName(){return sDivName;}
+
+  public int [] getNumOfDpt(){return iNumOfDpt;}
+  public String [][] getDpt(){return sDpt;}
+  public String [][] getDptName(){return sDptName;}
+
+  // return as Javascript type array
+  public String getDivJsa(){return cvtToJavaScriptArray(sDiv);}
+  public String getDivNameJsa(){return cvtToJavaScriptArray(sDivName);}
+
+  public String getDptJsa(){return cvtTo2DimensionJSA(sDpt);}
+  public String getDptNameJsa(){return cvtTo2DimensionJSA(sDptName);}
+
+/** ------------------------------------------------------------------**/
+//------------------------------------------------------------------
+// populate String as JavaScript style 2 deminsion array
+// -----------------------------------------------------------------
+  public String cvtTo2DimensionJSA(String [][] sArray)
+  {
+    StringBuffer sJsaScrArr = new StringBuffer();
+    String sComa = " ";
+    for(int i=0; i < sArray.length; i++)
+    {
+       if(sArray[i] != null)
+       {
+         sJsaScrArr.append(sComa + "[" + cvtToJavaScriptArray(sArray[i]) + "]");
+         sComa = ", ";
+       }
+       else
+       {
+         sJsaScrArr.append(sComa + "[null]");
+         sComa = ", ";
+       }
+    }
+    return sJsaScrArr.toString();
+  }
+// -----------------------------------------------------------------
+// populate String as JavaScript style array
+// -----------------------------------------------------------------
+  private String cvtToJavaScriptArray(String [] sArray)
+  {
+    StringBuffer sJvaScrArr = new StringBuffer();
+    sJvaScrArr.append("[");
+    String sComa = " ";
+    for(int i=0; i < sArray.length; i++)
+    {
+      sJvaScrArr.append(sComa + "'" + sArray[i] + "'");
+      sComa = ", ";
+    }
+    sJvaScrArr.append("]");
+
+    return sJvaScrArr.toString();
+  }
+
+//==============================================================================
+// Test
+//==============================================================================
+  public static void main(String[] args)
+  {
+    Date date = new Date();
+
+    SetStrDivDptCls setStrCls = new SetStrDivDptCls();
+    String sDiv = setStrCls.getDivJsa();
+    String sDivName = setStrCls.getDivNameJsa();
+    System.out.println(sDiv + "\n" + sDivName);
+
+    double dur = (new Date().getTime() - date.getTime()) / 1000.00;
+    System.out.println(" *****    Overall time=" + dur);
+
+  }
+}
+

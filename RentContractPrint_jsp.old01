@@ -1,0 +1,460 @@
+<%@ page import="rciutility.RunSQLStmt, rental.RentContractInfo ,java.util.*, java.text.*"%>
+<%
+   String sStr = request.getParameter("Str");
+   String sSelContId = request.getParameter("ContId");
+
+   if(sSelContId == null){ sSelContId = "0000000000"; }
+
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+if (session.getAttribute("USER")==null)
+{
+     response.sendRedirect("SignOn1.jsp?TARGET=RentContractPrint.jsp&APPL=ALL&" + request.getQueryString());
+}
+else
+{
+      String sUser = session.getAttribute("USER").toString();
+      String sPickDt = "";
+      String sRtnDt = "";
+      String sSts = null;
+
+      int iNumOfSkr = 0;
+      RentContractInfo rentinfo = new RentContractInfo(sSelContId, sUser);
+      sPickDt = rentinfo.getPickDt();
+      sRtnDt = rentinfo.getRtnDt();
+      sSts = rentinfo.getSts();
+
+      // Skiers List and personal info
+      iNumOfSkr = rentinfo.getNumOfSkr();
+
+      SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+      Calendar cal = Calendar.getInstance();
+      String sToday = sdf.format(cal.getTime());
+      sdf = new SimpleDateFormat("h:mm a");
+      String sCurTime = sdf.format(cal.getTime());
+      System.out.println(0);
+%>
+
+<html>
+<head>
+<title>Rent_Equipment_Order</title>
+
+<style>
+body {background:white;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+
+        a.Small:link { color:blue; font-size:10px} a.Small:visited { color:blue; font-size:10px}  a.Small:hover { color:blue; font-size:10px}
+
+        table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+        table.DataTable1 { border: darkred solid 1px;background:Cornsilk;text-align:center;}
+        th.DataTable { background:white;padding-top:3px; padding-bottom:3px;
+                       text-align:left; font-family:Verdanda; font-size:12px }
+        th.DataTable1 { padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px;
+                        border-bottom: darkred solid 1px;border-right: darkred solid 1px;
+                        text-align:center; font-family:Verdanda; font-size:12px }
+        th.DataTable2 { padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px;
+                        border-left: black solid 1px;
+                        text-align:center; font-family:Verdanda; font-size:10px }
+        th.DataTable21 { padding-left:3px; padding-right:3px; padding-top:3px; padding-bottom:3px;
+                        border-bottom: darkred solid 1px;border-right: darkred solid 3px;
+                        text-align:center; font-family:Verdanda; font-size:10px }
+        th.DataTable3 { background:white;padding-top:3px; padding-bottom:3px;
+                        text-align:left; ; vertical-align:top; font-family:Verdanda; font-size:12px }
+        th.DataTable4 { background:white;padding-top:3px; padding-bottom:3px;
+                       text-align:center; vertical-align:top; font-family:Verdanda; font-size:12px }
+
+        tr.DataTable { background:white; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:#e7e7e7; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background:white; font-family:Arial; font-size:12px; font-weight: bold }
+        tr.DataTable3 { background:CornSilk; font-family:Arial; font-size:10px }
+        tr.DataTable4 { background:#FFCC99; font-family:Arial; font-size:10px }
+        tr.DataTable5 { background:LemonChiffon; font-family:Arial; font-size:10px }
+        tr.DataTable6 { background: lightpink; font-family:Arial; font-size:10px }
+        tr.DataTable7 { background:white; font-family:Arial; font-size:14px; font-weight: bold;}
+        tr.Divider { background:black; font-family:Arial; font-size:1px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px; text-align:left;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px; text-align:center;}
+
+        td.DataTable3 { border-bottom: darkred solid 1px;border-right: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+        td.DataTable31 { border-bottom: darkred solid 1px;border-right: darkred solid 3px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+        td.DataTable4 { border-bottom: darkred solid 1px;border-right: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+        td.DataTable5 { border-bottom: darkred solid 1px;border-right: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+
+        td.StrInv { cursor:hand; padding-top:3px; padding-bottom:3px;
+                    padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; text-align:left;}
+
+        td.StrInv1{ padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:left;}
+
+        td.StrLst { background:#FFCC99; border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:center; font-size:9px}
+
+        .Small {font-family:Arial; font-size:10px }
+        input.Small1 { font-family:Arial; font-size:10px }
+        input.Small2 {border:none; border-bottom:1px black solid; font-family:Arial;  font-size:10px }
+        input.radio { font-family:Arial; font-size:10px }
+        input.Menu {border: ridge 2px; background:white; font-family:Arial; font-size:10px }
+
+        textarea {border:none; background:#E7E7E7; border-bottom: black solid 1px; font-family:Arial; font-size:10px }
+        button.Small {font-size:10px; }
+        select.selSts {display:none;font-size:10px; }
+        button.selSts {display:none;font-size:10px; }
+        input.selSts {display:none;font-size:10px; }
+        span.Type {font-size:12px; font-weight:bold; text-decoration:underline;}
+
+        div.dvStatus  { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:200; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        div.dvHelp  { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: lightgray solid 1px;; width:50; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+
+@media print
+{
+        td.tdOnlyDisp{ display:none;}
+}
+</style>
+
+
+
+
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+var PickDt = "<%=sPickDt%>";
+var RtnDt = "<%=sRtnDt%>";
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad()
+{
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvChkItm", "dvStatus"]);
+}
+
+
+//==============================================================================
+// refresh Contract
+//==============================================================================
+function refreshCont(cont)
+{
+   var url = "RentContractInfo.jsp?ContId=" + cont + "&Str=<%=sStr%>"
+   window.location.href = url;
+}
+
+//==============================================================================
+// show Skier adding panel
+//==============================================================================
+function showSkierPanel()
+{
+   document.all.dvNewSkiers.style.display="block";
+   document.all.btnAddSkier.style.display="none";
+}
+</SCRIPT>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Get_Object_Position.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvHelp" class="dvHelp"></div>
+<!-------------------------------------------------------------------->
+
+ <%for(int i=0; i < iNumOfSkr;i++){
+       rentinfo.setSkiersInfo();
+
+       String sCust = rentinfo.getCust();
+       String sFName = rentinfo.getFName();
+       String sMInit = rentinfo.getMInit();
+       String sLName = rentinfo.getLName();
+       String sAddr1 = rentinfo.getAddr1();
+       String sAddr2 = rentinfo.getAddr2();
+       String sCity = rentinfo.getCity();
+       String sState = rentinfo.getState();
+       String sZip = rentinfo.getZip();
+       String sEMail = rentinfo.getEMail();
+       String sHPhone = rentinfo.getHPhone();
+       String sCPhone = rentinfo.getCPhone();
+       String sGroup = rentinfo.getGroup();
+       String sBDate = rentinfo.getBDate();
+       String sHeightFt = rentinfo.getHeightFt();
+       String sHeightIn = rentinfo.getHeightIn();
+       String sWeight = rentinfo.getWeight();
+       String sShoeSiz = rentinfo.getShoeSiz();
+       String sSkierType = rentinfo.getSkierType();
+       String sStance = rentinfo.getStance();
+       String sPayee = rentinfo.getPayee();
+ %>
+  <div style="page-break-after:<%if(i < iNumOfSkr-1){%>always<%} else {%>avoid<%}%>;">
+  <table border="0" cellPadding="0"  cellSpacing="0" width="100%">
+
+     <tr>
+      <td ALIGN="left" VALIGN="TOP" width="30%" nowrap>
+         <b><font size="-1">
+            Store: <%=sStr%><br>
+            User: <%=sUser%><br>
+            </font></b>
+      </td>
+      <td ALIGN="center" VALIGN="TOP" nowrap>
+        <span style="font-size:22px; font-weight:bold">Snow Sports Equipment Rental / Lease</span>
+      </td>
+      <td ALIGN="right" VALIGN="TOP" width="30%" nowrap>
+         <b><font size="-1">Date: <%=sToday%>
+         <br>Time: <%=sCurTime%>
+         </font></b></td>
+    </tr>
+
+    <tr>
+      <td ALIGN="center" VALIGN="TOP" colspan=3>
+  <!-------------------------- Skiers Info ------------------------------------>
+    <div id="dvCont" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+      <table cellPadding="0" cellSpacing="0" id="tbDept" width="100%" >
+        <tr class="DataTable7">
+          <td class="DataTable">Contract:  <%=sSelContId%> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td>
+          <td class="DataTable">Pick Up Date: &nbsp; <%=sPickDt%></td>
+          <td class="DataTable">Drop off Date: &nbsp;  <%=sRtnDt%></td>
+        </tr>
+      </table>
+    </div>
+
+  <!---------------------- Exist Skiers Info panel ---------------------------->
+
+     <div id="dvSkiers" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+     <table cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+       <tr class="DataTable">
+         <td class="DataTable">
+           First Name &nbsp;<span class="Type"><%=sFName%></span> &nbsp;
+           M.I. &nbsp; <span class="Type"><%=sMInit%></span> &nbsp;
+           Last Name &nbsp; <span class="Type"><%=sLName%></span>
+           <!--&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Customer: &nbsp;<%=sCust%>-->
+         </td>
+         <td class="DataTable" style="border-left:black 1px solid;"  rowspan=4>
+           E-Mail &nbsp; <span class="Type"><%=sEMail%></span> &nbsp;
+           <br>Home Phone &nbsp; <span class="Type"><%=sHPhone%></span>&nbsp;
+           <br>Mobile Phone &nbsp; <span class="Type"><%=sCPhone%></span> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           Home Address &nbsp; <span class="Type"><%=sAddr1%>&nbsp;<%=sAddr2%></span> &nbsp;
+           City &nbsp; <span class="Type"><%=sCity%></span> &nbsp;
+               State &nbsp; <span class="Type"><%=sState%></span> &nbsp;
+               Zip Code &nbsp; <span class="Type"><%=sZip%></span>&nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable">
+           Age &nbsp; <span class="Type"><%=sBDate%></span> &nbsp;
+           Group Name &nbsp; <span class="Type"><%=sGroup%></span> &nbsp;
+         </td>
+       </tr>
+       <tr class="DataTable">
+         <td class="DataTable" style="border-top:black 1px solid">
+           <table border=1 cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+            <tr class="DataTable1">
+             <td class="DataTable">
+               Weight (lbs.) &nbsp; <span class="Type"><%=sWeight%></span> &nbsp;
+               Height (ft) &nbsp; <span class="Type"><%=sHeightFt%></span> &nbsp;
+                      (in) &nbsp; <span class="Type"><%=sHeightIn%></span> &nbsp;
+               Shoe Size &nbsp; <span class="Type"><%=sShoeSiz%></span> &nbsp;
+             </td>
+             <td class="DataTable">
+               <%if(sSkierType.equals("-1")){%>Skier Type &nbsp; <b>-I</b><%}%>
+               <%if(sSkierType.equals("1")){%>Skier Type &nbsp; <b>I</b><%}%>
+               <%if(sSkierType.equals("2")){%>Skier Type &nbsp; <b>II</b><%}%>
+               <%if(sSkierType.equals("3")){%>Skier Type &nbsp; <b>III</b><%}%>
+               <%if(sSkierType.equals("3+")){%>Skier Type &nbsp; <b>III+</b><%}%>
+               <%if(sStance.equals("R")){%>SB Stance &nbsp; <b>Regular</b><%}%>
+               <%if(sStance.equals("G")){%>SB Stance &nbsp; <b>Goofy</b><%}%>
+             </td>
+            </tr>
+           </table>
+         </td>
+       </tr>
+    </table>
+    </div>
+
+    <!-- ================== End Skier List ================================= -->
+     </td>
+   </tr>
+
+  </table>
+  <span style="font-size:10px">
+    Sections below are to be filled in by the Ski Technician performing the customer's fitting
+  </span>
+  <div id="dvCont" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%;">
+      <table border="1" cellPadding="0" cellSpacing="0" id="tbDept" width="100%">
+        <tr class="DataTable">
+          <td class="DataTable" colspan=2>Package Type:</td>
+
+          <td class="DataTable" colspan=3>Skier Code:</td>
+        </tr>
+        <tr class="DataTable">
+          <td class="DataTable" >Ski/Board Device:</td>
+          <td class="DataTable" >Size:&nbsp;</td>
+          <td class="DataTable">Settings:</td>
+          <td class="DataTable">Left</td>
+          <td class="DataTable">Right</td>
+        </tr>
+        <tr class="DataTable">
+          <td class="DataTable" >Serial #:</td>
+          <td class="DataTable" >Binding:</td>
+          <td class="DataTable1">TOE</td>
+          <td class="DataTable">&nbsp;</td>
+          <td class="DataTable">&nbsp;</td>
+        </tr>
+        <tr class="DataTable">
+          <td class="DataTable" >Boot Brand:</td>
+          <td class="DataTable" >Size:</td>
+          <td class="DataTable1">HEEL</td>
+          <td class="DataTable">&nbsp;</td>
+          <td class="DataTable">&nbsp;</td>
+        </tr>
+        <tr class="DataTable">
+          <td class="DataTable" >Serial #:</td>
+          <td class="DataTable" >Boot Sole Length:</td>
+          <td class="DataTable" colspan=3>&nbsp;</td>
+        </tr>
+
+      </table>
+  </div>
+
+  <div style="border-width:none; text-align: center; white; width:100%font-family:arial; font-weight:bold;">
+    AGREEMENT
+  </div>
+  <div id="dvCont" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%; font-size: 8px;font-family:arial;">
+  I accept full financial responsibility for the equipment listed on this form. I promise to return it clean and undamaged by the agreed time and date, and if I fail to do so, I will pay
+for its repair, cleaning or replacement at the full retail rate, as determined by the shop, as well as for the full rental value of any additional days. I understand how this
+equipment works and have received instructions and satisfactory answers to any questions. I agree to check this equipment before each use (including the binding antifriction
+device - Alpine only); and if at any time this equipment does not seem to be working properly, I will stop using it immediately and return it for inspection and possible
+repair or adjustment. I understand that proper bindings settings or stance depend upon the accuracy of my statements about weight, height, age, skier type and stance on this
+form. I have confirmed that the binding release/retention settings or stance on this equipment correspond to those stated on this form. If this equipment is to be used by
+someone other than me, I certify that I am acting as agent for the user and that I will provide this form and all pertinent warnings and information to the user.
+<br><br>
+I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THE WARNING, ASSUMPTION OF RISK, LIABILITY RELEASE, INDEMNITY AND HOLD HARMLESS
+AGREEMENT AND AGREEMENT NOT TO SUE. I AM AWARE THAT THIS IS A LEGALLY BINDING CONTRACT.
+<br><br>
+
+   Signature of the Equipment User: <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br>
+   Parent/Guardian/Agent: I verify that I am the parent, guardian or agent of the Equipment User and that
+   I have the authority to enter into this agreement on behalf of the Equipment User and
+   I agree to be bound by the terms of the Warning, Assumption of Risk, Liability Release, Indemnity and Hold
+   Harmless Agreement and Agreement Not to Sue on the reverse side of this document.
+
+   <br><br>
+   Signature of Parent/Guardian/Agent (if not an adult user) <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+     <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br><br>
+
+   <span style="border-top:black solid 1px; border-bottom:black solid 1px; font-weight:bold; width:100%;">
+   WARNING, ASSUMPTION of RISK, LIABILITY RELEASE, INDEMNITY and HOLD HARMLESS AGREEMENT and AGREEMENT NOT TO SUE
+   PLEASE READ CAREFULLY BEFORE SIGNING
+   </span>
+
+
+  <span style="font-size:8px">
+    1. I authorize this ski shop to perform such work that is necessary to properly mount, test and/or repair my skis, bindings and/or boots.
+<br>2. I understand and agree that skiing, snowboarding and related activities are HAZARDOUS and that injuries are common and ordinary occurrences during these
+       activities. <b>I AGREE TO ASSUME ALL RISKS</b> of death or of injury to any part of the user's body while using this equipment.
+<br>3. For <u>Alpine Ski Equipment</u>, I understand that the ski-boot-binding system is designed to release the boot from the ski when certain forces on the system reach preset
+       values, but that the binding <b>WILL NOT RELEASE OR RETAIN</b> at all times where release or retention may prevent injury, and that it CANNOT prevent all injuries to any
+       part of the user's body. I understand and agree that lower settings on my bindings will increase releasability but also increase the risk of injury due to inadvertent release,
+       that higher settings on my bindings will increase retention but also increase the risk of injury due to non-release, and that injuries due to unwanted release or retention
+       are inherent risks of skiing.
+<br>4. For <u>Snowboards, Skiboards and Nordic equipment</u>, I understand that these systems function differently from Alpine ski bindings in that snowboard, skiboard and
+       Nordic bindings <b>WILL NOT RELEASE</b> in falls or accidents. I understand and agree that these systems DO NOT PROTECT against any type of injury and that any
+       injuries resulting from these circumstances are inherent risks of the sport.
+<br>5. I understand and agree that certain risks of skiing and snowboarding may be reduced, but not entirely eliminated, by taking lessons, by following <b>"YOUR
+       RESPONSIBILITY CODE"</b> which is posted at most wintersport areas and by using reasonable care and common sense. I further understand that a leash or other
+       runaway prevention system must be used with all skis and snowboards at all times, including while riding lifts and while carrying snowboards on or near a slope, in order
+       to reduce the risk of injury to others.
+<br>6. To the fullest extent allowed by law, I hereby agree to forever <b>RELEASE AND HOLD HARMLESS</b> this ski and/or snowboard shop, <b>Retail Concepts, Inc.</b> and all
+       manufacturers and distributors of this equipment, as well as their owners, agents, employees and affiliated companies, from <b>ANY AND ALL RESPONSIBLITY OR
+       LEGAL LIABILITY</b> for any injuries, damages or death to any user of any equipment listed on this form, whether resulting from <b>NEGLIGENCE</b> or any other cause. I
+       further agree that <b>I WILL DEFEND AND INDEMNIFY</b> them if any claim or action is pursued for any injuries, damages or death relating to skiing, snowboarding or any
+       related activities involving the use of this equipment.
+<br>7. I accept this equipment "AS IS" and with <b>NO WARRANTIES</b>, express or implied, beyond those stated in this agreement and in the manufacturer's written limited
+       warranty, if any.
+<br>8. This document is a <b>LEGALLY BINDING CONTRACT</b> which supersedes any other agreements by or between the parties, and which constitutes the <b>FINAL AND
+       ENTIRE AGREEMENT</b> regarding this transaction and this equipment. This agreement is intended to provide a <b>COMPREHENSIVE RELEASE OF ALL LEGAL
+       LIABILITY</b> which is binding upon and for the benefit of all parties, their heirs, agents and assigns, but it is not intended to assert any claims or defenses that are
+       prohibited by law. If any part of this agreement is held to be invalid or unenforceable, the remainder shall be given full force and effect. The specific legal rights of the
+       parties may vary among different states and provinces.
+</span>
+<span style="text-align:center; padding-top: 5px; padding-bottom: 5px; border-top:black solid 1px; border-bottom:black solid 1px; font-size:11px; font-weight:bolder; width:100%;">
+   I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THIS WARNING, ASSUMPTION OF RISK, LIABILITY RELEASE, INDEMNITY AND
+   HOLD HARMLESS AGREEMENT AND AGREEMENT NOT TO SUE. I AM AWARE THAT THIS IS A LEGALLY BINDING CONTRACT.
+</span>
+  <br>
+  <br>
+   USER'S NAME (PRINT): <span style="text-decoration:underline;"><%for(int j=0; j < 200;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+  <br><br>
+   USER'S SIGNATURE: <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br>
+   <span style="font-weight:bold; font-size:12px; text-align:center; width:100%">
+   IF MINOR(UNDER 18), PARENT/GUARDIAN MUST EXECUTE MINOR RELEASE BELOW.
+   </span>
+   <br>
+   PARENT/GUARDIAN: I verify that I am the parent, guardian or agent of the Equipment User and that I have the authority to enter into this agreement on behalf of the
+   Equipment User and I agree to be bound by the terms of this Warning, Assumption of Risk, Liability Release, Indemnity and Hold Harmless Agreement and Agreement Not to
+   Sue.
+   <br>
+   <span style="border-top:black 1px solid;font-weight:bold; font-size:12px; width:100%" >
+    <br>Signature of Parent/Guardian/Agent <%for(int j=0; j < 120;j++){%>&nbsp;<%}%> Date
+   </span>
+
+   </div>
+  </div>
+ <%}%>
+ </body>
+</html>
+
+
+<%
+  }%>
+
+
+
+
+
+
+
+
+
+

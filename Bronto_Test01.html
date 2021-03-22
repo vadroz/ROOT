@@ -1,0 +1,47 @@
+<html>
+<head>
+    <title>SOAP JavaScript Client Test</title>
+    <script type="text/javascript">
+        function soap() {
+            var xmlhttp = new XMLHttpRequest();
+            var url = "https://api.bronto.com/v4";
+
+            // build SOAP request
+            var sr =
+                '<?xml version="1.0"?>'
+               + '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:v4="http://api.bronto.com/v4">'
+	           + '<soapenv:Header/>'
+	           + '<soapenv:Body><v4:login>'
+	           + '<apiToken>94133B95-3AAA-4149-BBAB-052867610D1B</apiToken>'
+	           + '</v4:login></soapenv:Body></soapenv:Envelope>'
+	           + '</form>';
+
+	        xmlhttp.onreadystatechange=function()
+	       	{
+	        	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+	       		{			
+	       		     alert(xmlhttp.responseText);	
+	       		}
+	       	}
+	        
+	        xmlhttp.open("POST",url,true);
+	        
+            // Send the POST request
+            xmlhttp.setRequestHeader('Content-Type', 'text/xml');
+            xmlhttp.setRequestHeader("Content-length", sr.length);
+        	xmlhttp.setRequestHeader("Connection", "close");
+        	
+            xmlhttp.send(sr);            
+        }
+    </script>
+</head>
+<body>
+    <form name="Demo" action="" method="post">
+        <div>
+            <input type="button" value="Soap" onclick="soap();" />
+        </div>
+    </form>
+</body>
+<html>
+
+

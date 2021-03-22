@@ -1,0 +1,131 @@
+
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+//--------------- End of Global variables ----------------
+//==============================================================================
+// convert table to excel document
+//==============================================================================
+function startExcelApp()
+{
+   var oExcel;
+   window.status="Loading Table to Excel spreadsheet."
+
+   //Start Excel object:
+   oExcel = new ActiveXObject("Excel.Application");
+   //Start Excel Application:
+   oExcel.Workbooks.Add();
+
+   //populate Excel Column Headers
+   popExcelHdr(oExcel);
+
+   //populate Excel Column Content
+   popExcelDtl(oExcel);
+
+   oExcel.Visible= true;
+}
+//==============================================================================
+// populate Excel Header
+//==============================================================================
+function popExcelHdr(oExcel)
+{
+   // Header Line
+   var tblHdr = document.all.thHdr
+   for(var i=0; i < tblHdr.length; i++)
+   {
+      var cell = tblHdr[i].innerHTML.replace(/<br>/i, " ");
+      oExcel.ActiveSheet.Cells(1,i+1).Value = cell;
+      oExcel.ActiveSheet.Cells(1,i+1).Font.Bold=1;
+      oExcel.ActiveSheet.Cells(1,i+1).Font.Size=12;
+      oExcel.ActiveSheet.Cells(1,i+1).Font.Color=180;
+      oExcel.ActiveSheet.Cells(1,i+1).Interior.Colorindex = 6
+   }
+}
+//==============================================================================
+//populate Excel Column Content
+//==============================================================================
+function popExcelDtl(oExcel)
+{
+   // Header Line
+   var oCell = document.all.tdCell
+   var oRow = document.all.trDtl
+   for(var i=0, k=0; i < oRow.length; i++)
+   {
+      window.status="Loading Table to Excel spreadsheet. Row: " + (i+1)
+      for(var j=0; j < 12; j++, k++)
+      {
+         var cell = oCell[k].innerHTML.replace(/<br>/i, " ");
+         oExcel.ActiveSheet.Cells(i+2, j+1).Value = cell;
+      }
+   }
+
+   window.status="Table Loaded."
+}
+</SCRIPT>
+
+</head>
+<body>
+    <table border="0" cellPadding="0"  cellSpacing="0" id="tbData">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP"nowrap>
+      <b>Retail Concepts, Inc
+      <br>Preferred Customer Lookup</b></td>
+    </tr>
+    <tr>
+      <td ALIGN="center" VALIGN="TOP">
+      <a href="javascript: startExcelApp()">Load to Excel</a>
+  <!----------------------- Order List ------------------------------>
+     <table border=1 cellPadding="0" width="100%" cellSpacing="0" id="tbDetail">
+       <tr>
+        <th id="thHdr" nowrap>Tracking<br>Id</th>
+        <th id="thHdr" nowrap>First<br>Name</th>
+        <th id="thHdr" nowrap>Last<br>Name</th>
+        <th id="thHdr" nowrap>Address</th>
+        <th id="thHdr" nowrap>City</th>
+        <th id="thHdr" nowrap>State</th>
+        <th id="thHdr" nowrap>Zip</th>
+        <th id="thHdr" nowrap>Phone</th>
+        <th id="thHdr" nowrap>E-Mail</th>
+        <th id="thHdr" nowrap>Team</th>
+        <th id="thHdr" nowrap>Ride</th>
+        <th id="thHdr" nowrap>Sales</th>
+      </tr>
+      <TBODY>
+   <!----------------------- Order List ------------------------>
+        <tr id="trDtl">
+            <td class="DataTable" id="tdCell">0001</td>
+            <td class="DataTable" id="tdCell">A</td>
+            <td class="DataTable" id="tdCell">B</td>
+            <td class="DataTable" id="tdCell">C</td>
+            <td class="DataTable" id="tdCell">D</td>
+            <td class="DataTable" id="tdCell">E</td>
+            <td class="DataTable" id="tdCell" >F</td>
+            <td class="DataTable" id="tdCell">G</td>
+            <td class="DataTable" id="tdCell">H</td>
+            <td class="DataTable" id="tdCell" >I</td>
+            <td class="DataTable" id="tdCell">J</td>
+            <td class="DataTable1" id="tdCell">K</td>
+         </tr>
+         <tr  class="DataTable" id="trDtl">
+            <td class="DataTable" id="tdCell">0002</td>
+            <td class="DataTable" id="tdCell">A1</td>
+            <td class="DataTable" id="tdCell">B1</td>
+            <td class="DataTable" id="tdCell">C1</td>
+            <td class="DataTable" id="tdCell">D1</td>
+            <td class="DataTable" id="tdCell">E1</td>
+            <td class="DataTable" id="tdCell" >1F</td>
+            <td class="DataTable" id="tdCell">G1</td>
+            <td class="DataTable" id="tdCell">H1</td>
+            <td class="DataTable" id="tdCell" >1I</td>
+            <td class="DataTable" id="tdCell">J1</td>
+            <td class="DataTable1" id="tdCell">K1</td>
+         </tr>
+      <!---------------------------------------------------------------------->
+      </TBODY>
+    </table>
+  <!----------------------- end of table ------------------------>
+     </td>
+   </tr>
+
+  </table>
+ </body>
+</html>

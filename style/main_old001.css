@@ -1,0 +1,141 @@
+body {background:white;}
+
+a.blue:visited {  color: blue}
+a.blue:link {  bold; color: blue}
+a.blue:hover { color:red}
+
+a.white:visited {  font-weight: bold; color: white}
+a.white:link {  font-weight: bold; color: white}
+a.white:hover { color:yellow}
+
+th.sep1 { border: outset 2px; background: #6699CF;
+                 text-align:center; font-family:Verdanda; font-size:18px }
+td.sep1 { padding-left:95px; padding-bottom:5px; text-align:left; font-family:Verdanda; font-size:12px }
+td.sep2 { border-bottom:  solid 1px; padding-left:5px; text-align:left; font-family:Verdanda; font-size:12px }
+td.sep4 { background-image:url('Sun_ski_logo1.jpg'); filter:alpha(opacity=25);-moz-opacity:.25;opacity:.25;
+                 padding-left:5px; font-size:26px; text-align:left; font-weight: bolder}
+td.sep41 { background:white; padding-left:5px; padding-top:5px; font-size:26px; text-align:center; font-weight: bold}
+
+table.panel { border-top: none;}
+table.panel1 { border: outset 1px; width: 100% }
+
+       td.panel0 {  background:ivory; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel1 { background:#ead0cc; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel2 { background:#addfff; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel3 { background:salmon; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel4 { background:#fff380; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel5 { background:#8eebec; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel6 { background:#ccfb5d; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel7 { background:yellow; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel8 { background:#fff9fa; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel9 { background:#e9cfec; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel10 { background:ivory; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel11 { background:#ead0cc; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel12 { background:#addfff; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel13 { background:salmon; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+
+       td.panel14 { background:#fff380; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel15 { background:#8eebec; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel16 { background:#ccfb5d; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel17 { background:#f76541; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel18 { background:#fff9fa;border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+       td.panel19 { background:#e9cfec; border: #e7e7e7 outset 1px; text-align:left; vertical-align:top}
+
+       table.menu { border:none; }
+       td.menu { cursor:pointer; text-align:left; font-size:12px; font-weight: bold; }
+       span.menu { cursor:pointer; text-align:left; font-size:12px; font-weight: bold; text-decoration:underline}
+       td.menu1 {  cursor:pointer; text-align:left; font-size:12px; }
+       td.menu2 {  cursor:pointer; text-align:right; font-size:12px; }
+
+       table.Therm { border:2px; border-style: outset;  background:#e7e7e7;}
+       tr.Therm {  text-align:center; font-size:3px;}
+       td.Therm1 {  background:green;}
+       td.Therm2 {  background:yellow;}
+       td.Therm3 {  background:#e7e7e7;}
+       td.Therm41 { vertical-align:top; font-size:10px; border-bottom: red solid 5px; }
+       td.Therm42 { vertical-align:top; font-size:10px; border-top: black solid 1px; }
+       td.Therm5 { vertical-align:top; font-size:10px;
+                   border-top: black solid 1px; border-left: black solid 1px }
+       td.Therm51 { vertical-align:top; font-size:10px; border-left: black solid 1px }
+
+
+       tr.Div1Sls {  text-align:right; font-size:10px;}
+       tr.Div1Sls1 { background:#FFCC99; text-align:center; font-size:12px;}
+       tr.Div1Sls2 { background:cornsilk; text-align:right; font-size:12px;}
+       tr.Div1Sls21 { background:cornsilk; color:red; text-align:right; font-size:14px; font-weight: bold}
+       tr.Div1Sls3 { background:pink; text-align:right; font-size:10px;}
+       th.Div1Sls { border-bottom: black solid 1px; border-right: black solid 1px;
+                    padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;}
+       th.Div1Sls1 { border-bottom: black solid 1px; border-right: black solid 1px; text-align:left;
+                    padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;}
+       td.Div1Sls { border-bottom: black solid 1px; border-right: black solid 1px;
+                    padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;}
+       td.Div1Sls1 { color:darkred; border-top: black solid 2px; border-right: black solid 2px;  border-left: black solid 2px;
+                    padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;}
+       td.Div1Sls11 { color:darkred; border-top: black solid 2px; border-right: black solid 2px;
+                      border-bottom: black solid 2px; border-left: black solid 2px;
+                    padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;}
+       td.Div1SlsHdr {  background:  ivory; color: darkblue; text-align:center; font-size:14px; font-weight:bold }
+
+
+       table.msg { border:1px; border-style: outset;   background: #abe4f5;}
+       td.msg { text-align:left; font-size:10px; text-decoration:underline }
+       td.msg1 { border:  ridge 1px; text-align:center; font-size:10px }
+       td.msg2 { text-align:center; font-size:10px }
+       td.msg3 { text-align:left; font-size:10px;}
+       td.msg4 { text-align:right; font-size:10px;}
+       
+       td.misc { background: white; border: ridge 1px; text-align:left; font-size:10px}
+       td.misc1{ background: #016aab;  padding-top:0px; border:  1px solid;
+                 color: white; vertical-align:top; text-align:center; font-size:16px; font-weight:bold }
+       td.misc2{ background:   ivory; color: darkblue; text-align:center; font-size:12px; font-weight:bold }
+       td.misc3{ background:   ivory;color: darkblue; text-align:center; font-size:12px; font-weight:bold }
+
+       th.misc  { background:#FFA07A; border:  ridge 2px; text-align:center; font-size:11px}
+       th.misc1 { background:#e7e7e7; border:  ridge 2px; text-align:center; font-size:11px}
+       
+       /* IE 10, 11 hack */
+       @media screen and (-ms-high-contrast:active), (-ms-high-contrast:none) {
+             th.misc  { background:#FFA07A; border: #e7e7e7 ridge 1px; text-align:center; font-size:11px}
+       		 th.misc1 { background:#e7e7e7; border: #e7e7e7 ridge 1px; text-align:center; font-size:11px}
+       		 td.misc { background: white; border: #e7e7e7 ridge 1px; text-align:left; font-size:10px}
+       		 td.misc1{ background: #016aab;  padding-top:0px; border: #e7e7e7  1px solid;
+                 color: white; vertical-align:top; text-align:center; font-size:16px; font-weight:bold }
+       }
+       
+       @supports (-webkit-appearance:none) 
+       {
+       		th.misc  { background:#FFA07A; border: #e7e7e7 ridge 1px; text-align:center; font-size:11px}
+       		th.misc1 { background:#e7e7e7; border: #e7e7e7 ridge 1px; text-align:center; font-size:11px}
+       		td.misc { background: white; border: #e7e7e7 ridge 1px; text-align:left; font-size:10px}
+       		td.misc1{ background: #016aab;  padding-top:0px; border: #e7e7e7  1px solid;
+                 color: white; vertical-align:top; text-align:center; font-size:16px; font-weight:bold }
+       }
+
+       img.skier {border:0px;}
+       div.dvBar  {background: #f1f1f1; border: #e7e7e7 outset 1px;
+                   cursor:pointer; background-attachment: scroll;
+                   position:absolute; visibility: hidden;text-align:left; font-size:18px}
+
+       div.Test  {background: gainsboro; border: 1px; border-style: outset; cursor:pointer; background-attachment: scroll;
+                   position:absolute; text-align:left; font-size:10px}
+
+       div.Prompt { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: ridge 2px; width:250; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+       td.BoxName {cursor:move; background: #a0cfec;              
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+
+
+        td.BoxClose {cursor:pointer;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+
+        td.Prompt {border-bottom: solid 2px; border-right: solid 1px; text-align:center;
+                   font-family:Arial; font-size:10px; }
+
+     #tblMenu { display=none; }
+     #spMenu { display=none; }
+     #tdAllMenu { display=none; }
+     #frmAlarm { display=none; }
+     #dvAlarm {border:  solid 2px; width:100%; height:100px; display: none;}

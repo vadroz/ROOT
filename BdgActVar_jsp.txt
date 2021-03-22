@@ -1,0 +1,339 @@
+<%@ page import="payrollreports.BdgActVar"%>
+<%
+    String sStore = request.getParameter("STORE");
+    String sStrName = request.getParameter("STRNAME");
+    String sWkend = request.getParameter("WEEKEND");
+    String sSort = request.getParameter("Sort");
+
+    if(sSort==null) sSort="STR";
+
+    BdgActVar bdgvar = new BdgActVar(sStore, sWkend, sSort);
+
+    int iNumOfGrp = bdgvar.getNumOfGrp();
+
+    String [] sGrp = bdgvar.getGrp();
+    String [] sGrpName = bdgvar.getGrpName();
+
+    String [] sBdgHrs = bdgvar.getBdgHrs();
+    String [] sActHrs = bdgvar.getActHrs();
+    String [] sHrsVar = bdgvar.getHrsVar();
+
+    String [] sBdgAvg = bdgvar.getBdgAvg();
+    String [] sActAvg = bdgvar.getActAvg();
+    String [] sAvgVar = bdgvar.getAvgVar();
+
+    String [] sBdgLabor = bdgvar.getBdgLabor();
+    String [] sActLabor = bdgvar.getActLabor();
+    String [] sLbrVar = bdgvar.getLbrVar();
+
+    String [] sActWage = bdgvar.getActWage();
+
+    String [] sBdgTot = bdgvar.getBdgTot();
+    String [] sActTot = bdgvar.getActTot();
+    String [] sVarTot = bdgvar.getVarTot();
+
+    String [] sOverHrs = bdgvar.getOverHrs();
+    String [] sOverAvg = bdgvar.getOverAvg();
+    String [] sOverTot = bdgvar.getOverTot();
+    String [] sOverMgmt = bdgvar.getOverMgmt();
+
+    String sNmTotBdgHrs = bdgvar.getNmTotBdgHrs();
+    String sNmTotActHrs = bdgvar.getNmTotActHrs();
+    String sNmTotHrsVar = bdgvar.getNmTotHrsVar();
+
+    String sNmTotBdgAvg = bdgvar.getNmTotBdgAvg();
+    String sNmTotActAvg = bdgvar.getNmTotActAvg();
+    String sNmTotAvgVar = bdgvar.getNmTotAvgVar();
+
+    String sNmTotBdgLabor = bdgvar.getNmTotBdgLabor();
+    String sNmTotActLabor = bdgvar.getNmTotActLabor();
+    String sNmTotLbrVar = bdgvar.getNmTotLbrVar();
+    String sNmTotActWage = bdgvar.getNmTotActWage();
+
+    String sNmTotBdgTot = bdgvar.getNmTotBdgTot();
+    String sNmTotActTot = bdgvar.getNmTotActTot();
+    String sNmTotVarTot = bdgvar.getNmTotVarTot();
+
+    String sNmTotOverHrs = bdgvar.getNmTotOverHrs();
+    String sNmTotOverAvg = bdgvar.getNmTotOverAvg();
+    String sNmTotOverTot = bdgvar.getNmTotOverTot();
+    String sNmTotOverMgmt = bdgvar.getNmTotOverMgmt();
+
+    //grand total
+    String sGrandBdgHrs = bdgvar.getGrandBdgHrs();
+    String sGrandActHrs = bdgvar.getGrandActHrs();
+    String sGrandHrsVar = bdgvar.getGrandHrsVar();
+
+    String sGrandBdgAvg = bdgvar.getGrandBdgAvg();
+    String sGrandActAvg = bdgvar.getGrandActAvg();
+    String sGrandAvgVar = bdgvar.getGrandAvgVar();
+
+    String sGrandBdgLabor = bdgvar.getGrandBdgLabor();
+    String sGrandActLabor = bdgvar.getGrandActLabor();
+    String sGrandLbrVar = bdgvar.getGrandLbrVar();
+    String sGrandActWage = bdgvar.getGrandActWage();
+
+    String sGrandBdgTot = bdgvar.getGrandBdgTot();
+    String sGrandActTot = bdgvar.getGrandActTot();
+    String sGrandVarTot = bdgvar.getGrandVarTot();
+
+    String sGrandOverHrs = bdgvar.getGrandOverHrs();
+    String sGrandOverAvg = bdgvar.getGrandOverAvg();
+    String sGrandOverTot = bdgvar.getGrandOverTot();
+    String sGrandOverMgmt = bdgvar.getGrandOverMgmt();
+
+    bdgvar.disconnect();
+
+
+%>
+
+<style>body {background:ivory;}
+        a:link { color:blue; font-size:10px} a:visited { color:blue; font-size:10px}  a:hover { color:red; font-size:10px}
+        th.DataTable { background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; font-family:Verdanda; font-size:12px }
+        th.DataTable1 { cursor:hand; color: blue; background:#FFCC99;padding-top:3px; padding-bottom:3px;
+                       text-align:center; font-family:Verdanda; font-size:12px; text-decoration: underline;}
+
+        tr.DataTable { background: #E7E7E7; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background: seashell; font-family:Arial; font-size:10px }
+        tr.DataTable2 { background: CornSilk;font-family:Arial; font-size:10px }
+
+        td.DataTable { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+        td.DataTable1 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:left;}
+        td.DataTable2 { padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+
+        td.DataTable21 {background: gray; padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:right;}
+        td.sep {background: darkred;padding-top:0px; padding-bottom:0px; padding-left:0px;
+                       padding-right:0px; font-size:2px}
+
+
+        select.Small {font-family:Arial; font-size:10px }
+        input.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        button.Small {margin-top:3px; font-family:Arial; font-size:10px }
+        textarea.Small {font-family:Arial; font-size:10px }
+
+</style>
+
+
+<script name="javascript1.2">
+var SelRow = 0;
+//------------------------------------------------------------------------------
+
+
+//==============================================================================
+// run on loading
+//==============================================================================
+function bodyLoad()
+{
+}
+//==============================================================================
+//---------------------------------------------------------
+//create String method Trim
+//---------------------------------------------------------
+function String.prototype.trim()
+{ //trim leading and trailing spaces
+    var s = this;
+    var obj = /^(\s*)([\W\w]*)(\b\s*$)/;
+    if (obj.test(s)) { s = s.replace(obj, '$2'); }
+    var obj = /  /g;
+    while (s.match(obj)) { s = s.replace(obj, ""); }
+    return s;
+}
+
+</script>
+
+<HTML><HEAD>
+
+<META content="Microsoft FrontPage 4.0" name=GENERATOR></HEAD>
+<BODY onload="bodyLoad();">
+
+<TABLE height="100%" width="100%" border=0>
+  <TBODY>
+  <TR bgColor=moccasin>
+    <TD vAlign=top align=middle><B>Retail Concepts Inc.
+        <BR>Budget vs. Actual Variance
+        <br>Store: <%=sStore%> - <%=sStrName%>
+        <br>Weekending: <%=sWkend%></B><br>
+
+        <a href="../"><font color="red">Home</font></a>&#62;
+        <a href="StrScheduling.html"><font color="red">Payroll</font></a>&#62;
+        <a href="FiscalMonthSel.jsp"><font color="red">Store Selector</font></a>&#62;
+       <font size="-1">This Page.</font>&nbsp;&nbsp;&nbsp;&nbsp;
+
+       <a href="BdgActVar.jsp?STORE=ALL&STRNAME=All Stores&WEEKEND=<%=sWkend%>">All Stores</a>
+
+
+
+<!-- ======================================================================= -->
+       <table border=1 cellPadding="0" cellSpacing="0" id="tbRtvEnt">
+
+         <tr  class="DataTable">
+           <th class="DataTable" rowspan="3">
+               <%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=STR&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Store</a><%} else{%>Position<%}%></th>
+           <th class="DataTable" rowspan="3">&nbsp;</th>
+           <th class="DataTable" colspan="21">Explanation of Variance</th>
+           <th class="DataTable" rowspan="3">&nbsp;&nbsp;&nbsp;</th>
+         </tr>
+
+         <tr  class="DataTable">
+           <th class="DataTable" colspan="3"><%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=HRS&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Hours</a><%} else{%>Hours<%}%></th>
+           <th class="DataTable" rowspan="2">&nbsp;</th>
+           <th class="DataTable" colspan="3"><%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=AVG&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Average Wage</a><%} else{%>Average Wage<%}%></th>
+           <th class="DataTable" rowspan="2">&nbsp;</th>
+           <th class="DataTable" colspan="3"><%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=LBR&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Labor</a><%} else{%>Labor<%}%></th>
+           <th class="DataTable" rowspan="2">&nbsp;</th>
+           <th class="DataTable" colspan="3"><%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=TOT&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Total $'s</a><%} else{%>Total $'s<%}%></th>
+           <th class="DataTable" rowspan="2">&nbsp;</th>
+           <th class="DataTable" colspan="5"><%if(sStore.equals("ALL")) {%><a href="BdgActVar.jsp?Sort=VAR&STORE=<%=sStore%>&STRNAME=All Stores&WEEKEND=<%=sWkend%>">Variance<br>Due To</a><%} else{%>Variance<br>Due To<%}%></th>
+         </tr>
+
+         <tr  class="DataTable">
+           <th class="DataTable" >Budget</th>
+           <th class="DataTable" >Actual</th>
+           <th class="DataTable" >Var</th>
+
+           <th class="DataTable" >Budget</th>
+           <th class="DataTable" >Actual</th>
+           <th class="DataTable" >Var</th>
+
+           <th class="DataTable" >Budget</th>
+           <th class="DataTable" >Actual</th>
+           <th class="DataTable" >Var</th>
+
+           <th class="DataTable" >Budget</th>
+           <th class="DataTable" >Actual</th>
+           <th class="DataTable" >Var</th>
+
+           <th class="DataTable" >Hours</th>
+           <th class="DataTable" >Avg.<br>Wage</th>
+           <th class="DataTable" >Labor</th>
+           <th class="DataTable" >Mgmt</th>
+           <th class="DataTable">Total<br>Variance</th>
+
+         </tr>
+       <!-- ============================ Details =========================== -->
+       <%for(int i=0; i < iNumOfGrp; i++ ){%>
+         <tr id="trGroup" class="DataTable">
+            <td class="DataTable1" nowrap><%if(sStore.equals("ALL")){%><%=sGrp[i] + " - "%><%}%><%=sGrpName[i]%></td>
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap><%=sBdgHrs[i]%></td>
+            <td class="DataTable2" nowrap><%=sActHrs[i]%></td>
+            <td class="DataTable2" nowrap><%=sHrsVar[i]%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sBdgAvg[i]%></td>
+            <td class="DataTable2" nowrap>$<%=sActAvg[i]%></td>
+            <td class="DataTable2" nowrap>$<%=sAvgVar[i]%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && !sGrp[i].trim().equals("BKBLD")){%>1<%}%>" nowrap>
+                <%if(sStore.equals("ALL") || sGrp[i].trim().equals("BKBLD")){%>$<%=sBdgLabor[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && !sGrp[i].trim().equals("BKBLD")){%>1<%}%>" nowrap>
+                <%if(sStore.equals("ALL") || sGrp[i].trim().equals("BKBLD")){%>$<%=sActLabor[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && !sGrp[i].trim().equals("BKBLD")){%>1<%}%>" nowrap>
+                <%if(sStore.equals("ALL") || sGrp[i].trim().equals("BKBLD")){%>$<%=sLbrVar[i]%><%} else{%>&nbsp;<%}%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sBdgTot[i]%></td>
+            <td class="DataTable2" nowrap>$<%=sActTot[i]%></td>
+            <td class="DataTable2" nowrap>$<%=sVarTot[i]%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && sGrp[i].trim().equals("MNGR")){%>1<%}%>" nowrap>
+               <%if(sStore.equals("ALL") || !sGrp[i].trim().equals("MNGR")){%>$<%=sOverHrs[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && sGrp[i].trim().equals("MNGR")){%>1<%}%>" nowrap>
+               <%if(sStore.equals("ALL") || !sGrp[i].trim().equals("MNGR")){%>$<%=sOverAvg[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && !sGrp[i].trim().equals("BKBLD")){%>1<%}%>" nowrap>
+                <%if(sStore.equals("ALL") || sGrp[i].trim().equals("BKBLD")){%>$<%=sLbrVar[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2<%if(!sStore.equals("ALL") && !sGrp[i].trim().equals("MNGR")){%>1<%}%>" nowrap>
+                <%if(sStore.equals("ALL") || sGrp[i].trim().equals("MNGR")){%>$<%=sOverMgmt[i]%><%} else{%>&nbsp;<%}%></td>
+            <td class="DataTable2" nowrap>$<%=sOverTot[i]%></td>
+
+
+            <th class="DataTable">
+               <%if(sStore.equals("ALL")) {%><a target="_blank" href="BdgActVar.jsp?STORE=<%=sGrp[i]%>&STRNAME=<%=sGrpName[i]%>&WEEKEND=<%=sWkend%>">D</a><%} else {%>&nbsp;<%}%>
+            </th>
+          </tr>
+          <%if(!sStore.equals("ALL") && sGrp[i].trim().equals("MNGR")){%><tr><td class="sep" colspan=24>&nbsp;</td></tr><%}%>
+       <%}%>
+      <!-- ================== Non-Management Totals =========================== -->
+      <%if(!sStore.equals("ALL")) {%>
+        <tr id="trTot" class="DataTable1">
+            <td class="DataTable1" nowrap>Non-Management Totals</td>
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap><%=sNmTotBdgHrs%></td>
+            <td class="DataTable2" nowrap><%=sNmTotActHrs%></td>
+            <td class="DataTable2" nowrap><%=sNmTotHrsVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sNmTotBdgAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotActAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotAvgVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sNmTotBdgLabor%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotActLabor%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotLbrVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sNmTotBdgTot%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotActTot%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotVarTot%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sNmTotOverHrs%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotOverAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sNmTotLbrVar%></td>
+            <td class="DataTable21" nowrap>&nbsp;</td>
+            <td class="DataTable2" nowrap>$<%=sNmTotOverTot%></td>
+            <th class="DataTable">&nbsp;</th>
+          </tr>
+          <%}%>
+          <tr><td class="sep" colspan=24>&nbsp;</td></tr>
+
+          <!-- ====================== Grand Totals ========================= -->
+        <tr id="trTot" class="DataTable2">
+            <td class="DataTable1" nowrap>Grand Totals</td>
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap><%=sGrandBdgHrs%></td>
+            <td class="DataTable2" nowrap><%=sGrandActHrs%></td>
+            <td class="DataTable2" nowrap><%=sGrandHrsVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sGrandBdgAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandActAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandAvgVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sGrandBdgLabor%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandActLabor%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandLbrVar%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sGrandBdgTot%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandActTot%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandVarTot%></td>
+
+            <th class="DataTable">&nbsp;</th>
+            <td class="DataTable2" nowrap>$<%=sGrandOverHrs%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandOverAvg%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandLbrVar%></td>
+
+            <td class="DataTable2" nowrap>$<%=sGrandOverMgmt%></td>
+            <td class="DataTable2" nowrap>$<%=sGrandOverTot%></td>
+            <th class="DataTable">&nbsp;</th>
+          </tr>
+       </table>
+<!-- ======================================================================= -->
+<p style="font-size:10px">* Actual and budget payroll hours and dollars exclude holiday,
+ vacation, sick pay and bonuses.
+      </TD>
+     </TR>
+    </TBODY>
+   </TABLE>
+</BODY></HTML>
+

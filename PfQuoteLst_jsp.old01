@@ -1,0 +1,1438 @@
+<%@ page import="patiosales.PfQuoteLst ,java.util.*, java.text.*"%>
+<%
+   String [] sStatus = request.getParameterValues("Status");
+   String sInclSO = request.getParameter("InclSO");
+   String [] sCommType = request.getParameterValues("CommType");
+
+   String sFrOrdDate = request.getParameter("FrOrdDt");
+   String sToOrdDate = request.getParameter("ToOrdDt");
+
+   String sRRN = request.getParameter("RRN");
+   String sSort = request.getParameter("Sort");
+   String sSelCust = request.getParameter("Cust");
+   String sSlsPer = request.getParameter("SlsPer");
+   String sSelOrd = request.getParameter("Order");
+
+   String [] sStrGrp = request.getParameterValues("StrGrp");
+   String [] sStrTrf = request.getParameterValues("StrTrf");
+
+   String sClaimOnly = request.getParameter("ClaimOnly");
+
+   if(sSelCust==null){ sSelCust = " ";}
+   if(sSlsPer==null) { sSlsPer = " "; }
+   if(sSelOrd==null){ sSelOrd = " "; }
+   if(sRRN==null) { sRRN="0000000000"; }
+   if(sSort==null) { sSort="ENTDT"; }
+   if(sStatus == null) { sStatus = new String[]{" "}; }
+   if(sCommType == null){ sCommType = new String[]{" "}; }
+   if(sClaimOnly == null) { sClaimOnly = " "; }
+
+   //----------------------------------
+   // Application Authorization
+   //----------------------------------
+   if (session.getAttribute("USER")==null)
+   {
+     response.sendRedirect("SignOn1.jsp?TARGET=PfQuoteLst.jsp&APPL=ALL&" + request.getQueryString());
+   }
+   else
+   {
+      //System.out.println("\n" + sStrGrp + "| Status " + sStatus[0] + "| sInclSO " + sInclSO + "| CommType " + sCommType[0] + "|" + sFrOrdDate
+      //  + "|" + sToOrdDate + "|" + sSku + "|" + sRRN + "|" + sSort + "|" + sStsOpt);
+      PfQuoteLst ordlst = new PfQuoteLst(sStrGrp, sStrTrf, sStatus, sCommType
+        , sInclSO, sFrOrdDate, sToOrdDate, sRRN, sSort, sSelCust, sSlsPer, sSelOrd
+        , session.getAttribute("USER").toString());
+      int iNumOfOrd = ordlst.getNumOfOrd();
+      String sRepTotal = ordlst.getRepTotal();
+
+      String sStatusJsa = ordlst.cvtToJavaScriptArray(sStatus);
+      String sCommTypeJsa = ordlst.cvtToJavaScriptArray(sCommType);
+
+      String sUser = session.getAttribute("USER").toString();
+      boolean bSts = true;
+      if  (sUser.trim().equals("cashr35") || sUser.trim().equals("cashr46")
+       ||  sUser.trim().equals("cashr50") ||  sUser.trim().equals("cashr86")
+       ||  sUser.trim().equals("cashr63") ||  sUser.trim().equals("cashr64")
+       ||  sUser.trim().equals("cashr68") ||  sUser.trim().equals("cashr55")) bSts = false;
+
+      String sUsrStr = session.getAttribute("STORE").toString();
+      boolean bAllowGmPrc = session.getAttribute("PATGMP") != null;
+
+      // statuses and names for order and spec order
+      ordlst.setStsLst();
+      String sStsLst = ordlst.getStsLstJsa();
+      String sStsNmLst = ordlst.getStsNmLstJsa();
+%>
+
+<html>
+<head>
+<title>Patio_Furniture_Sales_List</title>
+
+<style>body {background:ivory; text-align:center;}
+        a:link { color:blue} a:visited { color:blue}  a:hover { color:blue}
+        table.DataTable { border: darkred solid 1px;background:darkred;text-align:center;}
+        table.DataTable1 { border: darkred solid 1px;background:Cornsilk;text-align:center;}
+        th.DataTable { background:#FFCC99;padding-top:3px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       border-right: darkred solid 1px;text-align:center; font-family:Verdanda; font-size:12px }
+        th.DataTable1 { background:#FFCC99;padding-top:3px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       border-right: darkred solid 1px;text-align:left; font-family:Verdanda; font-size:12px }
+
+        tr.DataTable { background:cornsilk; font-family:Arial; font-size:10px }
+        tr.DataTable1 { background:#e7e7e7; font-family:Arial; font-size:10px }
+
+        td.DataTable { border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                       text-align:left;}
+        td.DataTable1 { border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:right;}
+        td.DataTable2 {border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+
+        td.DataTable21 {background:pink; border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                       padding-top:3px; padding-bottom:3px; padding-left:3px;
+                       padding-right:3px; text-align:center;}
+        td.DataTable3 {background:#e7e7e7; border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:center;}
+        td.DataTable31 {background:green; border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:center;}
+        td.DataTable32 {background:red; border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:center;}
+        td.DataTable4 { border-right: darkred solid 1px; border-bottom: darkred solid 1px;
+                        padding-top:3px; padding-bottom:3px; padding-left:3px;
+                        padding-right:3px; text-align:right; font-size:11px; font-weight:bold;}
+
+        td.StrInv { cursor:hand; padding-top:3px; padding-bottom:3px;
+                    padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; text-align:left;}
+
+        td.StrInv1{ padding-top:3px; padding-bottom:3px; padding-left:3px; padding-right:3px;
+                    border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:left;}
+
+        td.StrLst { background:#FFCC99; border-bottom: darkred solid 1px; border-right: darkred solid 1px;
+                    text-align:center; font-size:9px}
+
+        <!--------------------------------------------------------------------->
+        .Small {font-family:Arial; font-size:10px }
+        input.Small {font-family:Arial; font-size:10px }
+        button.Small {font-family:Arial; font-size:10px }
+        select.Small {font-family:Arial; font-size:10px }
+        textarea.Small {font-family:Arial; font-size:10px }
+
+        div.dvStatus  { position:absolute; visibility:hidden; background-attachment: scroll;
+              border: black solid 2px; width:200; background-color:LemonChiffon; z-index:10;
+              text-align:center; font-size:10px}
+
+        td.BoxName {cursor:move;
+              filter:progid:DXImageTransform.Microsoft.Gradient(gradientType=1,startColorStr=MidnightBlue, endColorStr=#a0cfec);
+              color:white; text-align:center; font-family:Arial; font-size:12px; font-weight:bold}
+        td.BoxClose {cursor:hand;background:#a0cfec;
+               color:white; text-align:right; font-family:Arial; font-size:12px; }
+        td.Prompt { text-align:left; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt1 { text-align:center; vertical-align:top; font-family:Arial; font-size:10px; }
+        td.Prompt2 { text-align:right; font-family:Arial; font-size:10px; }
+</style>
+
+
+
+
+<SCRIPT language="JavaScript1.2">
+//--------------- Global variables -----------------------
+var Status = [<%=sStatusJsa%>]
+var CommType = [<%=sCommTypeJsa%>]
+
+var NumOfOrd = <%=iNumOfOrd%>
+var StrGrp = new Array();
+<%for(int i=0; i < sStrGrp.length; i++){%>StrGrp[<%=i%>] = "<%=sStrGrp[i]%>";<%}%>
+var StrTrf = new Array();
+<%for(int i=0; i < sStrTrf.length; i++){%>StrTrf[<%=i%>] = "<%=sStrTrf[i]%>";<%}%>
+
+
+//--------------- End of Global variables ----------------
+//==============================================================================
+// initialize process
+//==============================================================================
+function bodyLoad()
+{
+   showStrTrfCol();
+
+   setBoxclasses(["BoxName",  "BoxClose"], ["dvStatus"]);
+}
+
+//==============================================================================
+// show/hide store transfer column depend on store group selection
+//==============================================================================
+function showStrTrfCol()
+{
+  var schl = document.all.colSkiChl;
+  var sstp = document.all.colSkiStp;
+  if (StrGrp == "SKCH")
+  {
+     for(var i=0; i < sstp.length; i++)  {  sstp[i].style.display = "none"; }
+  }
+  else if (StrGrp == "SSTP")
+  {
+     for(var i=0; i < schl.length; i++)  {  schl[i].style.display = "none"; }
+  }
+}
+//==============================================================================
+// show screen with different sorting
+//==============================================================================
+function sortBy(sort)
+{
+  var url = "PfQuoteLst.jsp?FrOrdDt=<%=sFrOrdDate%>&ToOrdDt=<%=sToOrdDate%>"
+
+  for(var i=0; i < Status.length; i++)
+  {
+     url += "&Status=" + Status[i];
+  }
+  for(var i=0; i < CommType.length; i++)
+  {
+     url += "&CommType=" + CommType[i];
+  }
+
+  url += "&InclSO=<%=sInclSO%>" + "&Sort=" + sort
+       + "&Cust=<%=sSelCust%>"
+       + "&SlsPer=<%=sSlsPer%>"
+
+  for(var i=0; i < StrGrp.length; i++){url += "&StrGrp=" + StrGrp[i]}
+  for(var i=0; i < StrTrf.length; i++){url += "&StrTrf=" + StrTrf[i]}
+
+  //alert(url);
+  window.location.href=url;
+}
+
+//==============================================================================
+// Change Order Status
+//==============================================================================
+function chgOrdSts(ord, sts)
+{
+   //check if order is paid off
+   var hdr = "Change Order Status. Order:&nbsp;&nbsp;" + ord;
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popStsPanel(ord, sts)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.visibility = "visible";
+}
+
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popStsPanel(ord, sts)
+{
+  var posX = document.documentElement.scrollLeft + 600;
+  var posY = document.documentElement.scrollTop + 60;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+     panel += "<tr id='trSel'><td class='Prompt'>New Status:</td>"
+           + "<td class='Prompt'><select class='Small' name='NewSts' size=1>"
+              + setNextSts(sts)
+           + "</select></td>"
+         + "</tr>"
+
+         + "<tr id='trSel'><td class='Prompt'>Emp#:</td>"
+            + "<td class='Prompt'><input class='Small' name='Emp' size=4 maxlength=4></td>"
+         + "</tr>"
+
+         + "<tr><td style='font-color:red; font-size:14px' id='tdErrMsg' colspan=2 nowrap></td></tr>"
+
+      panel += "<tr><td class='Prompt1' colspan='2'><br><br>"
+      + "<button onClick='vldNewSts(&#34;" + ord + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+     panel += "</table>";
+  return panel;
+}
+//==============================================================================
+// set Next Status
+//==============================================================================
+function setNextSts(sts)
+{
+   var panel = null;
+   if(sts=="Q"){ panel += "<option value='E'>Unsuccessful</option>" }
+   if(sts=="E"){ panel += "<option value='Q'>Quote (Reactivate)</option>" }
+
+   return panel;
+}
+//==============================================================================
+// check new status
+//==============================================================================
+function chkNewSts(sel)
+{
+  if(sel[sel.selectedIndex].value!="O")
+  {
+     document.all.trReg.style.display = "block";
+     document.all.trTrans.style.display = "block";
+  }
+
+  if(sel[sel.selectedIndex].value!="F")
+  {
+     document.all.Reg.readOnly=true;
+     document.all.Trans.readOnly=true;
+  }
+  else
+  {
+     document.all.Reg.readOnly=false;
+     document.all.Reg.focus();
+     document.all.Trans.readOnly=false;
+  }
+}
+//==============================================================================
+// validate new status
+//==============================================================================
+function vldNewSts(ord)
+{
+   var error = false;
+   var msg = "";
+   document.all.tdErrMsg.innerHTML="";
+   document.all.tdErrMsg.style.color="red";
+
+   var empnum = document.all.Emp.value.trim();
+   if(empnum == "" || isNaN(empnum))
+   {
+      error = true; msg += "Please enter correct employee number.";
+   }
+   if(error){ document.all.tdErrMsg.innerHTML=msg; }
+   else{sbmNewSts(ord, empnum)}
+}
+//==============================================================================
+// submit new status
+//==============================================================================
+function sbmNewSts(ord, empnum)
+{
+   var reg = "";
+   var trans = "";
+   var sts = document.all.NewSts[document.all.NewSts.selectedIndex].value
+
+   var url = "OrderHdrSave.jsp?Order=" + ord
+       + "&Sts=" + sts
+       + "&EmpNum=" + empnum
+       + "&Action=CHGSTS"
+   //alert(url)
+   window.frame1.location.href=url
+   hidePanel();
+}
+//==============================================================================
+// Change Special Order Status
+//==============================================================================
+function chgSoSts(ord, sts)
+{
+   var hdr = "Change Special Order Status. Order:&nbsp;&nbsp;" + ord;
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popSoStsPanel(ord, sts)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popSoStsPanel(ord, sosts)
+{
+  var posX = document.documentElement.scrollLeft + 600;
+  var posY = document.documentElement.scrollTop + 60;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+     panel += "<tr id='trSel'><td class='Prompt'>New Status:</td>"
+           + "<td class='Prompt'><select class='Small' name='NewSoSts' size=1>"
+             + setNewSoSts(sosts)
+           + "</select></td>"
+         + "</tr>"
+
+  panel += "<tr><td class='Prompt1' colspan='2'><br><br>"
+      + "<button onClick='sbmNewSoSts(&#34;" + ord + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+  panel += "</table>";
+  return panel;
+}
+//==============================================================================
+// set new special order status
+//==============================================================================
+function setNewSoSts(sosts)
+{
+   var panel = null;
+   if(sosts == "N") panel = "<option value='A'>Approved</option>"
+   if(sosts == "A") panel = "<option value='N'>Non-Approved</option>"
+
+   return panel;
+}
+//==============================================================================
+// submit new special order status
+//==============================================================================
+function sbmNewSoSts(ord)
+{
+   var sts = document.all.NewSoSts.value;
+
+   var url = "OrderHdrSave.jsp?Order=" + ord
+           + "&Sts=" + sts
+           + "&Action=CHGSOSTS"
+   //alert(url)
+   //window.location.href=url
+   window.frame1.location.href=url
+   hidePanel();
+}
+//==============================================================================
+// show comments Panel
+//==============================================================================
+function showNotePanel(ord, exist)
+{
+   var hdr = "Order Note. Order:&nbsp;&nbsp;" + ord;
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popNotePanel(ord)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.width= 400;
+   document.all.dvStatus.style.visibility = "visible";
+
+   // retreive existing comments
+   if(exist)
+   {
+      document.all.Comments.disabled = true;
+      document.all.tdButton.style.visibility = "hidden";
+      getOrdNote(ord, "NOT");
+   }
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popNotePanel(ord, type)
+{
+  var posX = document.documentElement.scrollLeft + 600;
+  var posY = document.documentElement.scrollTop + 60;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  panel += "<tr id='trSel'><td class='Prompt'>Comments: </td>"
+           + "<td class='Prompt'><TextArea class='Small' name='Comments' rows=4 cols=100>"
+           + "</TextArea></td>"
+         + "</tr>"
+  panel += "<tr><td class='Prompt1' id='tdButton' colspan='2'><br><br>"
+      + "<button onClick='sbmNote(&#34;" + ord + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+  panel += "</table>";
+  return panel;
+}
+
+//==============================================================================
+// submit new special order status
+//==============================================================================
+function sbmNote(ord)
+{
+   var text = document.all.Comments.value.trim(" ");
+
+   var url = "OrderHdrSave.jsp?Order=" + ord
+           + "&Comments=" + text.replaceSpecChar()
+           + "&CommtType=NOT"
+           + "&Action=ADDNOTE"
+   //alert(text )
+   //window.location.href=url
+   window.frame1.location.href=url
+   hidePanel();
+}
+//==============================================================================
+// show comments and add new panel
+//==============================================================================
+function showCommtPanel(ord, cmtty, ven, ponum)
+{
+   var hdr = "Order Comments. Order:&nbsp;&nbsp;" + ord;
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popCmtLogPanel(ord, ponum)
+      + "</td></tr>"
+
+    + "<tr><td class='Prompt' colspan=2 id='tdCmtLog'>"
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 200;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.width= 700;
+   document.all.dvStatus.style.visibility = "visible";
+
+   getOrdNote(ord, "CMT");
+
+   if (cmtty =="VCN")
+   {
+     document.all.CmtTy[5].checked = true;
+     document.all.PoNum.value = ponum;
+     document.all.Ven.value = ven;
+     document.all.tdQuo.style.display = "none";
+   }
+   else if (cmtty =="QST1")
+   {
+     document.all.CmtTy[0].checked = true;
+     document.all.tdVenConf.style.display = "none";
+     document.all.txaComment.value = "1st Follow Up Call."
+   }
+   else if (cmtty =="QST2")
+   {
+     document.all.CmtTy[1].checked = true;
+     document.all.tdVenConf.style.display = "none";
+     document.all.txaComment.value = "Thank you Card/Email."
+   }
+   else if (cmtty =="QST3")
+   {
+     document.all.CmtTy[2].checked = true;
+     document.all.tdVenConf.style.display = "none";
+     document.all.txaComment.value = "Final Phone Call."
+   }
+   else
+   {
+     document.all.tdVenConf.style.display = "none";
+     document.all.CmtTy[0].checked = true;
+     document.all.tdQuo.style.display = "none";
+   }
+}
+//==============================================================================
+// get Order comments
+//==============================================================================
+function popCmtLogPanel(ord, ponum)
+{
+  var posX = document.documentElement.scrollLeft + 950;
+  var posY = document.documentElement.scrollTop + 100;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  panel += "<tr class='DataTable'>"
+              + "<td class='DataTable' nowrap>"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='QST1'>1st Call"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='QST2'>2nd Call"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='QST3'>3rd Call"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='STORE'>Store's"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='BUYER'>Buyer's &nbsp; &nbsp; &nbsp;"
+                + "<input name='CmtTy' type='radio' onclick='chgCommt(this)' value='VCN'>Vendor Confirmation &nbsp; &nbsp; &nbsp;"
+                + "<input name='Order' type='hidden' value='" + ord + "'>"
+              + "</td>"
+         +  "</tr>"
+
+         + "<tr class='DataTable' id='tdVenConf'>"
+              + "<td class='DataTable' nowrap>"
+                + "Vendor: <input name='Ven' size=5 readonly> &nbsp; &nbsp; &nbsp;"
+                + "Confirmation Number: <input name='VenConf'  size=20 maxsize=20>"
+                + "<br>P.O.Number: <input name='PoNum' size=10 readonly> &nbsp; &nbsp; "
+                + "Vendor Delivery Date Date: "
+                + "<input class='Small' name='VenDelDate' readonly size=10 maxlength=10> &nbsp; &nbsp;"
+                + "<a class='Small' id='shwCal' href='javascript:showCalendar(1, null, null," + posX + "," + posY + ", document.all.VenDelDate)' >"
+                + "<img src='calendar.gif' alt='Calendar Prompt' width='34' height='21'></a>"
+              + "</td>"
+         +  "</tr>"
+
+         + "<tr class='DataTable' id='tdQuo'>"
+              + "<td class='DataTable' nowrap>"
+                + "Employee #: <input name='Emp' size=4> &nbsp; &nbsp; &nbsp;"
+              + "</td>"
+         +  "</tr>"
+
+         + "<tr class='DataTable'>"
+              + "<td class='DataTable' nowrap><textarea name='txaComment' cols=50 rows=4></textarea></td>"
+         + "</tr>"
+         + "<tr class='DataTable6'><td class='DataTable' id='tdErrMsg' nowrap></td></tr>"
+  panel += "<tr><td class='DataTable2'>"
+        + "<button onClick='vldNewComment();' class='Small1'>Submit</button> &nbsp; &nbsp;"
+        + "<button onClick='hidePanel();' class='Small1'>Close</button>"
+        + "</td></tr>"
+  panel += "</table>";
+
+  return panel;
+}
+//==============================================================================
+// change comment panel
+//==============================================================================
+function chgCommt(obj)
+{
+   if(obj.value == "VCN"){document.all.tdVenConf.style.display = "block";}
+   else { document.all.tdVenConf.style.display = "none"; }
+}
+//==============================================================================
+// validate New Comment
+//==============================================================================
+function vldNewComment()
+{
+   var error = false;
+   var msg = "";
+   document.all.tdErrMsg.innerHTML="";
+   document.all.tdErrMsg.style.color="red";
+
+   var order = document.all.Order.value;
+   var cmtty = null;
+   var empnum = "";
+
+   for(var i=0; i < document.all.CmtTy.length; i++)
+   {
+       if(document.all.CmtTy[i].checked){ cmtty = document.all.CmtTy[i].value; break; }
+   }
+
+   var cmt = document.all.txaComment.value;
+   var br = "";
+
+   if(cmtty=="VCN")
+   {
+      var ven = document.all.Ven.value.trim();
+      if(ven == "" || isNaN(ven) || eval(ven) <= 0 || eval(ven) < 999 )
+      {
+         error = true; msg += br + "Please enter correct vendor number.";
+         br = "<br>";
+      }
+      var conf = document.all.VenConf.value.trim();
+      if(conf==""){error = true; msg += br + "Please enter confirmation number."; br = "<br>";}
+
+      var deldt = document.all.VenDelDate.value.trim();
+      if(deldt == ""){ error = true; msg += br + "Please enter Vendor Delivery Date."; br = "<br>"; }
+      var ponum = document.all.PoNum.value.trim();
+
+      if(!error)
+      {
+         cmt = "Vendor: " + ven
+             + ", P.O. # " + ponum
+             + ", Delivery Date: " + deldt
+             + ", Conf# " + conf + ". " + cmt.trim();
+         br = "<br>";
+      }
+   }
+
+   if(cmtty.substring(0,3)=="QST")
+   {
+      var empnum = document.all.Emp.value.trim();
+      if(empnum == "" || isNaN(empnum))
+      {
+         error = true; msg += br + "Please enter correct employee number.";
+         br = "<br>";
+      }
+      if(!error)
+      {
+         cmt = "Emp#: " + empnum + ". " + cmt.trim();
+      }
+   }
+
+   if(cmt==""){error = true; msg += br + "Please enter comment.";br = "<br>";}
+
+   if(error){ document.all.tdErrMsg.innerHTML=msg; }
+   else{sbmNewComment(order, cmtty, cmt, empnum)}
+}
+//==============================================================================
+// submit New Comment
+//==============================================================================
+function sbmNewComment(order, cmtty, commt, empnum)
+{
+    commt = commt.replace(/\n\r?/g, '<br />');
+
+    var nwelem = window.frame1.document.createElement("div");
+    nwelem.id = "dvSbmCommt"
+
+    var html = "<form name='frmAddComment'"
+       + " METHOD=Post ACTION='OrderHdrSave.jsp'>"
+       + "<input class='Small' name='Order'>"
+       + "<input class='Small' name='Comments'>"
+       + "<input class='Small' name='CommtType'>"
+       + "<input class='Small' name='Action'>"
+     + "</form>"
+
+   nwelem.innerHTML = html;
+   frmcommt = document.all.frmEmail;
+   window.frame1.document.appendChild(nwelem);
+
+   window.frame1.document.all.Order.value = order;
+   window.frame1.document.all.Comments.value=commt;
+   window.frame1.document.all.CommtType.value=cmtty;
+   window.frame1.document.all.Action.value="ADDCOMMENT";
+
+   //alert(html)
+   window.frame1.document.frmAddComment.submit();
+}
+
+//==============================================================================
+// get Order comments
+//==============================================================================
+function getOrdNote(ord, type)
+{
+   var url = "PfsOrderComment.jsp?Order=" + ord
+           + "&Type=" + type
+   //alert(url)
+   //window.location.href=url
+   window.frame1.location.href=url
+}
+//==============================================================================
+// set comment/log filter
+//==============================================================================
+function setCmtFilter(cmtty, chkbox, numcmt)
+{
+   var disp = "none";
+   if(chkbox.checked){ disp = "block";}
+
+   for(var i=0; i < numcmt; i++)
+   {
+      var cell = "tdCmtTy" + i;
+      var type = document.all[cell].innerHTML.trim();
+      var rownm = "trCmtLog" + i;
+      var row = document.all[rownm];
+      for(var j=0; j < cmtty.length; j++)
+      {
+          if(type == cmtty[j]){ row.style.display=disp; }
+      }
+   }
+}
+
+//==============================================================================
+// show Note
+//==============================================================================
+function showNote(comments)
+{
+   document.all.Comments.value = comments.trim(" ");
+   document.all.Comments.disabled = false;
+   document.all.tdButton.style.visibility = "visible";
+   window.frame1.location.href = null;
+   window.frame1.close();
+}
+//==============================================================================
+// show Comments
+//==============================================================================
+function showComments(html)
+{
+    document.all.tdCmtLog.innerHTML = html;
+}
+//==============================================================================
+// display error
+//==============================================================================
+function displayError(err)
+{
+   window.frame1.location.href="";
+   window.frame1.close();
+   msg = "";
+   for(var i=0; i < err.length; i++)  {  msg += err[i] + "\n"; }
+   alert(msg);
+
+}
+//==============================================================================
+// restart application after heading entry
+//==============================================================================
+function reStart()
+{
+   window.location.reload();
+}
+//--------------------------------------------------------
+// Hide selection screen
+//--------------------------------------------------------
+function hidePanel()
+{
+   document.all.dvStatus.innerHTML = " ";
+   document.all.dvStatus.style.visibility = "hidden";
+}
+//==============================================================================
+// show Delivery Date Inquery screen
+//==============================================================================
+function showDelDateInq(area)
+{
+   var url = null;
+   if(area == "DC"){ url = "PfOrdDeliveryCal.jsp?Store=35&Store=46&Store=50";}
+   else if(area == "NY"){ url = "PfOrdDeliveryCal.jsp?Store=86";}
+   else if(area == "NE"){ url = "PfOrdDeliveryCal.jsp?Store=55&Store=63&Store=64&Store=68";}
+
+   var WindowName = 'Delivery_Date_Inquiry';
+   var WindowOptions = 'resizable=yes , toolbar=no, location=no, directories=no, status=yes, scrollbars=yes,menubar=yes';
+
+  //alert(url);
+  window.open(url, WindowName, WindowOptions);
+
+}
+//==============================================================================
+// show Status Stamp
+//==============================================================================
+function showStsStamp()
+{
+   if (document.all.spStsStamp[0] != null)
+   {
+      for(var i=0; i < document.all.spStsStamp.length; i++)
+      {
+        if(document.all.spStsStamp[i].style.display=="none") document.all.spStsStamp[i].style.display = "block";
+        else document.all.spStsStamp[i].style.display = "none";
+      }
+   }
+   else
+   {
+      if(document.all.spStsStamp.style.display=="none") document.all.spStsStamp.style.display = "block";
+      else document.all.spStsStamp.style.display = "none";
+   }
+}
+//==============================================================================
+// show Status Stamp
+//==============================================================================
+function showPyStsStamp()
+{
+   if (document.all.spPyStsStamp[0] != null)
+   {
+      for(var i=0; i < document.all.spPyStsStamp.length; i++)
+      {
+        if(document.all.spPyStsStamp[i].style.display=="none")
+        {
+          document.all.spPyStsStamp[i].style.display = "block";
+        }
+        else document.all.spPyStsStamp[i].style.display = "none";
+      }
+   }
+   else
+   {
+      if(document.all.spPyStsStamp.style.display=="none")
+      {
+         document.all.spPyStsStamp.style.display = "block";
+      }
+      else document.all.spPyStsStamp.style.display = "none";
+   }
+}
+
+//==============================================================================
+// show Special Order Status Stamp
+//==============================================================================
+function showSoStsStamp()
+{
+   if (document.all.spSoStsStamp1[0] != null)
+   {
+      for(var i=0; i < document.all.spSoStsStamp1.length; i++)
+      {
+        if(document.all.spSoStsStamp1[i].style.display=="none")
+        {
+           document.all.spSoStsStamp1[i].style.display = "block";
+           document.all.spSoStsStamp2[i].style.display = "block";
+           document.all.spSoStsStamp3[i].style.display = "block";
+        }
+        else
+        {
+           document.all.spSoStsStamp1[i].style.display = "none";
+           document.all.spSoStsStamp2[i].style.display = "none";
+           document.all.spSoStsStamp3[i].style.display = "none";
+        }
+      }
+   }
+   else
+   {
+      if(document.all.spSoStsStamp1.style.display=="none")
+      {
+         document.all.spSoStsStamp1.style.display = "block";
+         document.all.spSoStsStamp2.style.display = "block";
+         document.all.spSoStsStamp3.style.display = "block";
+      }
+      else
+      {
+         document.all.spSoStsStamp1.style.display = "none";
+         document.all.spSoStsStamp2.style.display = "none";
+         document.all.spSoStsStamp3.style.display = "none";
+      }
+   }
+}
+
+
+//==============================================================================
+// set P.O. Vendor's Delivery Date
+//==============================================================================
+function setPoDelDate(ord, ven, ponum, deldt)
+{
+   var hdr = "Customer Order:&nbsp;" + ord + "&nbsp; &nbsp;";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popPoDelDate(ord, ven, ponum)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.visibility = "visible";
+
+   if(deldt != ""){document.all.DelDate.value = deldt}
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popPoDelDate(ord, ven, ponum)
+{
+  var posX = document.documentElement.scrollLeft + 650;
+  var posY = document.documentElement.scrollTop + 100;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  panel += "<tr id='trSel'><td class='Prompt'>&nbsp; Vendor:</td>"
+             + "<td class='Prompt'>" + ven + "</td></tr>"
+           + "<tr id='trSel'><td class='Prompt'>&nbsp; P.O. Number:</td>"
+             + "<td class='Prompt'>" + ponum + "</td></tr>"
+
+           + "<tr id='trSel'><td class='Prompt' nowrap><br>&nbsp; Vendor Delivery Date Date:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='DelDate' readonly size=10 maxlength=10> &nbsp; &nbsp;"
+             + "<a class='Small' id='shwCal' href='javascript:showCalendar(1, null, null," + posX + "," + posY + ", document.all.DelDate)' >"
+             + "<img src='calendar.gif' alt='Calendar Prompt' width='34' height='21'></a></td>"
+         + "</tr>"
+
+  panel += "<tr><td class='Prompt1' id='tdButton' colspan='2'><br><br>"
+      + "<button onClick='sbmVenDelDt(&#34;" + ord + "&#34;, &#34;" + ven + "&#34;, &#34;" + ponum + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+  panel += "</table>";
+  return panel;
+}
+//==============================================================================
+// submit new special order status
+//==============================================================================
+function sbmVenDelDt(ord, ven, ponum)
+{
+   var deldt = document.all.DelDate.value.trim(" ");
+   var msg = "";
+   var error = false;
+   if(deldt == ""){error = true; msg += "Please, enter Delivery Date.\n"}
+
+   if(error){ alert(msg); }
+   else
+   {
+      var url = "OrderHdrSave.jsp?Order=" + ord
+           + "&Ven=" + ven
+           + "&PONum=" + ponum
+           + "&DelDate=" + deldt
+           + "&Action=CHGVNDELDT"
+      //alert(deldt)
+      //window.location.href=url
+      window.frame1.location.href=url
+      hidePanel();
+   }
+}
+//==============================================================================
+// add PO number on Order
+//==============================================================================
+function addPoNum(ord, ven, vennm)
+{
+   var hdr = "Add New PO for Order:&nbsp;" + ord + "&nbsp; &nbsp;";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popAddPoNum(ord, ven, vennm)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.visibility = "visible";
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popAddPoNum(ord, ven, vennm)
+{
+  var posX = document.documentElement.scrollLeft + 650;
+  var posY = document.documentElement.scrollTop + 100;
+
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  panel += "<tr class='DataTable'>"
+              + "<th class='DataTable'>Click on<br>selected<br>Vendor</th>"
+              + "<th class='DataTable'>Vendor Name</th>"
+              + "</tr>"
+  for(var i=0; i < ven.length; i++)
+  {
+      panel += "<tr class='DataTable'>"
+          + "<td class='DataTable2'><a href='javascript: setSelVen(&#34;" + ven[i] + "&#34;)'>" + ven[i] + "</a></td>"
+          + "<td class='DataTable' nowrap>" + vennm[i] + "</td>"
+        + "</tr>"
+  }
+
+  panel += "<tr><td colspan=2 nowrap>&nbsp;</td></tr>"
+
+  panel += "<tr>"
+           + "<td class='Prompt' nowrap>Vendor: <input class='Small' name='Ven' size=5 readonly></td>"
+           + "<td class='Prompt' nowrap> &nbsp; &nbsp; P.O.#: <input class='Small' name='PoNum' size=10 maxlength=10></td>"
+         + "</tr>"
+
+  panel += "<tr class='Prompt'><td class='DataTable' id='tdErrMsg' colspan=2 nowrap></td></tr>"
+
+  panel += "<tr><td class='Prompt' id='tdButton' colspan='3'><br><br>"
+      + "<button onClick='vldVenPo(&#34;" + ord + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+  panel += "</table>";
+  return panel;
+}
+//==============================================================================
+// set Vendor Contact Information
+//==============================================================================
+function setSelVen(ven)
+{
+   document.all.Ven.value = ven
+}
+//==============================================================================
+// validate new PO
+//==============================================================================
+function vldVenPo(ord)
+{
+   var error = false;
+   var msg = "";
+   document.all.tdErrMsg.innerHTML="";
+   document.all.tdErrMsg.style.color="red";
+
+   var ven = document.all.Ven.value;
+   var ponum = document.all.PoNum.value.trim().toUpperCase();
+
+   br = "";
+   if(ven == ""){ error = true; msg += br + "Please select Vendor"; br = "<br>"; }
+   if(ponum == ""){ error = true; msg += br + "Please enter P.O.#"; br = "<br>"; }
+
+   if(error){ document.all.tdErrMsg.innerHTML=msg; }
+   else{sbmNewPO(ord, ven, ponum)}
+}
+//==============================================================================
+// submit new PO
+//==============================================================================
+function sbmNewPO(ord, ven, ponum)
+{
+   var url = "OrderHdrSave.jsp?Order=" + ord
+              + "&Ven=" + ven
+              + "&PONum=" + ponum
+              + "&Action=ADDPONUM"
+      //alert(url)
+      window.frame1.location.href=url
+      hidePanel();
+}
+//==============================================================================
+// set Vendor Contact Information
+//==============================================================================
+function setVenProp(ven, name, cont, phn1, phn2, phn3, email)
+{
+   var hdr = "Vendor:&nbsp;" + ven + "-" + name + "&nbsp; &nbsp;";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr><td class='Prompt' colspan=2>" + popVenProp(ven, name, cont, phn1, phn2, phn3, email)
+     + "</td></tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 300;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 100;
+   document.all.dvStatus.style.visibility = "visible";
+
+   if(cont != ""){document.all.Contact.value = cont;}
+   if(phn1 != ""){document.all.Phone1.value = phn1;}
+   if(phn2 != ""){document.all.Phone2.value = phn2;}
+   if(phn3 != ""){document.all.Phone3.value = phn3;}
+   if(email != ""){document.all.EMail.value = email;}
+}
+//--------------------------------------------------------
+// populate Entry Panel
+//--------------------------------------------------------
+function popVenProp(ven, name, cont, phn1, phn2, phn3, email)
+{
+  var panel = "<table width='100%' cellPadding='0' cellSpacing='0'>"
+  panel += "<tr id='trSel'><td class='Prompt' nowrap>&nbsp; Contact Name:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='Contact' size=50 maxlength=50> &nbsp; &nbsp;</td>"
+         + "</tr>"
+             + "<tr id='trSel'><td class='Prompt' nowrap>&nbsp; Work Phone Number:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='Phone1' size=15 maxlength=15> &nbsp; &nbsp;</td>"
+         + "</tr>"
+         + "<tr id='trSel'><td class='Prompt' nowrap>&nbsp; Home Phone Number:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='Phone2' size=15 maxlength=15> &nbsp; &nbsp;</td>"
+         + "</tr>"
+         + "<tr id='trSel'><td class='Prompt' nowrap>&nbsp; Cellular Number:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='Phone3' size=15 maxlength=15> &nbsp; &nbsp;</td>"
+         + "</tr>"
+         + "<tr id='trSel'><td class='Prompt' nowrap>&nbsp; E-Mail Address:</td>"
+             + "<td class='Prompt' nowrap>"
+               + "<input class='Small' name='EMail' size=50 maxlength=50> &nbsp; &nbsp;</td>"
+         + "</tr>"
+
+  panel += "<tr><td class='Prompt1' id='tdButton' colspan='2'><br><br>"
+      + "<button onClick='sbmVenProp(&#34;" + ven + "&#34;)' class='Small'>Submit</button>&nbsp;"
+      + "<button onClick='hidePanel();' class='Small'>Close</button></td></tr>"
+
+  panel += "</table>";
+  return panel;
+}
+//==============================================================================
+// submit new special order status
+//==============================================================================
+function sbmVenProp(ven)
+{
+   var cont = document.all.Contact.value.trim(" ");
+   var phn1 = document.all.Phone1.value.trim(" ");
+   var phn2 = document.all.Phone2.value.trim(" ");
+   var phn3 = document.all.Phone3.value.trim(" ");
+   var email = document.all.EMail.value.trim(" ");
+
+   var msg = "";
+   var error = false;
+
+   if(error){ alert(msg); }
+   else
+   {
+      var url = "PfVenPropSave.jsp?"
+           + "Ven=" + ven
+           + "&Contact=" + cont.replaceSpecChar()
+           + "&Phone1=" + phn1.replaceSpecChar()
+           + "&Phone2=" + phn2.replaceSpecChar()
+           + "&Phone3=" + phn3.replaceSpecChar()
+           + "&Email=" + email.replaceSpecChar()
+           + "&Action=CHGVENPROP"
+      //alert(url)
+      //window.location.href=url
+      window.frame1.location.href=url
+      hidePanel();
+   }
+}
+//==============================================================================
+// print sold tag
+//==============================================================================
+function showSoldTag(ord, strarr)
+{
+
+   var hdr = "Show Sold Tag";
+
+   var html = "<table border=0 width='100%' cellPadding=0 cellSpacing=0>"
+     + "<tr>"
+       + "<td class='BoxName' nowrap>" + hdr + "</td>"
+       + "<td class='BoxClose' valign=top>"
+         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
+       + "</td></tr>"
+    + "<tr>"
+      + "<td class='Prompt' colspan=2>"
+        + "Print for store: <select name='selPrtStr'></select>"
+        + "<br>Print by employee: <input name='PrtEmp' size='4' maxlength='4'>"
+        + "<br><button onclick='vldSoldTag(&#34;" + ord + "&#34;)'>Submit</button>"
+      + "</td>"
+    + "</tr>"
+   + "</table>"
+
+   document.all.dvStatus.innerHTML = html;
+   document.all.dvStatus.style.pixelLeft= document.documentElement.scrollLeft + 200;
+   document.all.dvStatus.style.pixelTop= document.documentElement.scrollTop + 400;
+   document.all.dvStatus.style.visibility = "visible";
+
+   for(var i=0; i < strarr.length; i++)
+   {
+      document.all.selPrtStr.options[i] = new Option(strarr[i], strarr[i]);
+   }
+}
+
+//==============================================================================
+// validate sold tag
+//==============================================================================
+function vldSoldTag(ord)
+{
+   var error =false;
+   var msg = "";
+
+   var str = document.all.selPrtStr.options[document.all.selPrtStr.selectedIndex].value;
+   var emp = document.all.PrtEmp.value.trim();
+   if(emp == ""){ error=true; msg="Employee number is invalid"; }
+   else if(isNaN(emp)){ error=true; msg="Employee number is not numeric"; }
+   else if(eval(emp) <= 0){ error=true; msg="Employee number must be positive number"; }
+
+   if(error){ alert(msg); }
+   else{ sbmSoldTag(ord, str, emp); }
+}
+//==============================================================================
+// submit sold tag
+//==============================================================================
+function sbmSoldTag(ord, str, emp)
+{
+   var url = "OrderPrtSoldTag.jsp?Order=" + ord
+    + "&Store=" + str
+    + "&Emp=" + emp;
+   window.document.location.href = url;
+}
+//==============================================================================
+// print sold tag
+//==============================================================================
+function showDelTicket(ord)
+{
+   var url = "PfOrderDelivery.jsp?Order=" + ord
+   window.document.location.href = url;
+}
+
+</SCRIPT>
+
+<script LANGUAGE="JavaScript1.2" src="MoveBox.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Trim_function.js"></script>
+<script LANGUAGE="JavaScript1.2" src="Calendar.js"></script>
+<script LANGUAGE="JavaScript1.2" src="String_Repalce_Spec_Char_function.js"></script>
+
+</head>
+<body onload="bodyLoad()">
+<!-------------------------------------------------------------------->
+<iframe  id="frame1"  src=""  frameborder=0 height="0" width="0"></iframe>
+<!-------------------------------------------------------------------->
+<div id="dvStatus" class="dvStatus"></div>
+<!-------------------------------------------------------------------->
+
+    <table border="0" cellPadding="0"  cellSpacing="0">
+     <tr>
+      <td ALIGN="center" VALIGN="TOP"nowrap>
+        <b>Retail Concepts, Inc
+        <br>Patio Furniture Sales Order List
+        <br>Selected Store(s):
+        <%String coma = "";%>
+           <%for(int i=0; i < sStrGrp.length; i++){%><%=coma%> <%=sStrGrp[i]%><%coma=",";%><%}%>
+        </b>
+      </td>
+    </tr>
+
+    <tr>
+      <td ALIGN="center" VALIGN="TOP">
+      <a href="index.jsp"><font color="red" size="-1">Home</font></a>&#62;
+      <a href="PfQuoteLstSel.jsp"><font color="red" size="-1">Selection</font></a>&#62;This Page.<br>
+      <span style="font-size:10px">This Week's Delivery Schedule: </span>
+         <a href="javascript:showDelDateInq('DC');" style="font-size:10px">DC</a>, &nbsp;
+         <a href="javascript:showDelDateInq('NY');" style="font-size:10px">NY</a> &nbsp;
+         <a href="javascript:showDelDateInq('NE');" style="font-size:10px">NE</a> &nbsp;
+      <br>
+  <!----------------------- Order List ------------------------------>
+     <table class="DataTable" cellPadding="0" width="100%" cellSpacing="0" id="tbDetail">
+       <tr  class="DataTable">
+        <th class="DataTable"  rowspan=2>No.</th>
+        <th class="DataTable"  style="background: yellow" nowrap colspan=10>Customer Order Information</th>
+        <th class="DataTable" nowrap rowspan=2>&nbsp;</th>
+        <th class="DataTable"  style="background: lightgreen" nowrap>Slsp#</th>
+        <th class="DataTable"  style="background: lightgreen" nowrap colspan=3>Follow Up Steps</th>
+        <th class="DataTable"  style="background: lightgreen" nowrap>Unsuccessfull<br>Sale</th>
+       </tr>
+
+       <tr  class="DataTable">
+        <th class="DataTable" nowrap><a href="javascript: sortBy('ENTDT')">Entry<br>Date</a></th>
+        <th class="DataTable" nowrap><a href="javascript: sortBy('STORE')">Str</a></th>
+        <th class="DataTable" nowrap><a href="javascript: sortBy('ORDER')">Order #</a></th>
+        <th class="DataTable" nowrap><a href="javascript: sortBy('CUSTNM')">Name</a></th>
+        <th class="DataTable" nowrap>Day<br>Phone & Ext</th>
+        <th class="DataTable" nowrap>Print<br>Note</th>
+        <th class="DataTable" nowrap>C<br>m<br>t<br>and<br>L<br>o<br>g</th>
+        <th class="DataTable" nowrap>Total<br>Amt<br>(w/ tax)</th>
+        <th class="DataTable" nowrap>GM<br>%</th>
+
+        <th class="DataTable" nowrap>Order<br>Status<br>
+           <%if(iNumOfOrd > 0){%><a href="javascript: showStsStamp()" style="color:darkblue;font-size:10px">(show details)</a><%}%>
+        </th>
+
+        <th class="DataTable" nowrap>Orig<br>Slsp#</th>
+        <th class="DataTable" nowrap>Step 1<br>(Initial Phone<br>Call)</th>
+        <th class="DataTable" nowrap>Step 2<br>(Thank You<br>Card / Email)</th>
+        <th class="DataTable" nowrap>Step 3<br>(Final Phone<br>Call)</th>
+        <th class="DataTable" nowrap>Cancel</th>
+      </tr>
+
+      <TBODY>
+
+  <!-------------------------- Order List ------------------------------->
+  <%for(int i=0; i < iNumOfOrd; i++) {%>
+    <%
+      ordlst.setOrdHdrInfo();
+
+      String sOrdNum = ordlst.getOrdNum();
+      String sSts = ordlst.getSts();
+      String sStsName = ordlst.getStsName();
+      String sCust = ordlst.getCust();
+      String sSlsper = ordlst.getSlsper();
+      String sSlpName = ordlst.getSlpName();
+      String sDelDate = ordlst.getDelDate();
+      String sShipInstr = ordlst.getShipInstr();
+      String sLastName = ordlst.getLastName();
+      String sFirstName = ordlst.getFirstName();
+      String sAddr1 = ordlst.getAddr1();
+      String sAddr2 = ordlst.getAddr2();
+      String sCity = ordlst.getCity();
+      String sState = ordlst.getState();
+      String sZip = ordlst.getZip();
+      String sDayPhn = ordlst.getDayPhn();
+      String sExtWorkPhn = ordlst.getExtWorkPhn();
+      String sEvtPhn = ordlst.getEvtPhn();
+      String sCellPhn = ordlst.getCellPhn();
+      String sEMail = ordlst.getEMail();
+      String sSubTot = ordlst.getSubTot();
+      String sTax = ordlst.getTax();
+      String sTotal = ordlst.getTotal();
+      String sOrgStr = ordlst.getOrgStr();
+
+      String sTrfStr35 = ordlst.getTrfStr35();
+      String sTrfStr46 = ordlst.getTrfStr46();
+      String sTrfStr50 = ordlst.getTrfStr50();
+      String sTrfStr86 = ordlst.getTrfStr86();
+      String sTrfStr63 = ordlst.getTrfStr63();
+      String sTrfStr64 = ordlst.getTrfStr64();
+      String sTrfStr68 = ordlst.getTrfStr68();
+      String sTrfStr55 = ordlst.getTrfStr55();
+
+      String sSpcOrd = ordlst.getSpcOrd();
+      String sEntDate = ordlst.getEntDate();
+      String sStsDate = ordlst.getStsDate();
+      String sStsTime = ordlst.getStsTime();
+      String sStsUser = ordlst.getStsUser();
+      String sSkuQty = ordlst.getSkuQty();
+      String sSkuRet = ordlst.getSkuRet();
+      String sComments = ordlst.getComments();
+      String sGmPrc = ordlst.getGmPrc();
+
+      String sFup1 = ordlst.getFup1();
+      String sFup1Comm = ordlst.getFup1Comm();
+      String sFup1User = ordlst.getFup1User();
+      String sFup1Date = ordlst.getFup1Date();
+      String sFup1Time = ordlst.getFup1Time();
+
+      String sFup2 = ordlst.getFup2();
+      String sFup2Comm = ordlst.getFup2Comm();
+      String sFup2User = ordlst.getFup2User();
+      String sFup2Date = ordlst.getFup2Date();
+      String sFup2Time = ordlst.getFup2Time();
+
+      String sFup3 = ordlst.getFup3();
+      String sFup3Comm = ordlst.getFup3Comm();
+      String sFup3User = ordlst.getFup3User();
+      String sFup3Date = ordlst.getFup3Date();
+      String sFup3Time = ordlst.getFup3Time();
+
+      String sFup4 = ordlst.getFup4();
+      String sFup4Comm = ordlst.getFup4Comm();
+      String sFup4User = ordlst.getFup4User();
+      String sFup4Date = ordlst.getFup4Date();
+      String sFup4Time = ordlst.getFup4Time();
+
+      String sVenConf = ordlst.getVenConf();
+%>
+        <tr  class="DataTable">
+            <td class="DataTable2"><%=i+1%></td>
+            <td class="DataTable2"><%=sEntDate%></td>
+            <td class="DataTable2"><%=sOrgStr%></td>
+            <td class="DataTable2"><a target="_blank" href="OrderEntry.jsp?Order=<%=sOrdNum%>&List=Y"><%=sOrdNum%></a></td>
+            <td class="DataTable" nowrap><%System.out.println(sOrdNum + " " + sLastName + " " + sFirstName);%><%=sLastName%>, <%=sFirstName%></td>
+            <td class="DataTable" nowrap>
+              <%if(sDayPhn.trim().length() > 0){%><%=sDayPhn%><%if(sExtWorkPhn.trim().length() > 0){%><%=" x " + sExtWorkPhn%><%}%><%}
+                else if(sCellPhn.trim().length() > 0){%><%=sCellPhn%><%}
+                else if(sEvtPhn.trim().length() > 0){%><%=sEvtPhn%><%}%>
+            </td>
+            <td class="DataTable2" nowrap><a href="javascript: showNotePanel(&#34;<%=sOrdNum%>&#34;, <%if(sVenConf.equals("Y")){%>true<%} else {%>false<%}%>)">Note</a></td>
+            <td class="DataTable2" nowrap><a href="javascript: showCommtPanel(&#34;<%=sOrdNum%>&#34;, &#34;ALL&#34;)">C&L</a></td>
+
+            <td class="DataTable4">$<%=sTotal%></td>
+            <td class="DataTable1"><%if(bAllowGmPrc && !sGmPrc.equals("100")){%><%=sGmPrc%>%<%}%></td>
+
+            <!--===== Status ====== -->
+            <td class="DataTable2" nowrap>
+                 <a href="javascript: chgOrdSts('<%=sOrdNum%>','<%=sSts%>')"><%=sStsName%></a>
+               <span id="spStsStamp" style="display:none"><%=sStsDate%><br><%=sStsTime%><br><%=sStsUser%></span>
+            </td>
+
+            <!-- ===== in-Stock Order ===== -->
+            <th class="DataTable" nowrap>&nbsp;</th>
+
+            <td class="DataTable2"><%=sSlsper%></td>
+            <td class="DataTable2" nowrap>
+               <%if(sFup1.equals("1")){%>
+                  <%=sFup1Comm.substring(0, 10)%> <%=sFup1Date%> <%=sFup1Time%>
+                  <%if(!sFup1Comm.equals("")){%>
+                    <br><%if(sFup1Comm.length() > 50){%><%=sFup1Comm.substring(11, 50)%><%} else {%><%=sFup1Comm.substring(11)%><%}%>
+                  <%}%>
+               <%} else {%><a href="javascript: showCommtPanel(&#34;<%=sOrdNum%>&#34;, &#34;QST1&#34;)">1st Call</a><%}%>
+            </td>
+
+            <td class="DataTable2" nowrap>
+               <%if(sFup2.equals("1")){%>
+                  <%=sFup1Comm.substring(0, 10)%> <%=sFup2Date%> <%=sFup2Time%>
+                  <%if(!sFup2Comm.equals("")){%>
+                    <br><%if(sFup2Comm.length() > 50){%><%=sFup2Comm.substring(11, 50)%><%} else {%><%=sFup2Comm.substring(11)%><%}%>
+                  <%}%>
+               <%} else {%><a href="javascript: showCommtPanel(&#34;<%=sOrdNum%>&#34;, &#34;QST2&#34;)">Card/Email</a><%}%>
+            </td>
+
+            <td class="DataTable2" nowrap>
+               <%if(sFup3.equals("1")){%>|
+                  <%=sFup3Comm.substring(0, 10)%> <%=sFup3Date%> <%=sFup3Time%>
+                  <%if(!sFup3Comm.equals("")){%>
+                    <br><%if(sFup3Comm.length() > 50){%><%=sFup3Comm.substring(11, 50)%><%} else {%><%=sFup3Comm.substring(11)%><%}%>
+                  <%}%>
+               <%} else {%><a href="javascript: showCommtPanel(&#34;<%=sOrdNum%>&#34;, &#34;QST3&#34;)">Final</a><%}%>
+            </td>
+
+            <td class="DataTable2" nowrap>
+               <%if(sFup4.equals("1")){%>
+                  <%=sFup4Comm.substring(0, 10)%> <%=sFup4Date%> <%=sFup4Time%>
+               <%}%>
+            </td>
+          </tr>
+      <%}%>
+      <!----------------------------------------------------------------------->
+      <!-- Total -->
+      <!----------------------------------------------------------------------->
+      <tr class="DataTable1">
+            <td class="DataTable2" colspan=2>Total</td>
+            <td class="DataTable2" colspan=6></td>
+            <td class="DataTable4">$<%=sRepTotal%></td>
+            <td class="DataTable2" colspan=40></td>
+      </tr>
+
+      </TBODY>
+    </table>
+    <span style="width:100%;text-align:left;font-size:12px">
+      <span style="background:lightpink;">99999</span> - The buyer's Vendor Confirmation for this PO has not been entered.<br>
+    </span>
+  <!----------------------- end of table ------------------------>
+        <button onclick="history.go(-1)">Back</button>
+     </td>
+   </tr>
+
+  </table>
+ </body>
+</html>
+<%
+   ordlst.disconnect();
+}%>
+
+

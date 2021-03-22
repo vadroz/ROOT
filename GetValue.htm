@@ -1,0 +1,37 @@
+ <HEAD>
+
+<SCRIPT LANGUAGE="JavaScript">
+
+function newWindow(file,window) {
+     msgWindow=open('',window);
+     msgWindow.location.href = file;
+     if (msgWindow.opener == null) msgWindow.opener = self;
+}
+
+function MyOpenWindow() {
+  var MyURL = '/';
+  var MyWindowName = 'Test01';
+  var MyWindowOptions = 'width=600,height=250';
+  window.open(MyURL, MyWindowName, MyWindowOptions, resizable="no",menubar="no");
+}
+
+function closeWin() {
+  Test01.close();
+}
+</script>
+
+</HEAD>
+
+
+<BODY>
+<form name="entryform">
+ <p align="center">
+         <input name="code" type="text"
+               onMouseOver="newWindow('Prompt01.html','window2')"
+               onMouseOut="closeWin()">
+         <a href="Prompt01.html" target="_blank">Prompt</a>
+<br>
+<INPUT TYPE="button" VALUE="Open New Window" onClick="newWindow('Prompt01.html','window2')">
+<br><a href="javascript:MyOpenWindow();">This link opens new window</a>
+</form>
+</body>
