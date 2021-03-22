@@ -36,8 +36,8 @@ if  (session.getAttribute("USER")!=null && session.getAttribute("ECOMMERCE")!=nu
 			}
 			catch(Exception e)
 			{
+				System.out.println("Error - MozuUplPicture.jsp(load): ");
 				e.printStackTrace();
-				System.out.println("Error - MozuUplPicture.jsp(load): " + e.getMessage());
 			}
 			// remove wait to upload flag 
 			for(int i=0; i < sSeq.length; i++)		
@@ -88,8 +88,8 @@ if  (session.getAttribute("USER")!=null && session.getAttribute("ECOMMERCE")!=nu
 					sSizSep = "|";					
 				}
 			}
-			System.out.println("sClrImgMap=" + sClrImgMap);
-			System.out.println("sSizImgMap=" + sSizImgMap);
+			System.out.println("sClrImgMap=" + sClrImgMap + "| Date=" + (new Date()) + "| user=" + sUser);
+			System.out.println("sSizImgMap=" + sSizImgMap + "| Date=" + (new Date()) + "| user=" + sUser);
 			
 			CreateParent crtpar = new CreateParent(sSite);
 			System.out.println("MozuUplPicture" + sKiboProd);
@@ -112,9 +112,9 @@ if  (session.getAttribute("USER")!=null && session.getAttribute("ECOMMERCE")!=nu
 		imgsv = null;
 	} catch (Exception e)    
 	{
+		System.out.print("Error - MozuUplPicture.jsp(end):");
 		e.printStackTrace();
-		System.out.println("Error - MozuUplPicture.jsp(end): " + e.getMessage());
-		
+		System.out.println("|");
 	}
 		
 %>

@@ -1335,7 +1335,8 @@ function dltSTSHdr(ord)
              <%if(!sBillAddr1.trim().equals("")){%><%=sBillAddr1%><br><%}%>
              <%if(!sBillAddr2.trim().equals("")){%><%=sBillAddr2%><br><%}%>
              <%=sBillCity%>, <%=sBillState%>, <%=sBillZip%><br>
-             Phone: <%=sBillPhn%>, Fax: <%=sBillFax%>
+             Phone: <a href="servlet/searchcust.SrchCustPurchase?PHONE=<%=sBillPhn%>" target="_blank"><%=sBillPhn%></a>, 
+             Fax: <%=sBillFax%>
            </td>
            <th class="DataTable">&nbsp;&nbsp;</th>
            <td class="DataTable1"  colspan=2><%if(!sShipComp.trim().equals("")){%><%=sShipComp%><br><%}%>
