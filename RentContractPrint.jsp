@@ -846,7 +846,7 @@ function showSkierPanel()
         </tr>
       </table>
   </div>
-    <br>    
+    <br>   <!-- Water sport --> 
   <div id="dvWaterEq<%=i%>" style="border:none; width:100%; display:none;">
     <table class="DataTable" cellPadding="0" cellSpacing="0" id="tbWater" width="100%">
         <tr class="DataTable1">
