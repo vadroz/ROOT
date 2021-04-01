@@ -350,7 +350,7 @@ Freight Bill Report
         
         <TR>
           <TD class=DTb1 align=right >Allocation:</TD>
-          <TD><input name="Alloc" type="text" size=7 maxlength=5>
+          <TD><input name="Alloc" type="text" size=12 maxlength=10>
           </TD>
         </TR>
         

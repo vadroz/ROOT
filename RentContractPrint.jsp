@@ -237,7 +237,11 @@ function bodyLoad()
 		   var nm = "dvWaterAgr" + i;
 		   document.all[nm].style.display="block";
 		   var nm = "dvWaterEq" + i;
-		   document.all[nm].style.display="block";		   
+		   document.all[nm].style.display="block";	
+		   var nm = "dvBikeAgr" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvBikeEq" + i;
+		   document.all[nm].style.display="none";
 	   }
    }
    else if(SelGrp=="SKI" )
@@ -252,8 +256,31 @@ function bodyLoad()
 		   document.all[nm].style.display="none";
 		   var nm = "dvWaterEq" + i;
 		   document.all[nm].style.display="none";
+		   var nm = "dvBikeAgr" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvBikeEq" + i;
+		   document.all[nm].style.display="none";
 	   }
    }
+   else if(SelGrp=="BIKE" )
+   { 
+	   for(var i=0; i < NumOfSkr; i++)
+	   {		   
+		   var nm = "dvSkiAgr" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvSkiEq" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvWaterAgr" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvWaterEq" + i;
+		   document.all[nm].style.display="none";
+		   var nm = "dvBikeAgr" + i;
+		   document.all[nm].style.display="block";
+		   var nm = "dvBikeEq" + i;
+		   document.all[nm].style.display="block";
+	   }
+   }
+
 }
 //==============================================================================
 // refresh Contract
@@ -407,7 +434,11 @@ function showSkierPanel()
 
      <tr>
       <td ALIGN="center" VALIGN="TOP" nowrap>
-        <span style="font-size:30px; font-weight:bold">Snow Sports Equipment Rental / Lease</span>
+        <span style="font-size:30px; font-weight:bold">
+        <%if(sSelGrp.equals("SKI")){%>Snow Sports Equipment Rental / Lease<%} 
+        else if(sSelGrp.equals("WATER")){%>Water Sports Equipment Rental / Lease<%} 
+        else if(sSelGrp.equals("BIKE")){%>Bike Equipment Rental / Lease <%}%> 
+        </span>
       </td>
     </tr>
 
@@ -868,9 +899,34 @@ function showSkierPanel()
     	<%}%>  
     </table>
   </div>
+  
+  <div id="dvBikeEq<%=i%>" style="border:none; width:100%; display:none;">
+    <table class="DataTable" cellPadding="0" cellSpacing="0" id="tbBike" width="100%">
+        <tr class="DataTable1">
+          <th class="DataTable2">Barcode ID</th>
+          <th class="DataTable2">Description</th>
+          <th class="DataTable2">Helmets Included? &nbsp; <%=sPaddle%></th>
+    	</tr>
+    	<%for(int j=0; j < iNumOfInv; j++){%>
+    	    <%if(!sInvId[j].equals("9999999999")){%> 
+    	    <tr class="DataTable">
+    			<td class="DataTable2"><%if(sScanned[j].equals("Y")){%><%=sSrlNum[j]%>
+    				<img width=100 src="/Barcode/Rental/Inventory/<%=sInvFileNm[j]%>.png">
+    			<%} 
+                         else{%><span style="color:red;">Scan S/N at Pick Up</span><%}%></td>
+    			<td class="DataTable"><%=sDesc[j]%></td>
+    			<%if(j==0){%><td class="DataTable" style="vertical-align:top;" rowspan="<%=iNumOfInv%>"><b>Tech Signature: </b></td><%}%>
+    		</tr>
+    		<%}%>
+    	<%}%>  
+    </table>
+  </div>
+  
+  
+  
   <div style="border-width:none; text-align: center; white; 
   padding: 0px; border-spacing: 0; border-collapse: collapse; width:100%font-family:arial; font-weight:bold;">
-    AGREEMENT
+    AGREEMENT  
   </div>  
   <div id="dvSkiAgr<%=i%>" style="border-width:3px; border-style:ridge; border-color:lightgray; width:100%; font-size: 8px;font-family:arial;">
    I accept full financial responsibility for the equipment listed on this form. 
@@ -907,8 +963,6 @@ function showSkierPanel()
     <td>Date</td>
    <tr>  
    </table>
-   
-   
    
    Parent/Guardian/Agent: I verify that I am the parent, guardian, or agent of the Equipment 
    User and that I have the authority to enter into this agreement on behalf of the Equipment 
@@ -1026,34 +1080,35 @@ function showSkierPanel()
    <!-- =============== Water Agreemnet ================================================ -->
    
    <div id="dvWaterAgr<%=i%>" style="display: none; border-width:3px; border-style:ridge; border-color:lightgray; width:100%; font-size: 8px;font-family:arial;">
-  I accept full financial responsibility for the equipment listed on this form. I promise to return it clean and undamaged 
-  by the agreed Return Due Date. I fail to do so, I will pay for any late return fees, repairs, cleaning or replacement of 
-  major damages or lost rentals, at the full retail rate as determined by Sun & Ski.  If I elected the 'Damage Waiver' fees, 
-  this covers only minor breakage or damage to the equipment, and does not cover loss, misuse or abuse, theft or personal 
-  injury. I further authorize Sun & Ski Sports to charge my credit card (on file) to secure any of these additional charges, 
-  should they occur.
-  <br>
-  I understand how this equipment works and have received instructions and satisfactory answers to any questions. I agree 
-  to check this equipment before each use (including the binding anti-friction device - Alpine only); and if at any time 
-  this equipment does not seem to be working properly, I will stop using it immediately and return it for inspection and 
-  possible repair or adjustment. I understand that proper bindings settings or stance depend upon the accuracy of my 
-  statements about weight, height, age, skier type and stance on this form. I have confirmed that the binding 
-  release/retention settings or stance on this equipment correspond to those stated on this form. If this equipment is to 
-  be used by someone other than me, I certify that I am acting as agent for the user and that I will provide this form and 
-  all pertinent warnings and information to the user.
+   I accept full financial responsibility for the equipment listed on this form. 
+   I promise to return it clean and undamaged by the agreed time and date, and if I fail to 
+   do so, I will pay for its repair, cleaning or replacement at the full retail rate, as 
+   determined by the shop, as well as for the full rental value of any additional days.
+   I understand how this equipment works and have received instructions and satisfactory 
+   answers to any questions. I agree to check this equipment before each use (including the 
+   binding anti-friction device); and if at any time this equipment does not seem to be working 
+   properly, I will stop using it immediately and return it for inspection and possible repair 
+   or adjustment.
+   I understand that proper bindings settings depend upon the accuracy of my statements about
+   weight, height, age, and skier type on this form. I have confirmed that the binding 
+   release/retention settings on this equipment correspond to those stated on this form.
+   If this equipment is to be used by someone other than me, I certify that I am acting as 
+   agent for the user and that I will provide this form and all pertinent warnings and 
+   information to the user.
 <br><br>
-YOU MAY BE INJURED WHILE WATERSKIING, WAKEBOARDING, KNEEBOARDING, OR USING A STAND UP PADDLEBOARD (SUP)
+   I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THE WARNING, ASSUMPTION OF RISK, 
+   LIABILITY RELEASE, INDEMNITY AND HOLD HARMLESS AGREEMENT AND AGREEMENT NOT TO SUE AT THE 
+   BOTTOM OF THIS DOCUMENT.
 <br><br>
 
    Signature of the Equipment User: <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
       <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
    Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
    <br>
-   Parent/Guardian/Agent: I verify that I am the parent, guardian or agent of the Equipment User and that
-   I have the authority to enter into this agreement on behalf of the Equipment User and
-   I agree to be bound by the terms of the Warning, Assumption of Risk, Liability Release, Indemnity and Hold
-   Harmless Agreement and Agreement Not to Sue as stated below this document.
-
+   Parent/Guardian/Agent: I verify that I am the parent, guardian, or agent of the Equipment 
+   User and that I have the authority to enter into this agreement on behalf of the Equipment 
+   User. I agree to be bound by the terms of the Warning, Assumptions of Risk, Liability 
+   Release, Indemnity, and Hold Harmless Agreement below.
    <br><br>
    Signature of Parent/Guardian/Agent (if not an adult user) <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
@@ -1061,59 +1116,69 @@ YOU MAY BE INJURED WHILE WATERSKIING, WAKEBOARDING, KNEEBOARDING, OR USING A STA
    <br><br>
 
    <span style="border-top:black solid 1px; border-bottom:black solid 1px; font-weight:bold; width:100%;">
-   WARNING, ASSUMPTION of RISK, LIABILITY RELEASE, INDEMNITY and HOLD HARMLESS AGREEMENT and AGREEMENT NOT TO SUE
-   PLEASE READ CAREFULLY BEFORE SIGNING
+   WARNING, ASSUMPTION of RISK, LIABILITY RELEASE, INDEMNITY and HOLD HARMLESS AGREEMENT and 
+   AGREEMENT NOT TO SUE PLEASE READ CAREFULLY BEFORE SIGNING
    </span>
-
 
   <span style="font-size:8px">
       <br>
-      The performance of specialized water sports equipment (waterskis, kneeboards, wakeboards, and SUPs) 
-      may expose you to injury from impact during a fall, from falling on the equipment or from falling 
-      on your foot. Other injuries may result from specially designed bindings on this equipment which 
-      provide the improved control necessary for advanced maneuvers. Each binding is designed for certain 
-      types of participants and conditions. The high wrap and low wrap bindings offer more support and grip 
-      than do our combo bindings. Increased support and grip in these bindings may cause higher stress to 
-      your body during a fall, resulting in increased risk of serious ankle or leg injury. I understand that 
-      the bindings are designed to reduce the risk or degree of injuries. I also understand and agree that 
-      despite the fact adjustments have been made, THE BINDINGS WILL NOT RELEASE UNDER ALL CIRCUMSTANCES 
-      and there are no guarantees made for the user's safety.
+      The performance of specialized water sports equipment (waterskis, kneeboards, wakeboards, 
+      and SUPs) may expose you to injury from impact during a fall, from falling on the equipment 
+      or from falling on your foot. Other injuries may result from specially designed bindings 
+      on this equipment which provide the improved control necessary for advanced maneuvers. Each 
+      binding is designed for certain types of participants and conditions. The high wrap and low 
+      wrap bindings offer more support and grip than do our combo bindings. Increased support and 
+      grip in these bindings may cause higher stress to your body during a fall, resulting in 
+      increased risk of serious ankle or leg injury. I understand that the bindings are designed to 
+      reduce the risk or degree of injuries. I also understand and agree that despite the fact 
+      adjustments have been made, THE BINDINGS WILL NOT RELEASE UNDER ALL CIRCUMSTANCES and there 
+      are no guarantees made for the user's safety.
       <br>
       <br>
       
-      1. I understand and am aware that the use of waterskis, wakeboards, kneeboards, and SUP's are hazardous 
-      activities. I understand that watersports and the use of any waterskis, wakeboards, kneeboards, 
-      and/or SUP's involves a risk of injury to any and all parts of my body and that I am voluntarily 
-      participating in these activities with knowledge of the danger involved. 
-      <b>I hereby agree to expressly 
-      assume and accept any and all risks of injury or death to the user of the equipment and to any 
-      other person.</b> 
-      
+      1. I understand and am aware that the use of waterskis, wakeboards, kneeboards, and SUP's 
+      is a hazardous activity. I understand that watersports and the use of any waterskis, 
+      wakeboards, kneeboards, and/or SUP's involves a risk of injury to any and all parts of my 
+      body and that I am voluntarily participating in these activities with knowledge of the danger 
+      involved. <b>I hereby agree to expressly assume and accept any and all risks of injury or death 
+      to the user of the equipment and to any other person.</b>      
       <br>
       <br>
       
-      2. I agree that I will release Retail Concepts, Inc. dba Sun & Ski Sports, its owners, agents, employees and 
-      affiliated companies from any and all responsibility or liability for any injuries, any damages or 
-      death to the user of water sports equipment listed below, or any other person.
+      2. I agree that I will release Retail Concepts, Inc. dba Sun & Ski Sports, its owners, agents, 
+      employees and affiliated companies from any and all responsibility or liability for any injuries, 
+      any damages or death to the user of watersports equipment, or any other person.      
 	  <br>
       <br>
       
-      3. I agree, on behalf of myself, my assignees, heirs, next-of-kin, and executors not to make a claim 
-      against or sue Retail Concepts, Inc., its affiliates or employees for injuries or damages relating 
-      to the use of equipment. 
-      
+      3. I agree, on behalf of myself, my assignees, heirs, next-of-kin, and executors not to make 
+      a claim against or sue Retail Concepts, Inc., its affiliates or employees for injuries or 
+      damages relating to the use of equipment.      
       <br>
       <br>
       
-      4. This document is a LEGALLY BINDING CONTRACT which supersedes any other agreements by or between
-       the parties, and which constitutes the FINAL AND ENTIRE AGREEMENT regarding this transaction and this
-       equipment. This agreement is intended to provide a COMPREHENSIVE RELEASE OF ALL LEGAL LIABILITY which
-       is binding upon and for the benefit of all parties, their heirs, agents and assigns, but it is not
-       intended to assert any claims or defenses that are prohibited by law. If any part of this agreement 
-       is held to be invalid or unenforceable, the remainder shall be given full force and effect. 
-       The specific legal rights of the parties may vary among different states and provinces.
-      
+      4. This document is a <b>LEGALLY BINDING CONTRACT</b> which supersedes any other agreements 
+      by or between the parties, and which constitutes the FINAL AND ENTIRE AGREEMENT regarding this 
+      transaction and this equipment. This agreement is intended to provide a COMPREHENSIVE RELEASE 
+      OF ALL LEGAL LIABILITY which is binding upon and for the benefit of all parties, their heirs, 
+      agents and assigns, but it is not intended to assert any claims or defenses that are 
+      prohibited by law. If any part of this agreement is held to be invalid or unenforceable, 
+      the remainder shall be given full force and effect.  The specific legal rights of the parties 
+      may vary among different states and provinces.
       <br>
+      <br>
+      
+      5. The adult signing below agrees for him/herself and Minor that ALL claims arising from or 
+      related to any activity, including for injury to person or property and/or death shall be 
+      <b>GOVERNED BY TEXAS LAW, without regard to conflicts of law principles. UNDERSIGNED VOLUNTARILY 
+      AND IRREVOCABLY WAIVE ANY OBJECTION TO SUCH LAW AND JURISDICTION</b>.
+      <br>
+      <span style="border-top:black solid 1px; border-bottom:black solid 1px; font-size: 10px; font-weight:bold; width:100%;">
+      I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THIS WARNING, ASSUMPTION 
+   OF RISK, LIABILITY RELEASE, INDEMNITY AND HOLD HARMLESS AGREEMENT AND AGREEMENT NOT TO SUE. 
+   I AM AWARE THAT THIS IS A LEGALLY BINDING CONTRACT.
+      </span>
+      <br> 
       <br>      
    USER'S NAME (PRINT): <span style="text-decoration:underline;"><%for(int j=0; j < 200;j++){%>&nbsp;<%}%></span>
       <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
@@ -1126,15 +1191,147 @@ YOU MAY BE INJURED WHILE WATERSKIING, WAKEBOARDING, KNEEBOARDING, OR USING A STA
    IF MINOR(UNDER 18), PARENT/GUARDIAN MUST EXECUTE MINOR RELEASE BELOW.
    </span>
    <br>
-   PARENT/GUARDIAN: I verify that I am the parent, guardian or agent of the Equipment User and that I have the authority to enter into this agreement on behalf of the
-   Equipment User and I agree to be bound by the terms of this Warning, Assumption of Risk, Liability Release, Indemnity and Hold Harmless Agreement and Agreement Not to
-   Sue.
+     Parent/Guardian/Agent: I verify that I am the parent, guardian or agent of the Equipment  
+     User and that I have the authority to enter into this agreement on behalf of the  
+     Equipment User and I agree to be bound by the terms of this Warning, Assumption of Risk, 
+     Liability Release, Indemnity and Hold Harmless Agreement and Agreement Not to Sue.
    <br>
    <span style="border-top:black 1px solid;font-weight:bold; font-size:12px; width:100%" >
     <br>Signature of Parent/Guardian/Agent <%for(int j=0; j < 120;j++){%>&nbsp;<%}%> Date
    </span>
 
    </div>
+   
+   <!-- =============== Bike Agreemnet ================================================ -->
+   
+   <div id="dvBikeAgr<%=i%>" style="display: none; border-width:3px; border-style:ridge; border-color:lightgray; width:100%; font-size: 8px;font-family:arial;">
+   I accept full financial responsibility for the equipment listed on this form. 
+   I promise to return it clean and undamaged by the agreed time and date, and if I fail to 
+   do so, I will pay for its repair, cleaning or replacement at the full retail rate, as 
+   determined by the shop, as well as for the full rental value of any additional days.
+   I understand how this equipment works and have received instructions and satisfactory 
+   answers to any questions. I agree to check this equipment before each use (including the 
+   binding anti-friction device); and if at any time this equipment does not seem to be working 
+   properly, I will stop using it immediately and return it for inspection and possible repair 
+   or adjustment.
+   I understand that proper bindings settings depend upon the accuracy of my statements about
+   weight, height, age, and skier type on this form. I have confirmed that the binding 
+   release/retention settings on this equipment correspond to those stated on this form.
+   If this equipment is to be used by someone other than me, I certify that I am acting as 
+   agent for the user and that I will provide this form and all pertinent warnings and 
+   information to the user.
+<br><br>
+   I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THE WARNING, ASSUMPTION OF RISK, 
+   LIABILITY RELEASE, INDEMNITY AND HOLD HARMLESS AGREEMENT AND AGREEMENT NOT TO SUE AT THE 
+   BOTTOM OF THIS DOCUMENT.
+<br><br>
+
+   Signature of the Equipment User: <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br>
+   Parent/Guardian/Agent: I verify that I am the parent, guardian, or agent of the Equipment 
+   User and that I have the authority to enter into this agreement on behalf of the Equipment 
+   User. I agree to be bound by the terms of the Warning, Assumptions of Risk, Liability 
+   Release, Indemnity, and Hold Harmless Agreement below.
+
+   <br><br>
+   Signature of Parent/Guardian/Agent (if not an adult user) <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+     <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br><br>
+
+   <span style="border-top:black solid 1px; border-bottom:black solid 1px; font-weight:bold; width:100%;">
+   WARNING, ASSUMPTION of RISK, LIABILITY RELEASE, INDEMNITY and HOLD HARMLESS AGREEMENT and 
+   AGREEMENT NOT TO SUE PLEASE READ CAREFULLY BEFORE SIGNING
+   </span>
+
+  <span style="font-size:8px">
+      <br>
+      MOUNTAIN BIKING IS A DANGEROUS AND HAZARDOUS ACTIVITY WHICH CAN RESULT IN SERIOUS INJURY 
+      OR DEATH. Mountain biking is different than road biking, and may be more dangerous than 
+      road biking in that it is done on partially improved and unimproved trails and roads, as 
+      well as on naturally rugged terrain. Mountain biking involves risks, including, but not 
+      limited to, steep slopes, rocks of various sizes, trees, roots, tree stumps, cliffs, rock 
+      drops, holes and potholes, depressions, streams and creeks, dirt features and other 
+      constructed features such as bridges, ramps, ladders, bumps, berms, jumps and drops, 
+      wallrides, elevated stunts, uneven and/or slippery trail conditions, varying slopes, 
+      variations in terrain, forest growth, loose gravel and dirt, wet surfaces, downed timber, 
+      debris, collisions, other riders, hikers and pedestrians, heavy equipment and vehicles.
+      <br>
+      <br>
+      
+      1. I understand and am aware that the use of mountain bikes is a hazardous activity. 
+      I understand that mountain biking and the use of any mountain bike involves a risk of 
+      injury to any and all parts of my body and that I am voluntarily participating in these 
+      activities with knowledge of the danger involved. <b>I hereby agree to expressly assume and 
+      accept any and all risks of injury or death to the user of the equipment and to any other 
+      person.</b>     
+      <br>
+       
+      2. <b>HELMETS ARE REQUIRED</b> while riding a bike. I agree that I will wear a helmet at 
+      all times while riding and will operate the mountain bike only on marked trails or roads. 
+      I understand and agree that although I may be wearing a helmet, a helmet cannot guarantee 
+      my safety and no helmet can protect the wearer against all potential head injuries or 
+      prevent injury to the wearer's face, neck or spinal cord.     
+	  <br>
+      
+      3. I agree that I will release Retail Concepts, Inc. dba Sun & Ski Sports, its owners, 
+      agents, employees and affiliated companies from any and all responsibility or liability 
+      for any injuries, any damages or death to the user of bike equipment, or any other person. 
+      <br>
+      
+      4. I agree, on behalf of myself, my assignees, heirs, next-of-kin, and executors not to 
+      make a claim against or sue Retail Concepts, Inc., its affiliates or employees for 
+      injuries or damages relating to the use of equipment.
+      <br>
+      
+      5. This document is a <b>LEGALLY BINDING CONTRACT</b> which supersedes any other agreements by 
+      or between the parties, and which constitutes the FINAL AND ENTIRE AGREEMENT regarding 
+      this transaction and this equipment. This agreement is intended to provide a COMPREHENSIVE 
+      RELEASE OF ALL LEGAL LIABILITY which is binding upon and for the benefit of all parties, 
+      their heirs, agents and assigns, but it is not intended to assert any claims or defenses 
+      that are prohibited by law. If any part of this agreement is held to be invalid or 
+      unenforceable, the remainder shall be given full force and effect.  The specific legal 
+      rights of the parties may vary among different states and provinces.
+      <br> 
+      6. The adult signing below agrees for him/herself and Minor that ALL claims arising 
+      from or related to any activity, including for injury to person or property and/or death 
+      shall be GOVERNED BY TEXAS LAW, without regard to conflicts of law principles. 
+      <b>UNDERSIGNED VOLUNTARILY AND IRREVOCABLY WAIVE ANY OBJECTION TO SUCH LAW AND 
+      JURISDICTION.</b>
+      
+      <br>
+      <span style="border-top:black solid 1px; border-bottom:black solid 1px; font-size: 10px; font-weight:bold; width:100%;">
+      I HAVE CAREFULLY READ, UNDERSTOOD AND AGREED TO THE TERMS OF THIS WARNING, ASSUMPTION 
+   OF RISK, LIABILITY RELEASE, INDEMNITY AND HOLD HARMLESS AGREEMENT AND AGREEMENT NOT TO SUE. 
+   I AM AWARE THAT THIS IS A LEGALLY BINDING CONTRACT.
+      </span>
+      <br> 
+      <br>      
+   USER'S NAME (PRINT): <span style="text-decoration:underline;"><%for(int j=0; j < 200;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+  <br><br>
+   USER'S SIGNATURE: <span style="text-decoration:underline;"><%for(int j=0; j < 150;j++){%>&nbsp;<%}%></span>
+      <%for(int j=0; j < 20;j++){%>&nbsp;<%}%>
+   Date <span style="text-decoration:underline;"><%for(int j=0; j < 50;j++){%>&nbsp;<%}%></span> &nbsp;
+   <br>
+   <span style="font-weight:bold; font-size:12px; text-align:center; width:100%">
+   IF MINOR(UNDER 18), PARENT/GUARDIAN MUST EXECUTE MINOR RELEASE BELOW.
+   </span>
+   <br>
+   Parent/Guardian/Agent: I verify that I am the parent, guardian or agent of the Equipment  
+     User and that I have the authority to enter into this agreement on behalf of the  
+     Equipment User and I agree to be bound by the terms of this Warning, Assumption of Risk, 
+     Liability Release, Indemnity and Hold Harmless Agreement and Agreement Not to Sue.
+   <br>
+   <span style="border-top:black 1px solid;font-weight:bold; font-size:12px; width:100%" >
+    <br>Signature of Parent/Guardian/Agent <%for(int j=0; j < 120;j++){%>&nbsp;<%}%> Date
+   </span>
+
+   </div>
+   
+   
    
    
    

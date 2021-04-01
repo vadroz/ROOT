@@ -1,7 +1,7 @@
 <%@ page import="posend.POWorkSheetList,java.util.*, posend.POUplDocSv,rciutility.SendMail
 , java.util.*, java.io.*, rciutility.RunSQLStmt, java.sql.*"%>
 <%
-   String [] sParam = new String[10];
+   String [] sParam = new String[11];
    String sPoNum = null;
    String sStr = null;
    String sExtension = null;
@@ -9,10 +9,12 @@
    String sEmp = null;
    String sNumCtn = null;
    String sNumUnt = null;
+   String sInvNum = null;
    String sCommt = null;
    String sFileOut = null;
    
    if(sNumUnt == null || sNumUnt.equals("")){sNumUnt = "0";}
+   if(sInvNum == null || sInvNum.equals("")){sInvNum = " ";}
 
    String sFileName = null;
    File fTo = null;
@@ -59,8 +61,8 @@
         int pos;
         pos = file.indexOf("filename=\"");
         // parse file extenstion -.doc, .pfd, e.t.c.
-        sParam[9] = file.substring(pos + 10, file.indexOf("\n", pos) - 2);
-        sParam[9] = sParam[9].substring(sParam[9].lastIndexOf("\\")+1);
+        sParam[10] = file.substring(pos + 10, file.indexOf("\n", pos) - 2);
+        sParam[10] = sParam[10].substring(sParam[10].lastIndexOf("\\")+1);
         //sParam[9] =  sParam[9].substring(sParam[9].lastIndexOf('.')+1);
 
         pos = file.indexOf("\n", pos) + 1;
@@ -69,12 +71,13 @@
 
         sPoNum = sParam[3].trim().substring(0, sParam[3].trim().lastIndexOf("|"));
         sStr = sParam[3].trim().substring(sParam[3].trim().lastIndexOf("|") + 1);
-        sExtension = sParam[9].trim().substring(sParam[9].trim().lastIndexOf(".") + 1);
+        sExtension = sParam[10].trim().substring(sParam[10].trim().lastIndexOf(".") + 1);
         sRcvDt = sParam[1].trim();
         sEmp = sParam[5].trim();
         sNumCtn = sParam[6].trim();
         sNumUnt = sParam[7].trim();
-        sCommt = sParam[8].trim();
+        sInvNum = sParam[8].trim();
+        sCommt = sParam[9].trim();
         
         // find start and end position of file data
         int boundaryLocation = file.indexOf(boundary, pos) - 4;
@@ -88,12 +91,14 @@
       
         // save next sequence for PO document in RCI/PODOCL
         POUplDocSv poupldoc = new POUplDocSv();
-        poupldoc.savePODoc(sPoNum, sExtension, sRcvDt, sEmp, sNumCtn, sNumUnt, sCommt, sUser);
+        poupldoc.savePODoc(sPoNum, sExtension, sRcvDt, sEmp, sNumCtn, sNumUnt, sInvNum, sCommt, sUser);
         String sSeq = poupldoc.getSeq();
         
         sFileName = "PO" + sPoNum + "_" + sSeq.trim() + "." + sExtension;
         
         sFileOut = "C:/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/ROOT/PO_Pack_List/" + sFileName;
+       
+        System.out.println("File=" + sFileOut);
         
         fTo = new File(sFileOut);
         fTo.createNewFile();
@@ -158,6 +163,8 @@
 
         polist.disconnect();
         
+        
+        
         msg += "<table>"
           + "<tr><td>PO:</td><td><b>" + sPoNum + "</b></td>"
           + "<tr><td>Received Date:</td><td><b>" + sRcvDt + "</b></td>"
@@ -168,17 +175,27 @@
          + "</table>"		
         ;		
                
-         
-        SendMail sndmail = new SendMail();   
-        if(sStr.length() == 1){ sStr = "0" + sStr; }
-        String sFrAddr = "store" + sStr + "@sunandski.com";
-        String sToAddr = "inventorycontrol@sunandski.com" + ",csmith@sunandski.com";
-        //String sToAddr = "vrozen@sunandski.com";
+        // No mail for Invice
+        if(sInvNum.trim().equals(""))
+        {
         
-        sndmail.sendWithAttachments(sFrAddr, sToAddr, null, null
-        , "PO: " + sPoNum + " - Vendor Packing List was added."
-        , msg
-        , new String[]{sFileOut});        
+        	try {
+        		SendMail sndmail = new SendMail();   
+        		if(sStr.length() == 1){ sStr = "0" + sStr; }
+        		String sFrAddr = "store" + sStr + "@sunandski.com";
+        		String sToAddr = "inventorycontrol@sunandski.com" + ",csmith@sunandski.com";
+        		
+        		sndmail.sendWithAttachments(sFrAddr, sToAddr, null, null
+        		, "PO: " + sPoNum + " - Vendor Packing List was added."
+        		, msg
+        		, new String[]{sFileOut});
+        	}
+        	catch(Exception e ) 
+        	{
+        		
+        		e.printStackTrace();
+        	}
+        }
     }  
 %>
 <br>

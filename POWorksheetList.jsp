@@ -1069,7 +1069,7 @@ function addDoc(po, str, asn, asndt, asnshp, asnrcv)
 {
 	var html = "<table class='DataTable'>"
 	      + "<tr>"
-	       + "<td class='BoxName' nowrap>Add Vendor Packing List</td>"
+	       + "<td class='BoxName' nowrap>Add Vendor Packing List or Invoice</td>"
 	       + "<td class='BoxClose' valign=top>"
 	         +  "<img src='CloseButton.bmp' onclick='javascript:hidePanel();' alt='Close'>"
 	       + "</td>"
@@ -1134,6 +1134,11 @@ function popAddDocPanel(po, str, asn, asndt, asnshp, asnrcv)
 	             + "<tr>" 
 	              + "<td nowrap>Total Units Received:</td>" 	               
 	              + "<td><input class='Small' name='NumUnt' maxlength=3 size=3></td>"
+	             + "</tr>"
+	             
+	             + "<tr>" 
+	              + "<td nowrap>Invoice Number:</td>" 	               
+	              + "<td><input class='Small' name='InvNum' maxlength=20 size=22></td>"
 	             + "</tr>"
 		         
 	             + "<tr>"
@@ -1202,8 +1207,9 @@ function vldUpload(saveDoc)
 	// save document
 	if(saveDoc)
 	{	
+		var inv = document.all.InvNum.value.trim();
 		var ctn = document.all.NumCtn.value.trim();
-		if(ctn == ""){ error=true;  msg += br + "Please enter Number of Cartons you received."; br="<br>";}
+		if(ctn == "" && inv == ""){ error=true;  msg += br + "Please enter Number of Cartons you received."; br="<br>";}
 		else if(isNaN(ctn)){ error=true; msg += br + "Please enter valid number into Number of Cartons."; br="<br>";}
 	
 		var unit = document.all.NumUnt.value.trim();
@@ -1211,6 +1217,9 @@ function vldUpload(saveDoc)
 	
 		var doc = document.Upload.Doc.value;
 		if(doc == ""){ error=true; msg += br + "Please enter path to uploading document."; br="<br>";}
+		
+		
+		if(inv != "" && (ctn != "" || unit != "") ){ error=true; msg += br + "Specify Invoice or Cartons/Units received, but not both."; br="<br>";}
 	}
 	// save comment only
 	else
@@ -1453,7 +1462,7 @@ function hidePanel2()
            <th class="DataTable"><a href="javascript: sbmSort('STR')">Str</a></th>           
            <th class="DataTable"><a href="javascript: sbmSort('PON')">P.O.<br>Number</a></th>
            <th class="DataTable"><a href="javascript: sbmSort('VEN')">Vendor</a></th>
-           <th class="DataTable">Vendor<br>Packing<br>List</th>
+           <th class="DataTable">Vendor<br>Packing<br>List<br>or Invoice</th>
            <th class="DataTable">EDI</th>           
            <th class="DataTable">ASN is Ready<br><a href="javascript: sbmSort('ASNDT')">Shipment Date</a></th>
            <%if(!sToDate.equals("TODAY")){%>
@@ -1618,7 +1627,7 @@ function hidePanel2()
             <td class="DataTable1" id='tdPo<%=sPo%>' rowspan=<%=irow%> nowrap>
                 <a href="javascript: addDoc('<%=sPo%>', '<%=sStr%>', [<%=sAsnJsa%>], [<%=sAsnDtJsa%>], [<%=sAsnShpQtyJsa%>], [<%=sAsnRcvQtyJsa%>] )">Add</a>&nbsp;&nbsp;
                 <%if(!sNumDoc.equals("")){%>
-                	<a href="javascript: rtvDoc('<%=sPo%>','<%=sStr%>')">P/L(<%=sNumDoc%>)</a>&nbsp;&nbsp;
+                	<a href="javascript: rtvDoc('<%=sPo%>','<%=sStr%>')">Doc(<%=sNumDoc%>)</a>&nbsp;&nbsp;
                 <%}%>
             </td>
             <td class="DataTable" rowspan=<%=irow%> style="<%if(sIsEdi.equals("Y")){%>background:yellow; font-weight:bold;<%}%>" nowrap><%=sIsEdi%></td>
